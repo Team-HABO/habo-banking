@@ -1,0 +1,28 @@
+{
+  "name": "habo-banking",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"No tests specified\"",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Team-HABO/habo-banking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Team-HABO/habo-banking/issues"
+  },
+  "homepage": "https://github.com/Team-HABO/habo-banking#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
