@@ -10,7 +10,8 @@
     "package-lock.json",
     "megalinter-reports",
     ".megalinter.yml",
-    ".github/workflows/mega-linter.yml"
+    ".github/workflows/mega-linter.yml",
+    ".gitignore"
   ],
   "words": ["habo"]
 }
