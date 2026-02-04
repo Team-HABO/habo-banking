@@ -1,2 +1,4 @@
+echo "RUNNING SPELL CHECKER (Install with: npm install -g cspell@latest)"
+cspell .
 
 echo "RUNNING HUSKY PRE-COMMIT"
