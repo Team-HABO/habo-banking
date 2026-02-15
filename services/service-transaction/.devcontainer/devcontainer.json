@@ -1,0 +1,36 @@
+{
+	"name": "Transaction Service",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "node",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"streetsidesoftware.code-spell-checker",
+				"aaron-bond.better-comments",
+				"usernamehw.errorlens",
+				"deinsoftware.vitest-snippets",
+				"vitest.explorer",
+				"yoavbls.pretty-ts-errors",
+				"prisma.prisma",
+				"esbenp.prettier-vscode",
+				"cweijan.dbclient-jdbc",
+				"cweijan.vscode-database-client2"
+			]
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils": {
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"installOhMyZshConfig": true,
+			"configureZshAsDefaultShell": true
+		},
+		"ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
+			"plugins": "zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting",
+			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions.git https://github.com/zsh-users/zsh-syntax-highlighting.git https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+		}
+	},
+	"forwardPorts": [5432, 5050, 5672, 5051]
+}

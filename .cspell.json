@@ -11,7 +11,10 @@
     "megalinter-reports",
     ".megalinter.yml",
     ".github/workflows/mega-linter.yml",
-    ".gitignore"
+    ".gitignore",
+    "**/.devcontainer/**",
+    "**/Dockerfile",
+    "**/docs/architecture"
   ],
   "words": ["habo"]
 }

@@ -1,4 +1,8 @@
 echo "RUNNING SPELL CHECKER (Install with: npm install -g cspell@latest)"
 cspell .
 
+echo "RUNNING LINTERS"
+# service-transaction
+npx eslint services/service-transaction
+
 echo "RUNNING HUSKY PRE-COMMIT"
