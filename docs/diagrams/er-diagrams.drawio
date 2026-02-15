@@ -427,7 +427,7 @@
                         <mxRectangle width="120" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="uKtBDYd2UjgJHRGju86z-103" value="Balance Database" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
+                <mxCell id="uKtBDYd2UjgJHRGju86z-103" value="Transaction Database" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="700" y="860" width="120" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="uKtBDYd2UjgJHRGju86z-104" value="" style="edgeStyle=entityRelationEdgeStyle;fontSize=12;html=1;endArrow=ERzeroToOne;startArrow=ERmandOne;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="uKtBDYd2UjgJHRGju86z-5" target="uKtBDYd2UjgJHRGju86z-18" edge="1">
