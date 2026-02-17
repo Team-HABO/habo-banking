@@ -19,7 +19,12 @@
 **/node_modules
 **/npm-debug.log
 **/obj
+**/TestResults
 **/secrets.dev.yaml
+**/*secrets*.json
+**/*.Secret.json
+**/*.pfx
+**/*.snk
 **/values.dev.yaml
 LICENSE
 README.md

@@ -1,0 +1,16 @@
+bin/
+obj/
+*.user
+*.rsuser
+*.suo
+*.pfx
+*.snk
+.vs/
+.git/
+.env
+**/secrets.json
+**/*.Secret.json
+**/*secrets*.json
+Dockerfile
+**/node_modules/
+**/TestResults/
