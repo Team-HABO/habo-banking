@@ -12,8 +12,10 @@
     ".megalinter.yml",
     ".github/workflows/mega-linter.yml",
     ".gitignore",
-    "docs/diagrams/**",
-    "docs/architecture/**"
+    "**/.devcontainer/**",
+    "**/Dockerfile",
+    "**/docs/architecture",
+    "**/docs/diagrams"
   ],
   "words": ["habo"]
 }
