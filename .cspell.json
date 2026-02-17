@@ -14,7 +14,8 @@
     ".gitignore",
     "**/.devcontainer/**",
     "**/Dockerfile",
-    "**/docs/architecture"
+    "**/docs/architecture",
+    "**/docs/diagrams"
   ],
   "words": ["habo"]
 }
