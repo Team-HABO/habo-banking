@@ -1,0 +1,13 @@
+services:
+  service-auth:
+    container_name: service-auth
+    build:
+      context: ./service-auth
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_URLS=http://+:${AuthServicePort}
+    ports:
+      - "${AuthServicePort}:${AuthServicePort}"
+    restart: unless-stopped
