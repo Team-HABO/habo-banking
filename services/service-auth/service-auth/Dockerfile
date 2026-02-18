@@ -8,7 +8,11 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["service-auth.csproj", "./"]
 RUN dotnet restore "./service-auth.csproj"
-COPY . .
+COPY ["Program.cs", "./"]
+COPY ["appsettings.json", "./"]
+COPY ["appsettings.Development.json", "./"]
+COPY ["Controllers/", "./Controllers/"]
+COPY ["Properties/", "./Properties/"]
 WORKDIR "/src"
 RUN dotnet build "./service-auth.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
