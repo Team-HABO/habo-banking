@@ -14,6 +14,5 @@ obj/
 **/secrets.json
 **/*.Secret.json
 **/*secrets*.json
-Dockerfile
 **/node_modules/
 **/TestResults/

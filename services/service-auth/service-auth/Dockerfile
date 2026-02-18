@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER root
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends curl \
+	&& apt-get install -y --no-install-recommends curl=7.* \
 	&& rm -rf /var/lib/apt/lists/*
 USER app
 WORKDIR /app
@@ -29,4 +29,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 USER app
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD ["curl", "--fail", "--silent", "--show-error", "--output", "/dev/null", "http://127.0.0.1:8080/health"]
 ENTRYPOINT ["dotnet", "service-auth.dll"]

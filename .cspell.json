@@ -15,8 +15,7 @@
     "**/.devcontainer/**",
     "**/Dockerfile",
     "**/docs/architecture",
-    "**/docs/diagrams",
-    "package-lock.json"
+    "**/docs/diagrams"
   ],
   "words": [
     "habo",
