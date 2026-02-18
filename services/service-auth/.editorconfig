@@ -277,4 +277,4 @@ dotnet_diagnostic.IDE0301.severity = warning # Use collection expression for emp
 dotnet_diagnostic.IDE2000.severity = warning # Avoid multiple blank lines
 dotnet_diagnostic.IDE2002.severity = warning # Consecutive braces must not have blank line between them
 
-dotnet_diagnostic.IDE0290.severity = none # Dont use primary constructors
+dotnet_diagnostic.IDE0290.severity = none # Do not use primary constructors

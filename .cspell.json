@@ -15,7 +15,18 @@
     "**/.devcontainer/**",
     "**/Dockerfile",
     "**/docs/architecture",
-    "**/docs/diagrams"
+    "**/docs/diagrams",
+    "package-lock.json"
   ],
-  "words": ["habo"]
+  "words": [
+    "habo",
+    "ASPNETCORE",
+    "accessibilities",
+    "appsettings",
+    "azds",
+    "dbmdl",
+    "nameof",
+    "rsuser",
+    "toolstarget"
+  ]
 }
