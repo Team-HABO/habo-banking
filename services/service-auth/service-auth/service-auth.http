@@ -1,6 +1,0 @@
-@service_auth_HostAddress = https://localhost:7153
-
-GET {{service_auth_HostAddress}}/api/auth
-Accept: application/json
-
-###
