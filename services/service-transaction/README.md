@@ -15,49 +15,7 @@ A microservice for handling events using RabbitMQ message queue.
 
 ## Installation
 
-1. Run `SHIFT + CTRL + P` (`SHIFT + CMD + P` in MacOS) and type `>Dev Containers: Rebuild and Reopen in Container`
-2. Once inside the container, run `npm install` to install npm dependencies.
+1. Setup `.env` in `.devcontainer` directory.
+2. Run `SHIFT + CTRL + P` (`SHIFT + CMD + P` in MacOS) and type `>Dev Containers: Rebuild and Reopen in Container`.
+3. Once inside the container, run `npm install` to install npm dependencies.
 
-## Configuration
-
-The service connects to RabbitMQ using the default configuration:
-
-- **Host**: `rabbitmq` (Not 'localhost', since we are running inside a Dev Container)
-- **Queue**: `hello-queue`
-- **Protocol**: AMQP
-
-Connection settings should not be modified for this application to run in a Dev Container. Nevertheless, to modify the connection settings, update [src/utils/RabbitMQ.ts](src/utils/RabbitMQ.ts).
-
-## Usage
-
-### Running the Producer
-
-Send a message to the queue:
-
-```bash
-npm run produce
-```
-
-Output:
-
-```bash
-RabbitMQ connected and channel created successfully.
-[X] Sent { message: 'Hello World!' }
-RabbitMQ connection closed.
-```
-
-### Running the Consumer
-
-In a separate terminal, listen for messages from the queue:
-
-```bash
-npm run consume
-```
-
-Output:
-
-```bash
-RabbitMQ connected and channel created successfully.
- [x] Received:  { message: 'Hello World!' }
- [x] Processing { message: 'Hello World!' }
-```

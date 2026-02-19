@@ -64,7 +64,7 @@ model TransactionAudit {
 
 model TransactionType {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
 
   transactions TransactionAudit[]
 
