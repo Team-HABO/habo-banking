@@ -16,7 +16,7 @@ A microservice for handling events using RabbitMQ message queue.
 ## Installation
 
 1. Run `SHIFT + CTRL + P` (`SHIFT + CMD + P` in MacOS) and type `>Dev Containers: Rebuild and Reopen in Container`
-2. Once inside the container, run `npm install` to install node dependencies.
+2. Once inside the container, run `npm install` to install npm dependencies.
 
 ## Configuration
 

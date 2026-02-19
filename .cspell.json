@@ -17,5 +17,5 @@
     "**/docs/architecture",
     "**/docs/diagrams"
   ],
-  "words": ["habo"]
+  "words": ["habo", "autoincrement"]
 }

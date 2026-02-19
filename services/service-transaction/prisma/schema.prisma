@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Balance {
+  id          Int    @id @default(autoincrement())
+  ownerId     String @unique
+  accountGuid String @unique
+
+  balanceDetails       BalanceDetail[]
+  deletedBalances      DeletedBalance[]
+  sentTransactions     TransactionAudit[] @relation("SenderBalance")
+  receivedTransactions TransactionAudit[] @relation("ReceiverBalance")
+
+  @@map("balances")
+}
+
+model BalanceDetail {
+  id        Int      @id @default(autoincrement())
+  balanceId Int
+  amount    String
+  createdAt DateTime @default(now())
+
+  balance Balance @relation(fields: [balanceId], references: [id])
+
+  @@map("balance_details")
+}
+
+model DeletedBalance {
+  id        Int      @id @default(autoincrement())
+  balanceId Int
+  createdAt DateTime @default(now())
+
+  balance Balance @relation(fields: [balanceId], references: [id])
+
+  @@map("deleted_balances")
+}
+
+model TransactionAudit {
+  id                Int      @id @default(autoincrement())
+  senderBalanceId   Int
+  receiverBalanceId Int
+  amount            String
+  typeId            Int
+  createdAt         DateTime @default(now())
+
+  senderBalance   Balance         @relation("SenderBalance", fields: [senderBalanceId], references: [id])
+  receiverBalance Balance         @relation("ReceiverBalance", fields: [receiverBalanceId], references: [id])
+  type            TransactionType @relation(fields: [typeId], references: [id])
+
+  @@map("transaction_audits")
+}
+
+model TransactionType {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  transactions TransactionAudit[]
+
+  @@map("transaction_types")
+}
