@@ -18,4 +18,4 @@ A microservice for handling events using RabbitMQ message queue.
 1. Setup `.env` in `.devcontainer` directory.
 2. Run `SHIFT + CTRL + P` (`SHIFT + CMD + P` in MacOS) and type `>Dev Containers: Rebuild and Reopen in Container`.
 3. Once inside the container, run `npm install` to install npm dependencies.
-
+4. Run `npx prisma generate` to generate Prisma Client.

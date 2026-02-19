@@ -28,7 +28,7 @@ npx prisma migrate status
 **Client Generation:**
 
 ```bash
-# Generate Prisma Client after schema changes
+# Generate Prisma Client when initializing project first time or after schema changes 
 npx prisma generate
 ```
 
