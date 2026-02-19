@@ -29,17 +29,17 @@ async function main() {
 		}
 	});
 	await prisma.transactionType.upsert({
-		where: { name: "RECEIVE" },
-		update: {},
-		create: {
-			name: "RECEIVE"
-		}
-	});
-	await prisma.transactionType.upsert({
 		where: { name: "P2P_RECEIVE" },
 		update: {},
 		create: {
 			name: "P2P_RECEIVE"
+		}
+	});
+	await prisma.transactionType.upsert({
+		where: { name: "PAYMENT" },
+		update: {},
+		create: {
+			name: "PAYMENT"
 		}
 	});
 }
