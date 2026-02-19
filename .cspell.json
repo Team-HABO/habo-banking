@@ -15,7 +15,8 @@
     "**/.devcontainer/**",
     "**/Dockerfile",
     "**/docs/architecture",
-    "**/docs/diagrams"
+    "**/docs/diagrams",
+    "services/service-transaction/**/prisma/**"
   ],
   "words": ["habo", "autoincrement"]
 }
