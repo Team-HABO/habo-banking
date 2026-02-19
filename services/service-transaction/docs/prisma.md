@@ -63,6 +63,6 @@ npx prisma db pull
 
 Ensure `DATABASE_URL` is set in your `.env` file:
 
-```
+```bash
 DATABASE_URL="postgresql://USER:PASSWORD@postgres:5432/DATABASE"
 ```
