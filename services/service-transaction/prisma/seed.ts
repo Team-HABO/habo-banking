@@ -29,10 +29,10 @@ async function main() {
 		}
 	});
 	await prisma.transactionType.upsert({
-		where: { name: "RECIEVE" },
+		where: { name: "RECEIVE" },
 		update: {},
 		create: {
-			name: "RECIEVE"
+			name: "RECEIVE"
 		}
 	});
 	await prisma.transactionType.upsert({
