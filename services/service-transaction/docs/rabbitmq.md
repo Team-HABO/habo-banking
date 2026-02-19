@@ -8,7 +8,7 @@ The service connects to RabbitMQ using the default configuration:
 - **Queue**: `hello-queue`
 - **Protocol**: AMQP
 
-Connection settings should not be modified for this application to run in a Dev Container. Nevertheless, to modify the connection settings, update [src/utils/RabbitMQ.ts](src/utils/RabbitMQ.ts).
+Connection settings should not be modified for this application to run in a Dev Container. Nevertheless, to modify the connection settings, update [src/RabbitMQ.ts](src/RabbitMQ.ts).
 
 ## Usage
 
