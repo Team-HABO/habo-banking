@@ -17,5 +17,15 @@
     "**/docs/architecture",
     "**/docs/diagrams"
   ],
-  "words": ["habo"]
+  "words": [
+    "habo",
+    "ASPNETCORE",
+    "accessibilities",
+    "appsettings",
+    "azds",
+    "dbmdl",
+    "nameof",
+    "rsuser",
+    "toolstarget"
+  ]
 }
