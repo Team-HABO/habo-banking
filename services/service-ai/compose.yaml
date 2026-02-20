@@ -1,0 +1,7 @@
+﻿services:
+  service-ai:
+    image: service-ai
+    build:
+      context: .
+      dockerfile: Dockerfile
+
