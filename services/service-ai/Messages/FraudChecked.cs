@@ -1,6 +1,6 @@
 ﻿namespace service_ai.Messages;
 
-public record AiProcessResponse
+public record FraudChecked
 {
     public Guid RequestId { get; init; }
     public bool IsFraud { get; init; }

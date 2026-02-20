@@ -1,6 +1,6 @@
 ﻿namespace service_ai.Messages;
 
-public record AiProcessRequest
+public record CheckFraud
 {
     public Guid Id { get; init; }
     public string SenderAccount { get; init; } = string.Empty;

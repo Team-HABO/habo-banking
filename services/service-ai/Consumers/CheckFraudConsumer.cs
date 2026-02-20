@@ -4,11 +4,11 @@ using service_ai.Services;
 
 namespace service_ai.Consumers;
 
-public class AiProcessRequestConsumer(
-    ILogger<AiProcessRequestConsumer> logger,
-    IOpenRouterService openRouterService) : IConsumer<AiProcessRequest>
+public class CheckFraudConsumer(
+    ILogger<CheckFraudConsumer> logger,
+    IOpenRouterService openRouterService) : IConsumer<CheckFraud>
 {
-    public async Task Consume(ConsumeContext<AiProcessRequest> context)
+    public async Task Consume(ConsumeContext<CheckFraud> context)
     {
         var request = context.Message;
         logger.LogInformation("Received fraud check request {Id} for {Amount} {Currency}",
@@ -26,7 +26,7 @@ public class AiProcessRequestConsumer(
             await openRouterService.SendPromptAsync(prompt, context.CancellationToken);
 
         // Publish response back to bus
-        await context.Publish(new AiProcessResponse
+        await context.Publish(new FraudChecked
         {
             RequestId = request.Id,
             IsFraud = result.IsFraud,

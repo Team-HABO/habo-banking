@@ -19,7 +19,8 @@ builder.Services.AddHttpClient<IOpenRouterService, OpenRouterService>();
 builder.Services.AddMassTransit(config =>
 {
     // Register consumer - MassTransit uses this to know what messages to subscribe to
-    config.AddConsumer<AiProcessRequestConsumer>();
+    config.AddConsumer<CheckFraudConsumer>();
+    config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>
         {

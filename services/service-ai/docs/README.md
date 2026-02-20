@@ -10,7 +10,7 @@ Fraud detection microservice for the Habo Banking platform. Consumes transaction
 Transaction Service ──► RabbitMQ ──► Service AI ──► OpenRouter API
                                          │
                                          ▼
-                                      RabbitMQ (AiProcessResponse)
+                                      RabbitMQ (FraudChecked)
 ```
 
 ## Risk Heuristics
@@ -22,7 +22,7 @@ The AI model flags transactions matching these rules:
 
 ## Messages
 
-### AiProcessRequest (consumed)
+### CheckFraud (consumed)
 
 | Field             | Type      |
 |-------------------|-----------|
@@ -33,7 +33,7 @@ The AI model flags transactions matching these rules:
 | `Currency`        | `string`  |
 | `OriginIpAddress`  | `string`  |
 
-### AiProcessResponse (published)
+### FraudChecked (published)
 
 | Field       | Type     |
 |-------------|----------|
@@ -66,12 +66,12 @@ dotnet run
 ## Testing via RabbitMQ UI
 
 1. Open `http://localhost:15672` (login `guest`/`guest`).
-2. Go to **Queues** → find the `AiProcessRequest` queue → **Publish message**.
+2. Go to **Queues** → find the `check-fraud` queue → **Publish message**.
 3. Paste a test payload:
 
 ```json
 {
-  "messageType": ["urn:message:service_ai.Messages:AiProcessRequest"],
+  "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
   "message": {
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "senderAccount": "DK1234567890",
@@ -97,10 +97,10 @@ dotnet run
 ```
 service-ai/
 ├── Consumers/
-│   └── AiProcessRequestConsumer.cs   # Consumes requests, builds prompt, calls AI
+│   └── CheckFraudConsumer.cs         # Consumes requests, builds prompt, calls AI
 ├── Messages/
-│   ├── AiProcessRequest.cs           # Input message
-│   └── AiProcessResponse.cs          # Output message
+│   ├── CheckFraud.cs                 # Input message (command)
+│   └── FraudChecked.cs               # Output message (event)
 ├── Models/
 │   └── FraudCheckResult.cs           # AI response DTO
 ├── Services/
