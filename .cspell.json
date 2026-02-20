@@ -18,5 +18,16 @@
     "**/docs/diagrams",
     "services/service-transaction/**/prisma/**"
   ],
-  "words": ["habo", "autoincrement"]
+  "words": [
+    "habo",
+    "autoincrement",
+    "ASPNETCORE",
+    "accessibilities",
+    "appsettings",
+    "azds",
+    "dbmdl",
+    "nameof",
+    "rsuser",
+    "toolstarget"
+  ]
 }
