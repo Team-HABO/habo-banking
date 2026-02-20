@@ -1,6 +1,7 @@
 using MassTransit;
 using Serilog;
 using service_ai.Consumers;
+using service_ai.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -11,6 +12,8 @@ builder.Services.AddSerilog(new LoggerConfiguration()
     .WriteTo.File("logs/.log", rollingInterval: RollingInterval.Day)
     .CreateLogger());
 
+// Register OpenRouter AI service
+builder.Services.AddHttpClient<IOpenRouterService, OpenRouterService>();
 
 // Configure MassTransit - Message Bus library
 builder.Services.AddMassTransit(config =>

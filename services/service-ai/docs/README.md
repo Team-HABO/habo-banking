@@ -1,194 +1,112 @@
-﻿# Service AI - Documentation
+﻿# Service AI
 
-## Overview
+Fraud detection microservice for the Habo Banking platform. Consumes transaction metadata from RabbitMQ, sends it to an AI model via the **OpenRouter API**, and publishes a fraud risk assessment.
 
-Service AI is a message-driven microservice that processes AI requests through a RabbitMQ message bus. It uses **MassTransit** as the message bus library and **Serilog** for structured logging.
+**Stack:** .NET 9 · MassTransit · RabbitMQ · Serilog · OpenRouter
 
-### Current Architecture (Basic Setup)
+## Architecture
 
 ```
-┌─────────────────┐
-│   Other Service │
-└────────┬────────┘
-         │
-    Publishes AiProcessRequest
-         │
-         ▼
-┌──────────────────┐
-│    RabbitMQ      │
-└────────┬─────────┘
-         │
-    Subscribes to AiProcessRequest
-         │
-         ▼
-┌──────────────────────────────────┐
-│  Service AI                      │
-│  AiProcessRequestConsumer        │
-│  - Receives request              │
-│  - Processes payload             │
-│  - Publishes AiProcessResponse   │
-└──────────────────────────────────┘
-         │
-    Publishes AiProcessResponse
-         │
-         ▼
-┌──────────────────┐
-│    RabbitMQ      │
-└──────────────────┘
+Transaction Service ──► RabbitMQ ──► Service AI ──► OpenRouter API
+                                         │
+                                         ▼
+                                      RabbitMQ (AiProcessResponse)
 ```
 
-## Message Types
+## Risk Heuristics
 
-### AiProcessRequest (Input)
-Consumed by the service. Structure:
-```csharp
-{
-    Id: Guid,
-    Payload: string
-}
-```
+The AI model flags transactions matching these rules:
 
-### AiProcessResponse (Output)
-Published by the service. Structure:
-```csharp
-{
-    RequestId: Guid,
-    Result: string
-}
+1. **Threshold Violation** — Amount exceeds 10,000 (any currency).
+2. **Geographical Risk** — Origin IP address is from India.
+
+## Messages
+
+### AiProcessRequest (consumed)
+
+| Field             | Type      |
+|-------------------|-----------|
+| `Id`              | `Guid`    |
+| `SenderAccount`   | `string`  |
+| `ReceiverAccount`  | `string`  |
+| `Amount`          | `decimal` |
+| `Currency`        | `string`  |
+| `OriginIpAddress`  | `string`  |
+
+### AiProcessResponse (published)
+
+| Field       | Type     |
+|-------------|----------|
+| `RequestId` | `Guid`   |
+| `IsFraud`   | `bool`   |
+| `Reason`    | `string` |
+| `RiskScore` | `double` |
+
+## Configuration
+
+Set the following in `appsettings.json` (or environment/user-secrets):
+
+| Key                  | Description             |
+|----------------------|-------------------------|
+| `OpenRouter:ApiKey`  | OpenRouter API key      |
+| `OpenRouter:Model`   | Model identifier        |
+
+RabbitMQ defaults to `localhost` with `guest`/`guest` (see `Program.cs`).
+
+## Running
+
+```bash
+# Start RabbitMQ
+docker compose up -d
+
+# Run the service
+dotnet run
 ```
 
 ## Testing via RabbitMQ UI
 
-### Prerequisites
-- RabbitMQ running (accessible at `http://localhost:15672`)
-- Service AI running
-- Default credentials: `guest` / `guest`
-
-### Steps to Test
-
-1. **Access RabbitMQ Management UI**
-   - Open browser and navigate to: `http://localhost:15672`
-   - Login with `guest` / `guest`
-
-2. **Navigate to Queues**
-   - Click on the **"Queues"** tab
-
-3. **Find the Service AI Queue**
-   - Look for a queue named: `service_ai.Messages:AiProcessRequest` (or similar format based on MassTransit configuration)
-   - Click on it to open the queue details
-
-4. **Publish a Test Message**
-   - Scroll to **"Publish message"** section
-   - Set **Payload** to the following JSON:
+1. Open `http://localhost:15672` (login `guest`/`guest`).
+2. Go to **Queues** → find the `AiProcessRequest` queue → **Publish message**.
+3. Paste a test payload:
 
 ```json
 {
   "messageType": ["urn:message:service_ai.Messages:AiProcessRequest"],
   "message": {
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "payload": "hello world"
+    "senderAccount": "DK1234567890",
+    "receiverAccount": "DK0987654321",
+    "amount": 15000.00,
+    "currency": "DKK",
+    "originIpAddress": "185.93.2.100"
   }
 }
 ```
 
-5. **Send the Message**
-   - Click **"Publish message"**
-   - The service should immediately consume and process the message
+### Test Cases
 
-6. **Verify in Logs**
-   - Check the Service AI logs (logs folder or console output):
-     ```
-     Received request 3fa85f64-5717-4562-b3fc-2c963f66afa6 with payload: hello world
-     Published response for request 3fa85f64-5717-4562-b3fc-2c963f66afa6
-     ```
-
-7. **View Response (Optional)**
-   - Look for the `AiProcessResponse` queue in RabbitMQ
-   - The response should contain:
-     ```json
-     {
-       "requestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-       "result": "Processed: hello world"
-     }
-     ```
-
-### Example Test Data
-
-**Test Case 1: Simple Processing**
-```json
-{
-  "messageType": ["urn:message:service_ai.Messages:AiProcessRequest"],
-  "message": {
-    "id": "12345678-1234-1234-1234-123456789012",
-    "payload": "test data for AI processing"
-  }
-}
-```
-
-**Test Case 2: Different Payload**
-```json
-{
-  "messageType": ["urn:message:service_ai.Messages:AiProcessRequest"],
-  "message": {
-    "id": "87654321-4321-4321-4321-210987654321",
-    "payload": "another test message"
-  }
-}
-```
-
-## Configuration
-
-### RabbitMQ Connection
-Located in `Program.cs`:
-```csharp
-cfg.Host("localhost", "/", host =>
-{
-    host.Username("guest");
-    host.Password("guest");
-});
-```
-
-### Logging
-- **Minimum Level**: Information
-- **Outputs**: 
-  - Console
-  - File (`logs/.log` with daily rolling)
+| # | Scenario              | Amount   | IP              | Expected            |
+|---|-----------------------|----------|-----------------|---------------------|
+| 1 | Threshold violation   | 25,000   | `80.71.142.50`  | `IsFraud: true`     |
+| 2 | Geographical risk     | 500      | `103.21.244.15` | `IsFraud: true`     |
+| 3 | Clean transaction     | 750      | `185.93.2.100`  | `IsFraud: false`    |
+| 4 | Multiple risk factors | 50,000   | `49.36.128.42`  | `IsFraud: true`     |
 
 ## File Structure
 
 ```
 service-ai/
 ├── Consumers/
-│   └── AiProcessRequestConsumer.cs      # Message consumer logic
+│   └── AiProcessRequestConsumer.cs   # Consumes requests, builds prompt, calls AI
 ├── Messages/
-│   ├── AiProcessRequest.cs              # Input message type
-│   └── AiProcessResponse.cs             # Output message type
-├── Program.cs                           # Service configuration
-├── Worker.cs                            # Currently unused
-├── logs/                                # Log files
+│   ├── AiProcessRequest.cs           # Input message
+│   └── AiProcessResponse.cs          # Output message
+├── Models/
+│   └── FraudCheckResult.cs           # AI response DTO
+├── Services/
+│   └── OpenRouterService.cs          # OpenRouter API client
+├── Program.cs                        # Host & dependency configuration
+├── compose.yaml                      # Docker Compose (RabbitMQ)
 └── docs/
-    └── README.md                        # This file
+    └── README.md
 ```
-
-## Future Changes
-
-This is a basic setup. Expected future changes:
-- [ ] Actual AI processing logic implementation
-- [ ] Request validation
-- [ ] Error handling and dead letter queues
-- [ ] Response routing to specific subscribers
-- [ ] Timeout handling
-- [ ] Metrics and monitoring
-
-## Troubleshooting
-
-**Message not being consumed:**
-- Ensure Service AI is running
-- Check RabbitMQ connection settings
-- Verify queue names match consumer configuration
-
-**No response visible:**
-- The response is published to another queue/exchange
-- Set up a consumer for `AiProcessResponse` to see the result
-- Check the service logs for processing confirmation
-

@@ -3,5 +3,7 @@
 public record AiProcessResponse
 {
     public Guid RequestId { get; init; }
-    public string Result { get; init; } = string.Empty;
+    public bool IsFraud { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public double RiskScore { get; init; }
 }
