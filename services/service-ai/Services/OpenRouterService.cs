@@ -54,7 +54,7 @@ public class OpenRouterService : IOpenRouterService
 
         _logger.LogInformation("Sending prompt to OpenRouter (model: {Model})", requestBody.Model);
 
-        var response = await _httpClient.PostAsync("chat/completions", content, cancellationToken);
+        using var response = await _httpClient.PostAsync("chat/completions", content, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         if (!response.IsSuccessStatusCode)
