@@ -42,8 +42,7 @@ public class OpenRouterService : IOpenRouterService
                 new ChatMessage
                 {
                     Role = "system",
-                    Content =
-                        "### Role\nYou are a specialized Fraud Detection Security Layer for a banking microservice. Your task is to analyze transaction metadata and identify high-risk activity based on specific organizational heuristics.\n\n### Input Variables\n- Sender Account\n- Receiver Account\n- Amount\n- Currency\n- Origin IP Address\n\n### Risk Heuristics\n1. **Threshold Violation:** Flag any transaction where the Amount is greater than 10,000 (regardless of currency).\n2. **Geographical Risk:** Flag any transaction where the Origin IP Address is identified as originating from India. \n\n### Output Format\nYou must return a valid JSON object with the following keys:\n- \"is_fraud\": boolean (true if any heuristic is triggered, false otherwise)\n- \"reason\": string (A brief explanation of which heuristic was triggered, or \"Clear\" if false)\n- \"risk_score\": float (0.0 to 1.0)\n\n### Constraint\nDo not include any conversational text or markdown formatting outside of the JSON block."
+                    Content = Prompts.FraudDetection
                 },
                 new ChatMessage { Role = "user", Content = prompt }
             ]
@@ -68,15 +67,40 @@ public class OpenRouterService : IOpenRouterService
 
         _logger.LogInformation("Received response from OpenRouter ({Length} chars)", message.Length);
 
-        var fraudResult = JsonSerializer.Deserialize<FraudCheckResult>(message);
-        
-        if (fraudResult is not null)
+        if (string.IsNullOrWhiteSpace(message))
         {
-            return fraudResult;
+            _logger.LogWarning("AI returned an empty response");
+            return new FraudCheckResult();
         }
 
-        _logger.LogError("Failed to parse AI response as FraudCheckResult: {Content}", message);
-        throw new JsonException($"Failed to parse AI response as FraudCheckResult: {message}");
+        FraudCheckResult? fraudResult;
+        try
+        {
+            fraudResult = JsonSerializer.Deserialize<FraudCheckResult>(message);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to deserialize AI response as FraudCheckResult: {Content}", message);
+            fraudResult = null;
+        }
+
+        if (fraudResult is null)
+        {
+            _logger.LogWarning("AI response deserialized to null: {Content}", message);
+            return new FraudCheckResult();
+        }
+
+        if (string.IsNullOrWhiteSpace(fraudResult.Reason))
+        {
+            _logger.LogWarning("FraudCheckResult has an empty Reason. Raw response: {Content}", message);
+        }
+
+        if (fraudResult.RiskScore is < 0.0 or > 1.0)
+        {
+            _logger.LogWarning("FraudCheckResult has an out-of-range RiskScore ({RiskScore}). Raw response: {Content}", fraudResult.RiskScore, message);
+        }
+
+        return fraudResult;
 
     }
 }
