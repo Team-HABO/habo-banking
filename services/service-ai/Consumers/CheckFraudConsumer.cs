@@ -22,17 +22,44 @@ public class CheckFraudConsumer(
                      $"Origin IP Address: {request.OriginIpAddress}";
 
         // Send the prompt to OpenRouter AI
-        var result =
-            await openRouterService.SendPromptAsync(prompt, context.CancellationToken);
+        FraudChecked fraudChecked;
+        
+        try
+        {
+            var result = await openRouterService.SendPromptAsync(prompt, context.CancellationToken);
+            fraudChecked = new FraudChecked
+            {
+                RequestId = request.Id,
+                IsFraud = result.IsFraud,
+                Reason = result.Reason,
+                RiskScore = result.RiskScore
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "OpenRouter request failed for fraud check {Id}. Publishing fallback response.", request.Id);
+            fraudChecked = new FraudChecked
+            {
+                RequestId = request.Id,
+                IsFraud = false,
+                Reason = "Fraud check could not be completed due to an AI service error.",
+                RiskScore = 0
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error during fraud check {Id}. Publishing fallback response.", request.Id);
+            fraudChecked = new FraudChecked
+            {
+                RequestId = request.Id,
+                IsFraud = false,
+                Reason = "Fraud check could not be completed due to an unexpected error.",
+                RiskScore = 0
+            };
+        }
 
         // Publish response back to bus
-        await context.Publish(new FraudChecked
-        {
-            RequestId = request.Id,
-            IsFraud = result.IsFraud,
-            Reason = result.Reason,
-            RiskScore = result.RiskScore
-        });
+        await context.Publish(fraudChecked);
 
         logger.LogInformation("Published response for request {Id}", request.Id);
     }
