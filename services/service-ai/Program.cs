@@ -3,7 +3,16 @@ using Serilog;
 using service_ai.Consumers;
 using service_ai.Services;
 
+
 var builder = Host.CreateApplicationBuilder(args);
+
+// Load OpenRouter API Key
+DotNetEnv.Env.TraversePath().Load();
+
+var openRouterApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
+    ?? throw new InvalidOperationException("OPENROUTER_API_KEY is not set. Make sure it is defined in the .env file.");
+
+builder.Configuration["OpenRouter:ApiKey"] = openRouterApiKey;
 
 // Configure Serilog - better logger than default one
 builder.Services.AddSerilog(new LoggerConfiguration()
