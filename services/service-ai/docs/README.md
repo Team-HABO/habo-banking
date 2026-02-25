@@ -28,10 +28,10 @@ The AI model flags transactions matching these rules:
 |-------------------|-----------|
 | `Id`              | `Guid`    |
 | `SenderAccount`   | `string`  |
-| `ReceiverAccount`  | `string`  |
+| `ReceiverAccount` | `string`  |
 | `Amount`          | `decimal` |
 | `Currency`        | `string`  |
-| `OriginIpAddress`  | `string`  |
+| `OriginIpAddress` | `string`  |
 
 ### FraudChecked (published)
 
