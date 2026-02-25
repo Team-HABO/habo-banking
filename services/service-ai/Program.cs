@@ -12,6 +12,15 @@ DotNetEnv.Env.TraversePath().Load();
 var openRouterApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
     ?? throw new InvalidOperationException("OPENROUTER_API_KEY is not set. Make sure it is defined in the .env file.");
 
+var rabbitMqUsername = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")
+    ?? throw new InvalidOperationException("RABBITMQ_USERNAME is not set. Make sure it is defined in the .env file.");
+
+var rabbitMqPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")
+    ?? throw new InvalidOperationException("RABBITMQ_PASSWORD is not set. Make sure it is defined in the .env file.");
+
+var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST")
+    ?? throw new InvalidOperationException("RABBITMQ_HOST is not set. Make sure it is defined in the .env file.");
+
 builder.Configuration["OpenRouter:ApiKey"] = openRouterApiKey;
 
 // Configure Serilog - better logger than default one
@@ -33,10 +42,10 @@ builder.Services.AddMassTransit(config =>
 
     config.UsingRabbitMq((context, cfg) =>
         {
-            cfg.Host("localhost", "/", host =>
+            cfg.Host(rabbitMqHost, "/", host =>
             {
-                host.Username("guest");
-                host.Password("guest");
+                host.Username(rabbitMqUsername);
+                host.Password(rabbitMqPassword);
             });
 
             // Automatically creates and binds queues based on registered consumers
