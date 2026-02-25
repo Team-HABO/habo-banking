@@ -26,6 +26,10 @@
     "dbmdl",
     "nameof",
     "rsuser",
-    "toolstarget"
+    "toolstarget",
+    "Dtos",
+    "OPENROUTER",
+    "Serilog",
+    "stepfun"
   ]
 }
