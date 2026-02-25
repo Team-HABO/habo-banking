@@ -18,7 +18,7 @@ builder.Configuration["OpenRouter:ApiKey"] = openRouterApiKey;
 builder.Services.AddSerilog(new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("logs/service-ai.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/service-ai-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger());
 
 // Register OpenRouter AI service
@@ -45,7 +45,6 @@ builder.Services.AddMassTransit(config =>
     );
 });
 
-// builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 host.Run();
