@@ -9,7 +9,7 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSerilog(new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("logs/.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/service-ai.log", rollingInterval: RollingInterval.Day)
     .CreateLogger());
 
 // Register OpenRouter AI service
