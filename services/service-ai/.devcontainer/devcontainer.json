@@ -1,0 +1,54 @@
+{
+	"name": "AI Service",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "latest",
+			"ppa": true
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/dotnet:2": {
+			"version": "9.0"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csdevkit",
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.vscode-dotnet-runtime",
+				"ms-azuretools.vscode-docker",
+				"eamodio.gitlens",
+				"humao.rest-client",
+				"redhat.vscode-xml",
+				"EditorConfig.EditorConfig"
+			],
+			"settings": {
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "ms-dotnettools.csharp",
+				"dotnet.defaultSolution": "service-ai.sln",
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+	"postCreateCommand": "dotnet restore",
+	"forwardPorts": [
+		5672, // RabbitMQ AMQP
+		15672 // RabbitMQ Management UI  →  http://localhost:15672  (guest/guest)
+	],
+	"portsAttributes": {
+		"15672": {
+			"label": "RabbitMQ Management",
+			"onAutoForward": "notify"
+		},
+		"5672": {
+			"label": "RabbitMQ AMQP",
+			"onAutoForward": "silent"
+		}
+	},
+	"remoteUser": "vscode"
+}

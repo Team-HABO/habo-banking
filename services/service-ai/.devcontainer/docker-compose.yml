@@ -1,0 +1,37 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/dotnet:9.0
+    volumes:
+      - ..:/workspace:cached
+      - ../../.git:/workspace/.git:ro
+      - ~/.gitconfig:/home/vscode/.gitconfig:ro
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - path: ../../../.env
+        required: true
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY}
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  rabbitmq-data:
