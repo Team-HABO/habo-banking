@@ -41,7 +41,7 @@ Step 2, Produce message to Transaction-Service:
 }
 ```
 
-Step 3, Prodocuce mesage to Syncronize-Service:
+Step 3, Produce message to Synchronize-Service:
 
 ```json
 {
@@ -76,7 +76,7 @@ Step 1, Initial PATCH request:
 }
 ```
 
-Step 2, Prodocuce mesage to Syncronize-Service:
+Step 2, Produce message to Synchronize-Service:
 
 ```json
 {
@@ -106,7 +106,7 @@ Step 1, Initial PUT request:
 }
 ```
 
-Step 2, Prodocuce mesage to Syncronize-Service:
+Step 2, Produce message to Synchronize-Service:
 
 ```json
 {
@@ -147,7 +147,7 @@ Step 2, Produce message to Transaction-Service:
 }
 ```
 
-Step 3, Prodocuce mesage to Syncronize-Service:
+Step 3, Produce message to Synchronize-Service:
 
 ```json
 {
@@ -179,12 +179,12 @@ Step 1, Initial POST request:
 
 Step 2, Produce message to Fraud-Service:
 
-IMPORTANT: `data.reciever` object is only relevant if transaction type is transfer.
+IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
 
 ```json
 {
     "data": {
-        "reciever": {
+        "receiver": {
             "guid": "string",
             "name": "string",
             "type": "string",
@@ -206,7 +206,7 @@ IMPORTANT: `data.reciever` object is only relevant if transaction type is transf
 }
 ```
 
-Step 2.5, If fraudelent, Prodocuce mesage to Notification-Service:
+Step 2.5, If fraudulent, Produce message to Notification-Service:
 
 ```json
 {
@@ -221,14 +221,14 @@ Step 2.5, If fraudelent, Prodocuce mesage to Notification-Service:
 }
 ```
 
-Step 3, If NOT fraudelent, Produce message to Transaction-Service
+Step 3, If NOT fraudulent, Produce message to Transaction-Service
 
-IMPORTANT: `data.reciever` object is only relevant if transaction type is transfer.
+IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
 
 ```json
 {
     "data": {
-        "reciever": {
+        "receiver": {
             "guid": "string",
             "name": "string",
             "type": "string",
@@ -264,7 +264,7 @@ Step 3.5, If not possible to do transaction type, then produce message to Notifi
 }
 ```
 
-Step 4, Produce message to Syncronize-Service
+Step 4, Produce message to Synchronize-Service
 
 ```json
 {
@@ -275,7 +275,7 @@ Step 4, Produce message to Syncronize-Service
                 "timestamp": "string"
             },
             "audits": {
-                "reciever": "string (name, optional)",
+                "receiver": "string (name, optional)",
                 "amount": "string",
                 "type": "string",
                 "timestamp": "string"
@@ -290,7 +290,6 @@ Step 4, Produce message to Syncronize-Service
 }
 ```
 
-
 ## ID 6
 
 Step 1, Initial POST request:
@@ -304,7 +303,7 @@ Step 1, Initial POST request:
 
 Step 2, Produce message to Fraud-Service:
 
-IMPORTANT: `data.reciever` object is only relevant if transaction type is transfer.
+IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
 
 ```json
 {
@@ -327,7 +326,7 @@ IMPORTANT: `data.reciever` object is only relevant if transaction type is transf
 }
 ```
 
-Step 2.5, If fraudelent, Prodocuce mesage to Notification-Service:
+Step 2.5, If fraudulent, Produce message to Notification-Service:
 
 ```json
 {
@@ -342,8 +341,7 @@ Step 2.5, If fraudelent, Prodocuce mesage to Notification-Service:
 }
 ```
 
-Step 3, If NOT fraudelent, Produce message to Transaction-Service
-
+Step 3, If NOT fraudulent, Produce message to Transaction-Service
 
 ```json
 {
@@ -425,9 +423,7 @@ Step 5.5, If not possible to do currency exchange, then produce message to Notif
 }
 ```
 
-
-
-Step 6, Produce message to Syncronize-Service
+Step 6, Produce message to Synchronize-Service
 
 ```json
 {
