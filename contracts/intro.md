@@ -1,3 +1,5 @@
+# Contracts
+
 | Id  | Method | Description                          | Endpoint                      | Notes                                    |
 | --- | ------ | ------------------------------------ | ----------------------------- | ---------------------------------------- |
 | 1   | POST   | Create Account                       | /accounts                     |                                          |
