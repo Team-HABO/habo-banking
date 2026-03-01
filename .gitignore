@@ -831,4 +831,4 @@ megalinter-reports
 appsettings.Development.json
 .env
 
-
+services/service-transaction/generated
