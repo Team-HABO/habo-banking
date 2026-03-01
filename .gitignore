@@ -827,8 +827,9 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,node,csharp,dotnetcore,terraform,python
 megalinter-reports
 
+**/generated/prisma
 # Local development secrets - never commit real credentials
 appsettings.Development.json
 .env
 
-
+services/service-transaction/generated

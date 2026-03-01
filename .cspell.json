@@ -15,10 +15,14 @@
     "**/.devcontainer/**",
     "**/Dockerfile",
     "**/docs/architecture",
-    "**/docs/diagrams"
+    "**/docs/diagrams",
+    "services/service-transaction/generated/**",
+    "**/services/service-ai/obj/**"
+
   ],
   "words": [
     "habo",
+    "autoincrement",
     "ASPNETCORE",
     "accessibilities",
     "appsettings",

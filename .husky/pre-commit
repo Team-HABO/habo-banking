@@ -1,5 +1,5 @@
 echo "RUNNING SPELL CHECKER (Install with: npm install -g cspell@latest)"
-cspell .
+cspell . --quiet
 
 echo "RUNNING LINTERS"
 # service-transaction
