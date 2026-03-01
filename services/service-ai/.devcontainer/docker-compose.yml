@@ -3,7 +3,7 @@ services:
     image: mcr.microsoft.com/devcontainers/dotnet:9.0
     volumes:
       - ..:/workspace:cached
-      - ../../.git:/workspace/.git:ro
+      - ../../../.git:/workspace/.git:ro
       - ~/.gitconfig:/home/vscode/.gitconfig:ro
     command: /bin/sh -c "while sleep 1000; do :; done"
     depends_on:
