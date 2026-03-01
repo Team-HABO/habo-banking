@@ -36,7 +36,7 @@ The container VS Code attaches to. The project root is bind-mounted to `/workspa
 | Variable | Source |
 |---|---|
 | `RABBITMQ_HOST` | Hardcoded to `rabbitmq` (the Compose service name) |
-| `OPEN_ROUTER_API_KEY` | Interpolated from `../../../.env` (required) |
+| `OPENROUTER_API_KEY` | Interpolated from `../../../.env` (required) |
 
 The `.env` file at `../../../.env` (relative to `.devcontainer/`) is required and must exist before the container starts.
 
