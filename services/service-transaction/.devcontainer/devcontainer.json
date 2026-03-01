@@ -7,7 +7,6 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"streetsidesoftware.code-spell-checker",
 				"aaron-bond.better-comments",
 				"usernamehw.errorlens",
 				"deinsoftware.vitest-snippets",
