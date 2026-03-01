@@ -74,7 +74,6 @@ Features are installed at image build time.
 |-----------------------------------------------|---------------------------|
 | `ghcr.io/devcontainers/features/git:1`        | `latest` (via Ubuntu PPA) |
 | `ghcr.io/devcontainers/features/github-cli:1` | `latest`                  |
-| `ghcr.io/devcontainers/features/dotnet:2`     | `9.0`                     |
 
 ---
 
