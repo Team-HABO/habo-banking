@@ -16,7 +16,9 @@
     "**/Dockerfile",
     "**/docs/architecture",
     "**/docs/diagrams",
-    "services/service-transaction/**/prisma/**"
+    "services/service-transaction/generated/**",
+    "**/services/service-ai/obj/**"
+
   ],
   "words": [
     "habo",
