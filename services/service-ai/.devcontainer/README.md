@@ -25,11 +25,11 @@ The container VS Code attaches to. The project root is bind-mounted to `/workspa
 
 **Volumes:**
 
-| Host path                            | Container path            | Notes                                                        |
-|--------------------------------------|---------------------------|--------------------------------------------------------------|
-| `..` (project root)                  | `/workspace`              | `:cached` is a macOS/Windows perf hint; ignored on Linux     |
-| `../../../.git` (repo root `.git`)   | `/workspace/.git`         | Read-only; makes git work across the monorepo mount boundary |
-| `~/.gitconfig`                       | `/home/vscode/.gitconfig` | Read-only; shares host Git identity                          |
+| Host path                          | Container path            | Notes                                                        |
+|------------------------------------|---------------------------|--------------------------------------------------------------|
+| `..` (project root)                | `/workspace`              | `:cached` is a macOS/Windows perf hint; ignored on Linux     |
+| `../../../.git` (repo root `.git`) | `/workspace/.git`         | Read-only; makes git work across the monorepo mount boundary |
+| `~/.gitconfig`                     | `/home/vscode/.gitconfig` | Read-only; shares host Git identity                          |
 
 **Environment variables:**
 
