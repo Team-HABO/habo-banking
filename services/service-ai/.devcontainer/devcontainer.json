@@ -37,8 +37,8 @@
 	},
 	"postCreateCommand": "dotnet restore",
 	"forwardPorts": [
-		5672, // RabbitMQ AMQP
-		15672 // RabbitMQ Management UI  →  http://localhost:15672  (guest/guest)
+		5672,
+		15672
 	],
 	"portsAttributes": {
 		"15672": {
