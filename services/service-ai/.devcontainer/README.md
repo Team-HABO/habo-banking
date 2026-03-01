@@ -25,18 +25,18 @@ The container VS Code attaches to. The project root is bind-mounted to `/workspa
 
 **Volumes:**
 
-| Host path | Container path | Notes |
-|---|---|---|
-| `..` (project root) | `/workspace` | `:cached` is a macOS/Windows perf hint; ignored on Linux |
-| `../../.git` (repo root `.git`) | `/workspace/.git` | Read-only; makes git work across the monorepo mount boundary |
-| `~/.gitconfig` | `/home/vscode/.gitconfig` | Read-only; shares host Git identity |
+| Host path                       | Container path            | Notes                                                        |
+|---------------------------------|---------------------------|--------------------------------------------------------------|
+| `..` (project root)             | `/workspace`              | `:cached` is a macOS/Windows perf hint; ignored on Linux     |
+| `../../.git` (repo root `.git`) | `/workspace/.git`         | Read-only; makes git work across the monorepo mount boundary |
+| `~/.gitconfig`                  | `/home/vscode/.gitconfig` | Read-only; shares host Git identity                          |
 
 **Environment variables:**
 
-| Variable | Source |
-|---|---|
-| `RABBITMQ_HOST` | Hardcoded to `rabbitmq` (the Compose service name) |
-| `OPENROUTER_API_KEY` | Interpolated from `../../../.env` (required) |
+| Variable             | Source                                             |
+|----------------------|----------------------------------------------------|
+| `RABBITMQ_HOST`      | Hardcoded to `rabbitmq` (the Compose service name) |
+| `OPENROUTER_API_KEY` | Interpolated from `../../../.env` (required)       |
 
 The `.env` file at `../../../.env` (relative to `.devcontainer/`) is required and must exist before the container starts.
 
@@ -52,13 +52,13 @@ The `.env` file at `../../../.env` (relative to `.devcontainer/`) is required an
 
 Provides the AMQP broker and management UI used by the service during development.
 
-| Setting | Value |
-|---|---|
-| Default user | `guest` |
-| Default password | `guest` |
-| AMQP port | `5672` |
-| Management UI port | `15672` |
-| Data volume | `rabbitmq-data` (named, persisted across rebuilds) |
+| Setting            | Value                                              |
+|--------------------|----------------------------------------------------|
+| Default user       | `guest`                                            |
+| Default password   | `guest`                                            |
+| AMQP port          | `5672`                                             |
+| Management UI port | `15672`                                            |
+| Data volume        | `rabbitmq-data` (named, persisted across rebuilds) |
 
 **Health check:** `rabbitmq-diagnostics ping`, checked every 10 s with a 20 s start period and 5 retries.
 
@@ -70,11 +70,11 @@ Provides the AMQP broker and management UI used by the service during developmen
 
 Features are installed at image build time.
 
-| Feature | Version |
-|---|---|
-| `ghcr.io/devcontainers/features/git:1` | `latest` (via Ubuntu PPA) |
-| `ghcr.io/devcontainers/features/github-cli:1` | `latest` |
-| `ghcr.io/devcontainers/features/dotnet:2` | `9.0` |
+| Feature                                       | Version                   |
+|-----------------------------------------------|---------------------------|
+| `ghcr.io/devcontainers/features/git:1`        | `latest` (via Ubuntu PPA) |
+| `ghcr.io/devcontainers/features/github-cli:1` | `latest`                  |
+| `ghcr.io/devcontainers/features/dotnet:2`     | `9.0`                     |
 
 ---
 
@@ -82,16 +82,16 @@ Features are installed at image build time.
 
 Installed automatically inside the container, not on the host.
 
-| Extension ID | Purpose |
-|---|---|
-| `ms-dotnettools.csdevkit` | C# Dev Kit (solution explorer, test runner, Roslyn) |
-| `ms-dotnettools.csharp` | C# language server |
-| `ms-dotnettools.vscode-dotnet-runtime` | .NET runtime acquisition |
-| `ms-azuretools.vscode-docker` | Docker sidebar integration |
-| `eamodio.gitlens` | Inline blame, history, PR integration |
-| `humao.rest-client` | Send HTTP requests from `.http` files |
-| `redhat.vscode-xml` | `.csproj` / `.xml` syntax and validation |
-| `EditorConfig.EditorConfig` | Enforces `.editorconfig` rules |
+| Extension ID                           | Purpose                                             |
+|----------------------------------------|-----------------------------------------------------|
+| `ms-dotnettools.csdevkit`              | C# Dev Kit (solution explorer, test runner, Roslyn) |
+| `ms-dotnettools.csharp`                | C# language server                                  |
+| `ms-dotnettools.vscode-dotnet-runtime` | .NET runtime acquisition                            |
+| `ms-azuretools.vscode-docker`          | Docker sidebar integration                          |
+| `eamodio.gitlens`                      | Inline blame, history, PR integration               |
+| `humao.rest-client`                    | Send HTTP requests from `.http` files               |
+| `redhat.vscode-xml`                    | `.csproj` / `.xml` syntax and validation            |
+| `EditorConfig.EditorConfig`            | Enforces `.editorconfig` rules                      |
 
 ---
 
@@ -99,28 +99,28 @@ Installed automatically inside the container, not on the host.
 
 Applied inside the container workspace.
 
-| Setting | Value |
-|---|---|
-| `editor.formatOnSave` | `true` |
-| `editor.defaultFormatter` | `ms-dotnettools.csharp` |
-| `dotnet.defaultSolution` | `service-ai.sln` |
-| `terminal.integrated.defaultProfile.linux` | `bash` |
+| Setting                                    | Value                   |
+|--------------------------------------------|-------------------------|
+| `editor.formatOnSave`                      | `true`                  |
+| `editor.defaultFormatter`                  | `ms-dotnettools.csharp` |
+| `dotnet.defaultSolution`                   | `service-ai.sln`        |
+| `terminal.integrated.defaultProfile.linux` | `bash`                  |
 
 ---
 
 ## Lifecycle
 
-| Hook | Command | Runs on |
-|---|---|---|
+| Hook                | Command          | Runs on                        |
+|---------------------|------------------|--------------------------------|
 | `postCreateCommand` | `dotnet restore` | Container creation and rebuild |
 
 ---
 
 ## Port forwarding
 
-| Port | Label | Behaviour |
-|---|---|---|
-| `5672` | RabbitMQ AMQP | Forwarded silently |
+| Port    | Label               | Behaviour                             |
+|---------|---------------------|---------------------------------------|
+| `5672`  | RabbitMQ AMQP       | Forwarded silently                    |
 | `15672` | RabbitMQ Management | Forwarded with a VS Code notification |
 
 ---
