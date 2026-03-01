@@ -14,7 +14,7 @@ services:
         required: true
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
