@@ -1,0 +1,17 @@
+# Service Auth
+
+`service-auth` is an ASP.NET Web API microservice responsible for user authentication.
+
+## Overview
+
+This service allows users to sign in with their Google account using OAuth.
+
+After a successful OAuth login:
+
+1. The user is authenticated with Google.
+2. The API generates a JWT (JSON Web Token).
+3. The JWT is returned by the API and can be used to authorize requests to protected services.
+
+## Purpose
+
+This microservice centralizes authentication so other services in the system can rely on JWT-based identity and authorization.

@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER root
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends curl=7.* \
+	&& apt-get install -y --no-install-recommends curl \
 	&& rm -rf /var/lib/apt/lists/*
 USER app
 WORKDIR /app
@@ -16,6 +16,7 @@ COPY ["Program.cs", "./"]
 COPY ["appsettings.json", "./"]
 COPY ["appsettings.Development.json", "./"]
 COPY ["Controllers/", "./Controllers/"]
+COPY ["Services/", "./Services/"]
 COPY ["Properties/", "./Properties/"]
 WORKDIR "/src"
 RUN dotnet build "./service-auth.csproj" -c $BUILD_CONFIGURATION -o /app/build

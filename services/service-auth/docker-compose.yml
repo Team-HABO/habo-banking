@@ -3,11 +3,23 @@ services:
     container_name: service-auth
     build:
       context: ./service-auth
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     env_file:
       - .env
     environment:
       - ASPNETCORE_URLS=http://+:8080
     ports:
       - "${AuthServicePort:-8080}:8080"
+    volumes:
+      - ./service-auth:/src
+      - /src/bin
+      - /src/obj
     restart: unless-stopped
+    networks:
+      shared:
+        aliases:
+          - auth-service
+networks:
+  shared:
+    external: true
+    name: authservicemock_shared
