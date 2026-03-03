@@ -10,5 +10,5 @@ services:
       - /src/bin
       - /src/obj
     environment:
-      - ASPNETCORE_ENVIRONMENT=${DOCKER_ENV:-Production}
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_USE_POLLING_FILE_WATCHER=1

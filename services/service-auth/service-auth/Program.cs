@@ -54,8 +54,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             throw new InvalidOperationException("NetworkIp must be a valid CIDR (e.g. 172.22.0.0/16) or IP address (e.g. 172.22.0.10).");
         }
-
-        options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(networkIp));
+        try
+        {
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(networkIp));
+        }
+        catch (FormatException ex)
+        {
+            throw new InvalidOperationException("NetworkIp must be a valid CIDR (e.g. 172.22.0.0/16) or IP address (e.g. 172.22.0.10).", ex);
+        }
     }
     else
     {
