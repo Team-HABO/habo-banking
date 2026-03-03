@@ -2,6 +2,6 @@
 {
     public interface ITokenService
     {
-        Task<string> CreateToken(string googleUserId, string email);
+        string CreateToken(string googleUserId, string email);
     }
 }

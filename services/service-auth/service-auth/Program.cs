@@ -4,20 +4,18 @@ using Microsoft.AspNetCore.HttpOverrides;
 using service_auth.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
+string frontendUrl = builder.Configuration["FrontendUrl"]
+    ?? throw new InvalidOperationException("Frontend URL not set in enviroment variables");
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AllowFrontend",
                               policy =>
                               {
                                   policy
-            .WithOrigins(
-                "http://localhost:3000"
-            )
+            .WithOrigins(frontendUrl)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
-
                               });
 
 });
@@ -40,6 +38,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+// Trust the headers from any proxy
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedHost | ForwardedHeaders.XForwardedProto;
@@ -54,10 +53,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.UseForwardedHeaders();
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
 
 // Healthcheck endpoint for Dockerfile
 app.MapGet("/health", () => Results.Ok());
