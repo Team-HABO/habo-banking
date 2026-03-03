@@ -30,9 +30,9 @@ That value must be set in `.env` for the `NetworkIp` variable.
 From `./services/service-auth`:
 
 - Production-like run (base compose only):
-    - `docker compose -f docker-compose.yml up -d --build`
+  - `docker compose -f docker-compose.yml up -d --build`
 - Development run (with override):
-    - `docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build`
+  - `docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build`
 
 Tip: `docker compose up -d --build` automatically includes `docker-compose.override.yml` when it exists.
 
