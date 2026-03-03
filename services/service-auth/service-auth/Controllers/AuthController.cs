@@ -9,7 +9,7 @@ namespace service_auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(ITokenService tokenService, IConfiguration configuration) : ControllerBase
+    public class AuthController(ITokenService tokenService, IConfiguration configuration, IWebHostEnvironment environment) : ControllerBase
     {
         /// <summary>
         /// Initiates Google OAuth login flow.
@@ -19,7 +19,7 @@ namespace service_auth.Controllers
         public IActionResult Login()
         {
             string gatewayUrl = configuration["ApiGatewayUrl"]
-                ?? throw new InvalidOperationException("Gateway URL not set in enviroment variables");
+                ?? throw new InvalidOperationException("Gateway URL not set in environment variables");
             AuthenticationProperties properties = new()
             {
                 RedirectUri = $"{gatewayUrl}/api/auth/google-response"
@@ -35,11 +35,13 @@ namespace service_auth.Controllers
         public async Task<IActionResult> GoogleResponse()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            string frontendUrl = configuration["FrontendUrl"]
-                ?? throw new InvalidOperationException("Frontend URL not set in enviroment variables");
-
             if (!result.Succeeded)
                 return Unauthorized("Google authentication failed.");
+
+
+            string frontendUrl = configuration["FrontendUrl"]
+                ?? throw new InvalidOperationException("Frontend URL not set in environment variables");
+            bool cookieSecure = !environment.IsDevelopment();
 
             string? googleUserId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             string? email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
@@ -55,9 +57,9 @@ namespace service_auth.Controllers
             Response.Cookies.Append("auth_token", token, new CookieOptions
             {
                 HttpOnly = true,  // Prevents JavaScript access
-                Secure = Request.IsHttps,    // Works in HTTP local dev and HTTPS environments
-                SameSite = SameSiteMode.Lax,  // CSRF protection. Need to change to Strict in production if frontend and backend are on different domains.
-                Expires = DateTimeOffset.UtcNow.AddMinutes(15),// 5 min more than JWT for clock skew telerance
+                Secure = cookieSecure,
+                SameSite = SameSiteMode.Lax,  // CSRF protection. Need to change to None in production if frontend and backend are on different domains.
+                Expires = DateTimeOffset.UtcNow.AddMinutes(15),// 5 min more than JWT for clock skew tolerance
                 Path = "/"
             });
 
