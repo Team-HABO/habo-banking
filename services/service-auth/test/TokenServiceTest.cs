@@ -90,6 +90,7 @@ namespace test
                 }
             };
             IConfiguration configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
                 .Build();
             TokenService tokenService = new(configuration);
             string userId = Guid.NewGuid().ToString();
