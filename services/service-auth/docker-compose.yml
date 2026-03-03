@@ -1,9 +1,10 @@
 services:
   service-auth:
     container_name: service-auth
+    user: "0:0"
     build:
       context: ./service-auth
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -23,3 +24,4 @@ networks:
   shared:
     external: true
     name: authservicemock_shared
+

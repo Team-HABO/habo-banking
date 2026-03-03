@@ -16,11 +16,18 @@ After a successful OAuth login:
 
 This microservice centralizes authentication so other services in the system can rely on JWT-based identity and authorization.
 
-## Enviroment variables
+## Environment variables
 
 See .\services\service-auth\.env.example
 
-## Run docker container
+## Network
+Must run on the same network as the frontend and API gateway.
+To inspect the network, use:
+    docker network inspect "Network name"
+Look for IPAM.Config.Subnet
+That value must be set in `.env` for the `NetworkIp` variable.
+
+## Run Docker container
 cd .\services\service-auth\
 docker compose build
 docker compose up -d
@@ -30,5 +37,7 @@ Health:
 */health
 Login:
 */api/auth/login
+Google OAuth callback:
+*/api/auth/google-response
 Logout:
 */api/auth/logout
