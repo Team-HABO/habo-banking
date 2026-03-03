@@ -11,6 +11,11 @@ namespace service_auth.Services
         {
             string apiKey = configuration["SecretKeyJwt"]
                 ?? throw new InvalidOperationException("API key for JWT is not configured.");
+            string issuer = configuration["JwtIssuer"]
+                ?? throw new InvalidOperationException("JWT issuer is not configured.");
+            string audience = configuration["JwtAudience"]
+                ?? throw new InvalidOperationException("JWT audience is not configured.");
+
             byte[] key = Encoding.UTF8.GetBytes(apiKey);
 
             if (key.Length < 32)
@@ -25,6 +30,8 @@ namespace service_auth.Services
                 new(ClaimTypes.NameIdentifier, googleUserId)
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(10),
+                Issuer = issuer,
+                Audience = audience,
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
