@@ -11,6 +11,8 @@ namespace service_auth.Controllers
     [ApiController]
     public class AuthController(ITokenService tokenService, IConfiguration configuration, IWebHostEnvironment environment) : ControllerBase
     {
+            
+        private readonly bool cookieSecure = !environment.IsDevelopment();
         /// <summary>
         /// Initiates Google OAuth login flow.
         /// </summary>
@@ -41,7 +43,6 @@ namespace service_auth.Controllers
 
             string frontendUrl = configuration["FrontendUrl"]
                 ?? throw new InvalidOperationException("Frontend URL not set in environment variables");
-            bool cookieSecure = !environment.IsDevelopment();
 
             string? googleUserId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             string? email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
@@ -77,7 +78,9 @@ namespace service_auth.Controllers
         {
             Response.Cookies.Delete("auth_token", new CookieOptions
             {
-                Path = "/"
+                HttpOnly = true,
+                Secure = cookieSecure,
+                SameSite = SameSiteMode.Lax
             });
 
             return Ok(new { message = "Logged out successfully" });
