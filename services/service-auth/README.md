@@ -17,7 +17,7 @@ Validate the JWT (signature, issuer, audience, expiry, etc.) using the configure
 
 ## Environment variables
 
-See .\services\service-auth\.env.example
+See ./.env.example
 
 ## Network
 Must run on the same network as the frontend and API gateway.

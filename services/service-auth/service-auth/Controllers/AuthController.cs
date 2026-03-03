@@ -58,9 +58,9 @@ namespace service_auth.Controllers
             Response.Cookies.Append("auth_token", token, new CookieOptions
             {
                 HttpOnly = true,  // Prevents JavaScript access
-                Secure = cookieSecure,
-                SameSite = SameSiteMode.Lax,  // CSRF protection. Need to change to None in production if frontend and backend are on different domains.
-                Expires = DateTimeOffset.UtcNow.AddMinutes(15),// 5 min more than JWT for clock skew tolerance
+                Secure = true,
+                SameSite = SameSiteMode.None, 
+                Expires = DateTimeOffset.UtcNow.AddMinutes(10),
                 Path = "/"
             });
 
@@ -79,7 +79,7 @@ namespace service_auth.Controllers
             Response.Cookies.Delete("auth_token", new CookieOptions
             {
                 HttpOnly = true,
-                Secure = cookieSecure,
+                Secure = true,
                 SameSite = SameSiteMode.Lax
             });
 

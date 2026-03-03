@@ -7,6 +7,8 @@ services:
     environment:
       ASPNETCORE_URLS: http://+:8080
       ASPNETCORE_ENVIRONMENT: Production
+    env_file:
+      - .env
     ports:
       - "${AuthServicePort:-8080}:8080"
     restart: unless-stopped
