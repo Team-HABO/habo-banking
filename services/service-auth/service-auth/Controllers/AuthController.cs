@@ -9,10 +9,8 @@ namespace service_auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(ITokenService tokenService, IConfiguration configuration, IWebHostEnvironment environment) : ControllerBase
+    public class AuthController(ITokenService tokenService, IConfiguration configuration) : ControllerBase
     {
-            
-        private readonly bool cookieSecure = !environment.IsDevelopment();
         /// <summary>
         /// Initiates Google OAuth login flow.
         /// </summary>
