@@ -15,3 +15,20 @@ After a successful OAuth login:
 ## Purpose
 
 This microservice centralizes authentication so other services in the system can rely on JWT-based identity and authorization.
+
+## Enviroment variables
+
+See .\services\service-auth\.env.example
+
+## Run docker container
+cd .\services\service-auth\
+docker compose build
+docker compose up -d
+
+## Endpoints
+Health:
+*/health
+Login:
+*/api/auth/login
+Logout:
+*/api/auth/logout

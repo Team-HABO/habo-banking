@@ -11,21 +11,26 @@ namespace service_auth.Controllers
     [ApiController]
     public class AuthController(ITokenService tokenService, IConfiguration configuration) : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
-        {
-            return Ok("Hello from AuthController!");
-        }
+        /// <summary>
+        /// Initiates Google OAuth login flow.
+        /// </summary>
+        /// <returns>Redirect to Google authentication</returns>
         [HttpGet("login")]
         public IActionResult Login()
         {
+            string gatewayUrl = configuration["ApiGatewayUrl"]
+                ?? throw new InvalidOperationException("Gateway URL not set in enviroment variables");
             AuthenticationProperties properties = new()
             {
-                RedirectUri = "http://localhost:8082/api/auth/google-response"
+                RedirectUri = $"{gatewayUrl}/api/auth/google-response"
             };
 
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
+        /// <summary>
+        /// Handles the OAuth callback from Google, creates JWT token, and sets authentication cookie.
+        /// </summary>
+        /// <returns>Redirect to frontend URL with authentication cookie set</returns>
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -44,33 +49,31 @@ namespace service_auth.Controllers
             if (string.IsNullOrEmpty(email))
                 return BadRequest("Could not retrieve email from Google.");
 
-            string token = await tokenService.CreateToken(googleUserId, email);
+            string token = tokenService.CreateToken(googleUserId, email);
 
             // Set token in HTTP-only cookie
             Response.Cookies.Append("auth_token", token, new CookieOptions
             {
                 HttpOnly = true,  // Prevents JavaScript access
                 Secure = Request.IsHttps,    // Works in HTTP local dev and HTTPS environments
-                SameSite = SameSiteMode.Lax,  // CSRF protection
-                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                SameSite = SameSiteMode.Lax,  // CSRF protection. Need to change to Strict in production if frontend and backend are on different domains.
+                Expires = DateTimeOffset.UtcNow.AddMinutes(15),// 5 min more than JWT for clock skew telerance
                 Path = "/"
             });
 
-            // Redirect without token in URL
+            // .AddCookie() in Program.cs generates a cookie we don't use, so we sign out of that to clear it from the browser. 
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
             return Redirect(frontendUrl);
         }
-
+        /// <summary>
+        /// Deletes the authentication cookie to log the user out. 
+        /// </summary>
+        /// <returns>200 OK response with success message</returns>
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // Delete the auth token cookie
             Response.Cookies.Delete("auth_token", new CookieOptions
-            {
-                Path = "/"
-            });
-
-            // Also delete the ASP.NET Core authentication cookie if present
-            Response.Cookies.Delete(".AspNetCore.Cookies", new CookieOptions
             {
                 Path = "/"
             });
