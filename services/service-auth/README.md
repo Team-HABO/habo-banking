@@ -26,10 +26,15 @@ To inspect the network, use:
 Look for IPAM.Config.Subnet
 That value must be set in `.env` for the `NetworkIp` variable.
 
-## Run Docker container
-cd .\services\service-auth\
-docker compose build
-docker compose up -d
+## Docker Compose usage
+From `./services/service-auth`:
+
+- Production-like run (base compose only):
+    - `docker compose -f docker-compose.yml up -d --build`
+- Development run (with override):
+    - `docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build`
+
+Tip: `docker compose up -d --build` automatically includes `docker-compose.override.yml` when it exists.
 
 ## Endpoints
 Health:
