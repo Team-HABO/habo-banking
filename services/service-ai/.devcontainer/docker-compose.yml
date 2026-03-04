@@ -5,7 +5,7 @@ services:
       - ..:/workspace:cached
       - ../../../.git:/workspace/.git:ro
       - ~/.gitconfig:/home/vscode/.gitconfig:ro
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: sleep infinity
     depends_on:
       rabbitmq:
         condition: service_healthy
