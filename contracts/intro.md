@@ -11,7 +11,7 @@
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
-## ID 1 - Create Account 
+## ID 1 - Create Account
 
 Step 1, Initial POST request:
 
@@ -68,7 +68,7 @@ Step 3, Produce message to Synchronize-Service:
 }
 ```
 
-## ID 2 - Freeze/Unfreeze Account 
+## ID 2 - Freeze/Unfreeze Account
 
 Step 1, Initial PATCH request:
 
