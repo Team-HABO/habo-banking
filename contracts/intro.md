@@ -305,8 +305,6 @@ Step 1, Initial POST request:
 
 Step 2, Produce message to Fraud-Service:
 
-IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
-
 ```json
 {
     "data": {
