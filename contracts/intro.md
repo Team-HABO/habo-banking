@@ -11,7 +11,7 @@
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
-## ID 1
+## ID 1 - Create Account
 
 Step 1, Initial POST request:
 
@@ -68,7 +68,7 @@ Step 3, Produce message to Synchronize-Service:
 }
 ```
 
-## ID 2
+## ID 2 - Freeze/Unfreeze Account
 
 Step 1, Initial PATCH request:
 
@@ -97,7 +97,7 @@ Step 2, Produce message to Synchronize-Service:
 }
 ```
 
-## ID 3
+## ID 3 - Rename Account / Change Account Type
 
 Step 1, Initial PUT request:
 
@@ -128,7 +128,7 @@ Step 2, Produce message to Synchronize-Service:
 }
 ```
 
-## ID 4
+## ID 4 - Delete Account
 
 Step 1, Initial DELETE request. No request.body.
 
@@ -167,7 +167,7 @@ Step 3, Produce message to Synchronize-Service:
 }
 ```
 
-## ID 5
+## ID 5 - Bank Transaction
 
 Step 1, Initial POST request:
 
@@ -292,7 +292,7 @@ Step 4, Produce message to Synchronize-Service
 }
 ```
 
-## ID 6
+## ID 6 - Currency Exchange
 
 Step 1, Initial POST request:
 
@@ -303,22 +303,15 @@ Step 1, Initial POST request:
 }
 ```
 
-Step 2, Produce message to Fraud-Service:
-
-IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
+Step 2, Produce message to Transaction-Service:
 
 ```json
 {
     "data": {
-        "account": {
-            "guid": "string",
-            "name": "string",
-            "type": "string",
-        },
+        "accountGuid": "string",
         "amount": "string",
         "currency": "string",
         "transactionType": "exchange",
-        "originIpAddress": "string",
     },
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
@@ -328,31 +321,12 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
 }
 ```
 
-Step 2.5, If fraudulent, Produce message to Notification-Service:
+Step 3, Produce message to Currency-Service
 
 ```json
 {
     "data": {
-        "message": "string"
-    },
-    "metadata": {
-        "messageType": "TRANSACTION_EXCHANGE",
-        "messageTimestamp": "dateTime.now()",
-        "...": "..."
-    }
-}
-```
-
-Step 3, If NOT fraudulent, Produce message to Transaction-Service
-
-```json
-{
-    "data": {
-        "account": {
-            "guid": "string",
-            "name": "string",
-            "type": "string",
-        },
+        "accountGuid": "string",
         "amount": "string",
         "currency": "string",
         "transactionType": "string"
@@ -365,38 +339,12 @@ Step 3, If NOT fraudulent, Produce message to Transaction-Service
 }
 ```
 
-Step 4, Produce message to Currency-Service
+Step 4, Produce message back to Transaction-Service
 
 ```json
 {
     "data": {
-        "account": {
-            "guid": "string",
-            "name": "string",
-            "type": "string",
-        },
-        "amount": "string",
-        "currency": "string",
-        "transactionType": "string"
-    },
-    "metadata": {
-        "messageType": "TRANSACTION_EXCHANGE",
-        "messageTimestamp": "dateTime.now()",
-        "...": "..."
-    }
-}
-```
-
-Step 5, Produce message back to Transaction-Service
-
-```json
-{
-    "data": {
-        "account": {
-            "guid": "string",
-            "name": "string",
-            "type": "string",
-        },
+        "accountGuid": "string",
         "amount": "string",
         "currency": "string",
         "transactionType": "string",
@@ -410,7 +358,7 @@ Step 5, Produce message back to Transaction-Service
 }
 ```
 
-Step 5.5, If not possible to do currency exchange, then produce message to Notification-Service
+Step 4.4, If not possible to do currency exchange, then produce message to Notification-Service
 
 ```json
 {
@@ -425,7 +373,7 @@ Step 5.5, If not possible to do currency exchange, then produce message to Notif
 }
 ```
 
-Step 6, Produce message to Synchronize-Service
+Step 5, Produce message to Synchronize-Service
 
 ```json
 {
