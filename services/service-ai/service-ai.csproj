@@ -7,6 +7,7 @@
         <UserSecretsId>dotnet-service_ai-607aac6e-bf27-4b0a-b306-4d355a17dd94</UserSecretsId>
         <RootNamespace>service_ai</RootNamespace>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DefaultItemExcludes>$(DefaultItemExcludes);service-ai.Tests.Integration\**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
