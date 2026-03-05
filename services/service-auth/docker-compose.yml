@@ -13,17 +13,3 @@ services:
       resources:
         limits:
           memory: 512M
-        
-
-  frontend:
-    image: frontend
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80"
-    depends_on:
-      - service-auth
-
-
-
