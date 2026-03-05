@@ -11,6 +11,9 @@ obj/
 .dockerignore
 .env
 .env.*
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
 **/secrets.json
 **/*.Secret.json
 **/*secrets*.json
