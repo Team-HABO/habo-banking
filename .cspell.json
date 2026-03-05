@@ -34,6 +34,8 @@
     "Dtos",
     "OPENROUTER",
     "Serilog",
-    "stepfun"
+    "stepfun",
+    "Xunit",
+    "xunit"
   ]
 }
