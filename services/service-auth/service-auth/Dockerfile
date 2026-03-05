@@ -6,8 +6,12 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["service-auth.csproj", "./"]
 RUN dotnet restore "./service-auth.csproj"
-# Recursive copy is constrained by .dockerignore to avoid leaking local/sensitive files.
-COPY . .
+COPY ["Program.cs", "./"]
+COPY ["AppSettings.cs", "./"]
+COPY ["appsettings.json", "./"]
+COPY ["Controllers/", "./Controllers/"]
+COPY ["Services/", "./Services/"]
+COPY ["Properties/", "./Properties/"]
 RUN dotnet publish "./service-auth.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
