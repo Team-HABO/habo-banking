@@ -1,38 +1,31 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using service_auth;
 using service_auth.Services;
 
 namespace test
 {
     public class TokenServiceTest
     {
-        private readonly string jwtIssuer = "https://test-auth-service.com";
-        private readonly string jwtAudience = "https://test-api.com";
+        private readonly string authServiceUrl = "https://test-auth-service.com";
+        private readonly string balanceUrl = "https://test-balance-service.com";
+        private readonly string accountUrl = "https://test-account-service.com";
         private readonly string userId = Guid.NewGuid().ToString();
         private readonly string email = "ok@ok.dk";
         private readonly string validApiKey = "this_is_a_very_long_secret_key_32_chars!!";
+
         [Fact]
         public void TestGenerateTokenSuccess()
         {
-            
-            Dictionary<string, string?> inMemorySettings = new()
+            AppSettings appSettings = new()
             {
-                {   
-                    "SecretKeyJwt", validApiKey
-                },
-                {
-                    "JwtIssuer", jwtIssuer
-                },
-                {
-                    "JwtAudience", jwtAudience
-                }
+                SecretKeyJwt = validApiKey,
+                AuthServiceUrl = authServiceUrl,
+                BalanceServiceUrl = balanceUrl,
+                AccountServiceUrl = accountUrl
             };
 
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            TokenService tokenService = new(configuration);
-
+            TokenService tokenService = new(Options.Create(appSettings));
 
             string token = tokenService.CreateToken(userId, email);
 
@@ -43,101 +36,97 @@ namespace test
             string? emailClaim = jwtToken.Payload[JwtRegisteredClaimNames.Email].ToString();
             string? idClaim = jwtToken.Payload[JwtRegisteredClaimNames.NameId].ToString();
             string? issuerClaim = jwtToken.Payload[JwtRegisteredClaimNames.Iss].ToString();
-            string? audienceClaim = jwtToken.Payload[JwtRegisteredClaimNames.Aud].ToString();
+            List<string> audienceClaims = [.. jwtToken.Audiences];
 
             Assert.Equal(email, emailClaim);
             Assert.Equal(userId, idClaim);
-            Assert.Equal(jwtIssuer, issuerClaim);
-            Assert.Equal(jwtAudience, audienceClaim);
+            Assert.Equal(authServiceUrl, issuerClaim);
+            Assert.Equal(2, audienceClaims.Count);
+            Assert.Contains(balanceUrl, audienceClaims);
+            Assert.Contains(accountUrl, audienceClaims);
         }
         [Fact]
         public void TestGenerateTokenApiKeyTooShortThrowEx()
         {
-            Dictionary<string, string?> inMemorySettings = new()
+            AppSettings appSettings = new()
             {
-                {
-                    "SecretKeyJwt", "this_y_32_chars!!"
-                },
-                {
-                    "JwtIssuer", jwtIssuer
-                },
-                {
-                    "JwtAudience", jwtAudience
-                }
+                SecretKeyJwt = "this_is_not_32_chars!!",
+                AuthServiceUrl = authServiceUrl,
+                BalanceServiceUrl = balanceUrl,
+                AccountServiceUrl = accountUrl
             };
 
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            TokenService tokenService = new(configuration);
+            TokenService tokenService = new(Options.Create(appSettings));
 
+            ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(() => tokenService.CreateToken(userId, email));
 
-            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => tokenService.CreateToken(userId, email));
-
-            Assert.Equal("API key for JWT must be at least 32 bytes (256 bits). Current key is 17 bytes (136 bits). Please update your configuration with a longer key.", exception.Message);
+            Assert.Equal("IDX10720: Unable to create KeyedHashAlgorithm for algorithm 'http://www.w3.org/2001/04/xmldsig-more#hmac-sha256', " +
+                "the key size must be greater than: '256' bits, key has '176' bits. (Parameter 'keyBytes')", exception.Message);
 
         }
         [Fact]
         public void TestGenerateTokenNoApiKeyThrowEx()
         {
-            Dictionary<string, string?> inMemorySettings = new()
+            AppSettings appSettings = new()
             {
-                {
-                    "JwtIssuer", jwtIssuer
-                },
-                {
-                    "JwtAudience", jwtAudience
-                }
+                AuthServiceUrl = authServiceUrl,
+                BalanceServiceUrl = balanceUrl,
+                AccountServiceUrl = accountUrl
             };
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            TokenService tokenService = new(configuration);
-            string userId = Guid.NewGuid().ToString();
-            string email = "ok@ok.dk";
 
-            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => tokenService.CreateToken(userId, email));
-            Assert.Equal("API key for JWT is not configured.", exception.Message);
+            TokenService tokenService = new(Options.Create(appSettings));
+
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => tokenService.CreateToken(userId, email));
+
+            Assert.Equal("IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.", exception.Message);
         }
         [Fact]
-        public void TestGenerateTokenNoAudienceThrowEx()
+        public void TestGenerateTokenNoBalanceAudienceThrowEx()
         {
-            Dictionary<string, string?> inMemorySettings = new()
+            AppSettings appSettings = new()
             {
-                {
-                    "SecretKeyJwt", validApiKey
-                },
-                {
-                    "JwtIssuer", jwtIssuer
-                }
+                SecretKeyJwt = validApiKey,
+                AuthServiceUrl = authServiceUrl,
+                AccountServiceUrl = accountUrl
+
             };
 
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            TokenService tokenService = new(configuration);
+            TokenService tokenService = new(Options.Create(appSettings));
 
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => tokenService.CreateToken(userId, email));
-            Assert.Equal("JWT audience is not configured.", exception.Message);
+
+            Assert.Equal("Balance service URL is not configured for audience claim.", exception.Message);
+        }
+        [Fact]
+        public void TestGenerateTokenNoAccountAudienceThrowEx()
+        {
+            AppSettings appSettings = new()
+            {
+                SecretKeyJwt = validApiKey,
+                AuthServiceUrl = authServiceUrl,
+                BalanceServiceUrl = balanceUrl
+            };
+
+            TokenService tokenService = new(Options.Create(appSettings));
+
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => tokenService.CreateToken(userId, email));
+
+            Assert.Equal("Account service URL is not configured for audience claim.", exception.Message);
         }
         [Fact]
         public void TestGenerateTokenNoIssuerThrowEx()
         {
-            Dictionary<string, string?> inMemorySettings = new()
+            AppSettings appSettings = new()
             {
-                {
-                    "SecretKeyJwt", validApiKey
-                },
-                {
-                    "JwtAudience", jwtAudience
-                }
+                SecretKeyJwt = validApiKey,
+                BalanceServiceUrl = balanceUrl,
+                AccountServiceUrl = accountUrl
             };
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            TokenService tokenService = new(configuration);
+
+            TokenService tokenService = new(Options.Create(appSettings));
 
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => tokenService.CreateToken(userId, email));
+
             Assert.Equal("JWT issuer is not configured.", exception.Message);
         }
     }

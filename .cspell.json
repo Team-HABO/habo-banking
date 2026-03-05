@@ -36,7 +36,6 @@
     "stepfun",
     "Xunit",
     "xunit",
-    "authservicemock",
     "Hmac"
   ]
 }
