@@ -3,14 +3,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using service_auth.Services;
 
 namespace service_auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(ITokenService tokenService, IConfiguration configuration) : ControllerBase
+    public class AuthController(ITokenService tokenService, IOptions<AppSettings> options) : ControllerBase
     {
+        private readonly AppSettings _appSettings = options.Value;
+
         /// <summary>
         /// Initiates Google OAuth login flow.
         /// </summary>
@@ -18,11 +21,9 @@ namespace service_auth.Controllers
         [HttpGet("login")]
         public IActionResult Login()
         {
-            string gatewayUrl = configuration["ApiGatewayUrl"]
-                ?? throw new InvalidOperationException("Gateway URL not set in environment variables");
             AuthenticationProperties properties = new()
             {
-                RedirectUri = $"{gatewayUrl}/api/auth/google-response"
+                RedirectUri = $"{_appSettings.AuthServiceUrl}/api/auth/google-response"
             };
 
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
@@ -37,10 +38,6 @@ namespace service_auth.Controllers
             AuthenticateResult result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (!result.Succeeded)
                 return Unauthorized("Google authentication failed.");
-
-
-            string frontendUrl = configuration["FrontendUrl"]
-                ?? throw new InvalidOperationException("Frontend URL not set in environment variables");
 
             string? googleUserId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             string? email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
@@ -65,7 +62,7 @@ namespace service_auth.Controllers
             // .AddCookie() in Program.cs generates a cookie we don't use, so we sign out of that to clear it from the browser. 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return Redirect(frontendUrl);
+            return Redirect(_appSettings.FrontendUrl);
         }
         /// <summary>
         /// Deletes the authentication cookie to log the user out. 

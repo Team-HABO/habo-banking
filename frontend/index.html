@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Microservice Auth Prototype</h1>
+    <button onclick="login()">Login with Google</button>
+    <button onclick="logout()">Logout</button>
+
+    <button id="callApi" onclick="callProtectedApi()">Test Microservice API</button>
+    <pre id="apiResponse"></pre>
+
+    <script>
+        const AUTH_BASE_URL = "http://localhost:8080";
+
+        function login() {
+            const url = `${AUTH_BASE_URL}/api/auth/login`;
+            window.location.href = url;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        async function logout() {
+            try {
+                const response = await fetch(`${AUTH_BASE_URL}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'  // Send cookies to delete them
+                });
+
+                if (response.ok) {
+                    setLoginStatus('You are not logged in');
+                } else {
+                    console.error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
+        }
+
+        async function callProtectedApi() {
+            try {
+                const response = await fetch('http://localhost:8081/api/secrets', {
+                    method: 'GET',
+                    credentials: 'include', // This sends the cookie automatically!
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    document.getElementById('apiResponse').innerText = 'Unauthorized';
+                    throw new Error('Unauthorized');
+                }
+
+                const data = await response.json();
+                console.log(data);
+                document.getElementById('apiResponse').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+  
+            }
+        }
+
+        //npx serve -l 3000
+    </script>
+</body>
+</html>
