@@ -15,13 +15,6 @@ public record CheckFraudData
     public string OriginIpAddress { get; init; } = string.Empty;
 }
 
-public record AccountInfo
-{
-    public string Guid { get; init; } = string.Empty;
-    public string Name { get; init; } = string.Empty;
-    public string Type { get; init; } = string.Empty;
-}
-
 public record CheckFraudMetadata
 {
     public string MessageType { get; init; } = string.Empty;

@@ -8,49 +8,84 @@ Fraud detection microservice for the Habo Banking platform. Consumes transaction
 
 ```
 Account Service ──► RabbitMQ (CheckFraud) ──► AI Service ──► OpenRouter API
-                                                   │
-                                                   ▼
-                                          RabbitMQ (FraudChecked)
-                                                   │
-                                                   ▼
-                                          Transaction Service
+                                                    │
+                                      ┌─────────────┴──────────────┐
+                                      ▼                            ▼
+                           RabbitMQ (FraudChecked)     RabbitMQ (FraudNotification)
+                            (no fraud detected)          (fraud detected / error)
+                                      │                            │
+                                      ▼                            ▼
+                            Transaction Service          Notification Service
 ```
+
+## Flow (Contract ID 5 — Bank Transaction)
+
+| Outcome                             | Published message   | Destination                                               |
+| ----------------------------------- | ------------------- | --------------------------------------------------------- |
+| No fraud detected                   | `FraudChecked`      | Transaction-Service (step 3)                              |
+| Fraud detected                      | `FraudNotification` | Notification-Service (step 2.5)                           |
+| AI service error / unexpected error | `FraudNotification` | Notification-Service (transaction blocked on uncertainty) |
 
 ## Risk Heuristics
 
 The AI model flags transactions matching these rules:
 
-1. **Threshold Violation** — Amount exceeds 10,000 (any currency).
-2. **Geographical Risk** — Origin IP address is from any of the following high-risk countries: India, Nigeria, Romania, Vietnam, or Brazil.
+1. **Threshold Violation** — Amount exceeds 10,000.
+2. **Geographical Risk** — Origin IP address originates from a high-risk country: India, Nigeria, Romania, Vietnam, or Brazil.
 
 ## Messages
 
 ### CheckFraud (consumed)
 
-| Field             | Type      |
-|-------------------|-----------|
-| `Id`              | `Guid`    |
-| `SenderAccount`   | `string`  |
-| `ReceiverAccount` | `string`  |
-| `Amount`          | `decimal` |
-| `Currency`        | `string`  |
-| `OriginIpAddress` | `string`  |
+Sent by the Transaction-Service as step 2 of contract ID 5. `metadata.messageType` will be one of `TRANSACTION_TRANSFER`, `TRANSACTION_WITHDRAW`, or `TRANSACTION_DEPOSIT`. The `data.receiver` object is only present for transfer transactions.
 
-### FraudChecked (published)
+| Field                       | Type       | Notes                                                                   |
+| --------------------------- | ---------- | ----------------------------------------------------------------------- |
+| `data.account.guid`         | `string`   | Sender account GUID                                                     |
+| `data.account.name`         | `string`   |                                                                         |
+| `data.account.type`         | `string`   |                                                                         |
+| `data.receiver.guid`        | `string?`  | Transfer only                                                           |
+| `data.receiver.name`        | `string?`  | Transfer only                                                           |
+| `data.receiver.type`        | `string?`  | Transfer only                                                           |
+| `data.amount`               | `string`   |                                                                         |
+| `data.transactionType`      | `string`   | `transfer`, `deposit`, `withdraw`                                       |
+| `data.originIpAddress`      | `string`   |                                                                         |
+| `metadata.messageType`      | `string`   | `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT` |
+| `metadata.messageTimestamp` | `DateTime` |                                                                         |
 
-| Field       | Type     |
-|-------------|----------|
-| `RequestId` | `Guid`   |
-| `IsFraud`   | `bool`   |
-| `Reason`    | `string` |
-| `RiskScore` | `double` |
+### FraudChecked (published — step 3)
+
+Published to the Transaction-Service when no fraud is detected. Passes the original transaction data through for processing.
+
+| Field                       | Type       | Notes                            |
+| --------------------------- | ---------- | -------------------------------- |
+| `data.account.guid`         | `string`   |                                  |
+| `data.account.name`         | `string`   |                                  |
+| `data.account.type`         | `string`   |                                  |
+| `data.receiver.guid`        | `string?`  | Transfer only                    |
+| `data.receiver.name`        | `string?`  | Transfer only                    |
+| `data.receiver.type`        | `string?`  | Transfer only                    |
+| `data.amount`               | `string`   |                                  |
+| `data.transactionType`      | `string`   |                                  |
+| `metadata.messageType`      | `string`   | Passed through from `CheckFraud` |
+| `metadata.messageTimestamp` | `DateTime` |                                  |
+
+### FraudNotification (published — step 2.5)
+
+Published to the Notification-Service when fraud is detected or when the AI service fails (transaction blocked on uncertainty).
+
+| Field                       | Type       | Notes                              |
+| --------------------------- | ---------- | ---------------------------------- |
+| `data.message`              | `string`   | Human-readable reason for blocking |
+| `metadata.messageType`      | `string`   | Passed through from `CheckFraud`   |
+| `metadata.messageTimestamp` | `DateTime` |                                    |
 
 ## Configuration
 
 Set the following environment variables in a `.env` file at the project root (loaded via `DotNetEnv`):
 
 | Variable             | Description                      |
-|----------------------|----------------------------------|
+| -------------------- | -------------------------------- |
 | `OPENROUTER_API_KEY` | OpenRouter API key               |
 | `RABBITMQ_USERNAME`  | RabbitMQ username                |
 | `RABBITMQ_PASSWORD`  | RabbitMQ password                |
@@ -59,9 +94,8 @@ Set the following environment variables in a `.env` file at the project root (lo
 The AI model is configured via `appsettings.json`:
 
 | Key                | Description      |
-|--------------------|------------------|
+| ------------------ | ---------------- |
 | `OpenRouter:Model` | Model identifier |
-
 
 ## Running
 
@@ -81,36 +115,75 @@ dotnet run
 
 ```json
 {
-  "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
-  "message": {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "senderAccount": "DK1234567890",
-    "receiverAccount": "DK0987654321",
-    "amount": 15000.00,
-    "currency": "DKK",
-    "originIpAddress": "185.93.2.100"
-  }
+	"messageType": ["urn:message:service_ai.Messages:CheckFraud"],
+	"message": {
+		"data": {
+			"account": {
+				"guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+				"name": "Main Account",
+				"type": "checking"
+			},
+			"amount": "15000",
+			"transactionType": "deposit",
+			"originIpAddress": "185.93.2.100"
+		},
+		"metadata": {
+			"messageType": "TRANSACTION_DEPOSIT",
+			"messageTimestamp": "2026-03-08T12:00:00Z"
+		}
+	}
+}
+```
+
+Transfer example (includes receiver):
+
+```json
+{
+	"messageType": ["urn:message:service_ai.Messages:CheckFraud"],
+	"message": {
+		"data": {
+			"account": {
+				"guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+				"name": "Main Account",
+				"type": "checking"
+			},
+			"receiver": {
+				"guid": "8a1bc234-1234-5678-abcd-1234567890ab",
+				"name": "Savings Account",
+				"type": "savings"
+			},
+			"amount": "500",
+			"transactionType": "transfer",
+			"originIpAddress": "80.71.142.50"
+		},
+		"metadata": {
+			"messageType": "TRANSACTION_TRANSFER",
+			"messageTimestamp": "2026-03-08T12:00:00Z"
+		}
+	}
 }
 ```
 
 ### Test Cases
 
-| # | Scenario              | Amount | IP              | Expected         |
-|---|-----------------------|--------|-----------------|------------------|
-| 1 | Threshold violation   | 25,000 | `80.71.142.50`  | `IsFraud: true`  |
-| 2 | Geographical risk     | 500    | `103.21.244.15` | `IsFraud: true`  |
-| 3 | Clean transaction     | 750    | `185.93.2.100`  | `IsFraud: false` |
-| 4 | Multiple risk factors | 50,000 | `49.36.128.42`  | `IsFraud: true`  |
+| #   | Scenario              | Amount  | IP                       | Expected                      |
+| --- | --------------------- | ------- | ------------------------ | ----------------------------- |
+| 1   | Threshold violation   | `25000` | `80.71.142.50`           | `FraudNotification` published |
+| 2   | Geographical risk     | `500`   | `103.21.244.15` (India)  | `FraudNotification` published |
+| 3   | Clean transaction     | `750`   | `185.93.2.100`           | `FraudChecked` published      |
+| 4   | Multiple risk factors | `50000` | `49.36.128.42` (Nigeria) | `FraudNotification` published |
 
 ## File Structure
 
 ```
 service-ai/
 ├── Consumers/
-│   └── CheckFraudConsumer.cs         # Consumes requests, builds prompt, calls AI, handles errors with fallback
+│   └── CheckFraudConsumer.cs         # Consumes CheckFraud, calls AI, routes to FraudChecked or FraudNotification
 ├── Messages/
-│   ├── CheckFraud.cs                 # Input message (command)
-│   └── FraudChecked.cs               # Output message (event)
+│   ├── CheckFraud.cs                 # Input message (consumed from Transaction-Service)
+│   ├── FraudChecked.cs               # Output message — no fraud, pass through to Transaction-Service (step 3)
+│   ├── FraudNotification.cs          # Output message — fraud detected or AI error, sent to Notification-Service (step 2.5)
+│   └── Shared.cs                     # Shared types (AccountInfo)
 ├── Models/
 │   ├── FraudCheckResult.cs           # AI response DTO
 │   └── OpenRouterDtos.cs             # OpenRouter API request/response DTOs
