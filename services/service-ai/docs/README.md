@@ -37,48 +37,15 @@ The AI model flags transactions matching these rules:
 
 ### CheckFraud (consumed)
 
-Sent by the Transaction-Service as step 2 of contract ID 5. `metadata.messageType` will be one of `TRANSACTION_TRANSFER`, `TRANSACTION_WITHDRAW`, or `TRANSACTION_DEPOSIT`. The `data.receiver` object is only present for transfer transactions.
-
-| Field                       | Type       | Notes                                                                   |
-| --------------------------- | ---------- | ----------------------------------------------------------------------- |
-| `data.account.guid`         | `string`   | Sender account GUID                                                     |
-| `data.account.name`         | `string`   |                                                                         |
-| `data.account.type`         | `string`   |                                                                         |
-| `data.receiver.guid`        | `string?`  | Transfer only                                                           |
-| `data.receiver.name`        | `string?`  | Transfer only                                                           |
-| `data.receiver.type`        | `string?`  | Transfer only                                                           |
-| `data.amount`               | `string`   |                                                                         |
-| `data.transactionType`      | `string`   | `transfer`, `deposit`, `withdraw`                                       |
-| `data.originIpAddress`      | `string`   |                                                                         |
-| `metadata.messageType`      | `string`   | `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT` |
-| `metadata.messageTimestamp` | `DateTime` |                                                                         |
+Sent by the Account-Service (contract ID 5, step 2). Contains `data` with `account` (guid, name, type), optional `receiver` (transfer only), `amount`, `transactionType`, and `originIpAddress`. `metadata.messageType` is one of `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT`.
 
 ### FraudChecked (published — step 3)
 
-Published to the Transaction-Service when no fraud is detected. Passes the original transaction data through for processing.
-
-| Field                       | Type       | Notes                            |
-| --------------------------- | ---------- | -------------------------------- |
-| `data.account.guid`         | `string`   |                                  |
-| `data.account.name`         | `string`   |                                  |
-| `data.account.type`         | `string`   |                                  |
-| `data.receiver.guid`        | `string?`  | Transfer only                    |
-| `data.receiver.name`        | `string?`  | Transfer only                    |
-| `data.receiver.type`        | `string?`  | Transfer only                    |
-| `data.amount`               | `string`   |                                  |
-| `data.transactionType`      | `string`   |                                  |
-| `metadata.messageType`      | `string`   | Passed through from `CheckFraud` |
-| `metadata.messageTimestamp` | `DateTime` |                                  |
+Published to the Transaction-Service when no fraud is detected. Passes `data` (account, receiver, amount, transactionType) and `metadata` through unchanged for the Transaction-Service to process.
 
 ### FraudNotification (published — step 2.5)
 
-Published to the Notification-Service when fraud is detected or when the AI service fails (transaction blocked on uncertainty).
-
-| Field                       | Type       | Notes                              |
-| --------------------------- | ---------- | ---------------------------------- |
-| `data.message`              | `string`   | Human-readable reason for blocking |
-| `metadata.messageType`      | `string`   | Passed through from `CheckFraud`   |
-| `metadata.messageTimestamp` | `DateTime` |                                    |
+Published to the Notification-Service when fraud is detected or the AI service fails (transaction blocked on uncertainty). Contains `data.message` with a human-readable reason and `metadata.messageType` passed through from `CheckFraud`.
 
 ## Configuration
 
@@ -112,6 +79,8 @@ dotnet run
 1. Open `http://localhost:15672` (login `guest`/`guest`).
 2. Go to **Queues** → find the `check-fraud` queue → **Publish message**.
 3. Paste a test payload:
+
+Deposit example:
 
 ```json
 {
