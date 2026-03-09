@@ -13,4 +13,3 @@ services:
       resources:
         limits:
           memory: 512M
-          
