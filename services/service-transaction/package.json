@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"@types/amqplib": "^0.10.8",
-		"@types/node": "^25.3.0",
+		"@types/node": "^25.3.5",
 		"@types/pg": "^8.16.0",
 		"eslint": "^9.39.2",
 		"prisma": "^7.4.1",
