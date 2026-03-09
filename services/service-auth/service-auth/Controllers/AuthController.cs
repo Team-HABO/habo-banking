@@ -18,7 +18,7 @@ namespace service_auth.Controllers
         /// Initiates Google OAuth login flow.
         /// </summary>
         /// <returns>Redirect to Google authentication</returns>
-        [HttpGet("login")]
+        [HttpPost("tokens")]
         public IActionResult Login()
         {
             AuthenticationProperties properties = new()
