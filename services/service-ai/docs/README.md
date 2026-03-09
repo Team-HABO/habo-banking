@@ -21,7 +21,7 @@ Account Service ──► RabbitMQ (CheckFraud) ──► AI Service ──► O
 ## Flow (Contract ID 5 — Bank Transaction)
 
 | Outcome                             | Published message   | Destination                                               |
-| ----------------------------------- | ------------------- | --------------------------------------------------------- |
+|-------------------------------------|---------------------|-----------------------------------------------------------|
 | No fraud detected                   | `FraudChecked`      | Transaction-Service (step 3)                              |
 | Fraud detected                      | `FraudNotification` | Notification-Service (step 2.5)                           |
 | AI service error / unexpected error | `FraudNotification` | Notification-Service (transaction blocked on uncertainty) |
@@ -52,7 +52,7 @@ Published to the Notification-Service when fraud is detected or the AI service f
 Set the following environment variables in a `.env` file at the project root (loaded via `DotNetEnv`):
 
 | Variable             | Description                      |
-| -------------------- | -------------------------------- |
+|----------------------|----------------------------------|
 | `OPENROUTER_API_KEY` | OpenRouter API key               |
 | `RABBITMQ_USERNAME`  | RabbitMQ username                |
 | `RABBITMQ_PASSWORD`  | RabbitMQ password                |
@@ -61,7 +61,7 @@ Set the following environment variables in a `.env` file at the project root (lo
 The AI model is configured via `appsettings.json`:
 
 | Key                | Description      |
-| ------------------ | ---------------- |
+|--------------------|------------------|
 | `OpenRouter:Model` | Model identifier |
 
 ## Running
@@ -84,23 +84,23 @@ Deposit example:
 
 ```json
 {
-	"messageType": ["urn:message:service_ai.Messages:CheckFraud"],
-	"message": {
-		"data": {
-			"account": {
-				"guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-				"name": "Main Account",
-				"type": "checking"
-			},
-			"amount": "15000",
-			"transactionType": "deposit",
-			"originIpAddress": "185.93.2.100"
-		},
-		"metadata": {
-			"messageType": "TRANSACTION_DEPOSIT",
-			"messageTimestamp": "2026-03-08T12:00:00Z"
-		}
-	}
+ "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
+ "message": {
+  "data": {
+   "account": {
+    "guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Main Account",
+    "type": "checking"
+   },
+   "amount": "15000",
+   "transactionType": "deposit",
+   "originIpAddress": "185.93.2.100"
+  },
+  "metadata": {
+   "messageType": "TRANSACTION_DEPOSIT",
+   "messageTimestamp": "2026-03-08T12:00:00Z"
+  }
+ }
 }
 ```
 
@@ -108,39 +108,39 @@ Transfer example (includes receiver):
 
 ```json
 {
-	"messageType": ["urn:message:service_ai.Messages:CheckFraud"],
-	"message": {
-		"data": {
-			"account": {
-				"guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-				"name": "Main Account",
-				"type": "checking"
-			},
-			"receiver": {
-				"guid": "8a1bc234-1234-5678-abcd-1234567890ab",
-				"name": "Savings Account",
-				"type": "savings"
-			},
-			"amount": "500",
-			"transactionType": "transfer",
-			"originIpAddress": "80.71.142.50"
-		},
-		"metadata": {
-			"messageType": "TRANSACTION_TRANSFER",
-			"messageTimestamp": "2026-03-08T12:00:00Z"
-		}
-	}
+ "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
+ "message": {
+  "data": {
+   "account": {
+    "guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Main Account",
+    "type": "checking"
+   },
+   "receiver": {
+    "guid": "8a1bc234-1234-5678-abcd-1234567890ab",
+    "name": "Savings Account",
+    "type": "savings"
+   },
+   "amount": "500",
+   "transactionType": "transfer",
+   "originIpAddress": "80.71.142.50"
+  },
+  "metadata": {
+   "messageType": "TRANSACTION_TRANSFER",
+   "messageTimestamp": "2026-03-08T12:00:00Z"
+  }
+ }
 }
 ```
 
 ### Test Cases
 
-| #   | Scenario              | Amount  | IP                       | Expected                      |
-| --- | --------------------- | ------- | ------------------------ | ----------------------------- |
-| 1   | Threshold violation   | `25000` | `80.71.142.50`           | `FraudNotification` published |
-| 2   | Geographical risk     | `500`   | `103.21.244.15` (India)  | `FraudNotification` published |
-| 3   | Clean transaction     | `750`   | `185.93.2.100`           | `FraudChecked` published      |
-| 4   | Multiple risk factors | `50000` | `49.36.128.42` (Nigeria) | `FraudNotification` published |
+| # | Scenario              | Amount  | IP                       | Expected                      |
+|---|-----------------------|---------|--------------------------|-------------------------------|
+| 1 | Threshold violation   | `25000` | `80.71.142.50`           | `FraudNotification` published |
+| 2 | Geographical risk     | `500`   | `103.21.244.15` (India)  | `FraudNotification` published |
+| 3 | Clean transaction     | `750`   | `185.93.2.100`           | `FraudChecked` published      |
+| 4 | Multiple risk factors | `50000` | `49.36.128.42` (Nigeria) | `FraudNotification` published |
 
 ## File Structure
 
