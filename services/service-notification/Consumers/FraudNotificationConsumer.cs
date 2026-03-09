@@ -1,11 +1,20 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Options;
 using service_notification.Messages;
+using service_notification.Services;
+using service_notification.Settings;
 
 namespace service_notification.Consumers;
 
-public class FraudNotificationConsumer(ILogger<FraudNotificationConsumer> logger) : IConsumer<FraudNotification>
+public class FraudNotificationConsumer(
+    ILogger<FraudNotificationConsumer> logger,
+    IEmailService emailService,
+    IOptions<EmailSettings> emailOptions)
+    : IConsumer<FraudNotification>
 {
-    public Task Consume(ConsumeContext<FraudNotification> context)
+    private readonly EmailSettings _emailSettings = emailOptions.Value;
+
+    public async Task Consume(ConsumeContext<FraudNotification> context)
     {
         var notification = context.Message;
 
@@ -14,8 +23,11 @@ public class FraudNotificationConsumer(ILogger<FraudNotificationConsumer> logger
             notification.Metadata.MessageTimestamp,
             notification.Data.Message);
 
-        // TODO: implement actual notification logic (e.g. email, SMS)
-
-        return Task.CompletedTask;
+        await emailService.SendEmailAsync(
+            _emailSettings.FromEmail,
+            _emailSettings.FromName,
+            "HABO Bank - Potential fraud notification!",
+            $"<h1>Potential fraud detected!</h1><p>{notification.Data.Message}</p>"
+        );
     }
 }
