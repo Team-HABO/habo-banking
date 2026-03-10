@@ -149,7 +149,7 @@ service-ai/
 ├── Consumers/
 │   └── CheckFraudConsumer.cs         # Consumes CheckFraud, calls AI, routes to FraudChecked or FraudNotification
 ├── Messages/
-│   ├── CheckFraud.cs                 # Input message (consumed from Transaction-Service)
+│   ├── CheckFraud.cs                 # Input message — published by Account-Service
 │   ├── FraudChecked.cs               # Output message — no fraud, pass through to Transaction-Service (step 3)
 │   ├── FraudNotification.cs          # Output message — fraud detected or AI error, sent to Notification-Service (step 2.5)
 │   └── Shared.cs                     # Shared types (AccountInfo)
