@@ -14,8 +14,11 @@ public class OpenRouterServiceFixture : IAsyncLifetime
         // Walk up from the test runner working directory to find the .env at the repo root
         DotNetEnv.Env.TraversePath().Load();
 
-        var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
-            ?? throw new InvalidOperationException("OPENROUTER_API_KEY is not set. Ensure the .env file is present.");
+        var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new SkipException("OPENROUTER_API_KEY is not set. Skipping OpenRouter integration tests. Configure this variable (e.g., via .env) to enable these tests.");
+        }
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>

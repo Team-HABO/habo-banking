@@ -1,5 +1,3 @@
-using MassTransit;
-
 namespace service_ai.Messages;
 
 /// <summary>
