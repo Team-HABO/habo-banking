@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="service-auth/service-auth.csproj" />
+  <Project Path="test/test.csproj" Id="456a331d-c83d-4e10-bdce-6c5a52a0caf3" />
 </Solution>
