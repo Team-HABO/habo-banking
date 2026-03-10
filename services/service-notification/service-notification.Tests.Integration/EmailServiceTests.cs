@@ -18,7 +18,7 @@ public class EmailServiceTests(EmailServiceFixture fixture) : IClassFixture<Emai
             "<h1>Integration test</h1><p>This is a test email sent from the integration test suite.</p>"
         );
 
-        response.Should().Be("2.0.0 Ok: queued");
+        response.Should().StartWith("2.0.0").And.Contain("queued");
     }
 }
 

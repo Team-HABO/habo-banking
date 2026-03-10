@@ -1,4 +1,4 @@
-﻿﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "service-notification", "service-notification.csproj", "{1DB3FDF0-E100-4B2C-A7CA-8EFFC237DF6C}"
 EndProject
