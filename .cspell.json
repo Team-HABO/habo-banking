@@ -37,6 +37,7 @@
     "stepfun",
     "Xunit",
     "xunit",
-    "Hmac"
+    "Hmac",
+    "VITE"
   ]
 }
