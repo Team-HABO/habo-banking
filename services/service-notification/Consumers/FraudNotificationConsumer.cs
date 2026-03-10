@@ -23,11 +23,13 @@ public class FraudNotificationConsumer(
             notification.Metadata.MessageTimestamp,
             notification.Data.Message);
 
+        var sanitizedMessage = System.Net.WebUtility.HtmlEncode(notification.Data.Message);
+
         await emailService.SendEmailAsync(
             _emailSettings.FromEmail,
             _emailSettings.FromName,
             "HABO Bank - Potential fraud notification!",
-            $"<h1>Potential fraud detected!</h1><p>{notification.Data.Message}</p>"
+            $"<h1>Potential fraud detected!</h1><p>{sanitizedMessage}</p>"
         );
     }
 }
