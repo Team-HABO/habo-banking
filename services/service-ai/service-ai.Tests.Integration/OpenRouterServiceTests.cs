@@ -10,13 +10,17 @@ public class OpenRouterServiceTests(OpenRouterServiceFixture fixture) : IClassFi
 {
     private readonly IOpenRouterService _sut = fixture.OpenRouterService;
 
-    // Builds the same prompt format that CheckFraudConsumer sends (Amount + Transaction Type + Origin IP)
+    // Builds the same prompt format that CheckFraudConsumer sends
     private static string BuildPrompt(
+        string senderAccount,
+        string receiverAccount,
         decimal amount,
-        string transactionType,
+        string currency,
         string originIpAddress) =>
+        $"Sender Account: {senderAccount}\n" +
+        $"Receiver Account: {receiverAccount}\n" +
         $"Amount: {amount}\n" +
-        $"Transaction Type: {transactionType}\n" +
+        $"Currency: {currency}\n" +
         $"Origin IP Address: {originIpAddress}";
 
     // -------------------------------------------------------------------------
@@ -26,7 +30,7 @@ public class OpenRouterServiceTests(OpenRouterServiceFixture fixture) : IClassFi
     [Fact]
     public async Task SendPromptAsync_When_GivenAValidTransaction_Should_ReturnValidShape()
     {
-        var prompt = BuildPrompt(500, "transfer", "82.211.100.1");
+        var prompt = BuildPrompt("DK0000000001", "DK0000000002", 500, "DKK", "82.211.100.1");
 
         var result = await _sut.SendPromptAsync(prompt);
 
@@ -44,7 +48,7 @@ public class OpenRouterServiceTests(OpenRouterServiceFixture fixture) : IClassFi
     public async Task SendPromptAsync_When_AmountIsBelowThreshold_Should_ReturnFraudFalse()
     {
         // Amount well below 10 000, no high-risk country IP
-        var prompt = BuildPrompt(250, "transfer", "82.211.100.1");
+        var prompt = BuildPrompt("DK0000000001", "DK0000000002", 250, "DKK", "82.211.100.1");
 
         var result = await _sut.SendPromptAsync(prompt);
 
@@ -59,7 +63,7 @@ public class OpenRouterServiceTests(OpenRouterServiceFixture fixture) : IClassFi
     public async Task SendPromptAsync_When_AmountExceedsThreshold_Should_ReturnFraudTrue()
     {
         // Amount clearly exceeds the 10 000 threshold
-        var prompt = BuildPrompt(15_000, "transfer", "82.211.100.1");
+        var prompt = BuildPrompt("DK0000000001", "DK0000000002", 15_000, "DKK", "82.211.100.1");
 
         var result = await _sut.SendPromptAsync(prompt);
 
