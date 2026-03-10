@@ -6,11 +6,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-service_notification-d1423c97-a9f6-42db-9ba4-f7be69b50b42</UserSecretsId>
         <RootNamespace>service_notification</RootNamespace>
+        <DefaultItemExcludes>$(DefaultItemExcludes);service-notification.Tests.Integration\**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="DotNetEnv" Version="3.1.1"/>
-        <PackageReference Include="MailKit" Version="4.15.1" />
+        <PackageReference Include="MailKit" Version="4.15.1"/>
         <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.6"/>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6"/>
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
