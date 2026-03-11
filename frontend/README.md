@@ -76,3 +76,9 @@ Notes:
 - `withCredentials: true` is required for cross-origin requests (for example `localhost:3000` to `localhost:8080`).
 - The backend must allow credentials in CORS (`Access-Control-Allow-Credentials: true`).
 - `Access-Control-Allow-Origin` must be a specific origin, not `*`.
+
+## Run unit test with vitest
+
+```bash
+npm run test
+```
