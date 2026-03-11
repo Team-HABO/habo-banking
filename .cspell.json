@@ -38,6 +38,8 @@
     "stepfun",
     "Xunit",
     "xunit",
-    "Hmac"
+    "Hmac",
+    "buildtransitive",
+    "contentfiles"
   ]
 }

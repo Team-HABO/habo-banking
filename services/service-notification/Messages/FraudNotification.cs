@@ -1,9 +1,9 @@
-using MassTransit;
+﻿using MassTransit;
 
-namespace service_ai.Messages;
+namespace service_notification.Messages;
 
 /// <summary>
-/// Published to the Notification-Service when fraud is detected (contract ID 5, step 2.5).
+/// Consumed from the message bus when fraud is detected by service-ai.
 /// </summary>
 [EntityName("habo.banking:FraudNotification")]
 [MessageUrn("habo.banking:FraudNotification")]
@@ -23,3 +23,4 @@ public record FraudNotificationMetadata
     public string MessageType { get; init; } = string.Empty;
     public DateTime MessageTimestamp { get; init; }
 }
+

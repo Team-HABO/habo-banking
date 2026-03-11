@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using service_ai.Services;
-using Xunit;
 
 namespace service_ai.Tests.Integration;
 
@@ -17,7 +16,7 @@ public class OpenRouterServiceFixture : IAsyncLifetime
         var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
         if (string.IsNullOrEmpty(apiKey))
         {
-            throw new SkipException("OPENROUTER_API_KEY is not set. Skipping OpenRouter integration tests. Configure this variable (e.g., via .env) to enable these tests.");
+            throw new ArgumentException("OPENROUTER_API_KEY is not set. Skipping OpenRouter integration tests. Configure this variable (e.g., via .env) to enable these tests.");
         }
 
         var configuration = new ConfigurationBuilder()
