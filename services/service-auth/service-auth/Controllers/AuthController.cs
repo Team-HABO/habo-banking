@@ -61,8 +61,9 @@ namespace service_auth.Controllers
 
             // .AddCookie() in Program.cs generates a cookie we don't use, so we sign out of that to clear it from the browser. 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            return Redirect(_appSettings.FrontendUrl);
+            string redirectUrl = _appSettings.FrontendUrl + "/dashboard";
+            Console.WriteLine(redirectUrl);
+            return Redirect(redirectUrl);
         }
         /// <summary>
         /// Deletes the authentication cookie to log the user out. 

@@ -1,0 +1,32 @@
+.see-account {
+  max-width: 860px;
+}
+
+.see-account-title {
+  margin: 0 0 1rem;
+  color: #0f2f49;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.see-account-update-button {
+  border: 1px solid #14548a;
+  border-radius: 12px;
+  background: #14548a;
+  color: #ffff;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.78rem 1rem;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.see-account-update-button:hover {
+  transform: translateY(-1px);
+  background-color: #0f4673;
+  box-shadow: 0 10px 22px rgb(20 84 138 / 0.28%);
+}
+
+.see-account-update-button:focus-visible {
+  outline: 3px solid #74b6ef;
+  outline-offset: 2px;
+}
