@@ -14,8 +14,8 @@ builder.Services.AddSerilog(new LoggerConfiguration()
     .WriteTo.File("logs/service-notification-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger());
 
-// Load environment variables from root .env file
-Env.TraversePath().Load();
+// Load environment variables from service .env file
+Env.Load();
 
 var rabbitMqUsername = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")
                        ?? throw new InvalidOperationException(
