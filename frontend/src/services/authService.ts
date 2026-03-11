@@ -1,11 +1,20 @@
 const authApiUrl = import.meta.env.VITE_AUTH_API_URL;
 
+/**
+ * Initiates the OAuth login flow by submitting a hidden HTML form.
+ * * @remarks
+ * This function specifically avoids using Axios/Fetch (XHR) because the 
+ * ASP.NET backend issues a `ChallengeResult`. This triggers a 302 redirect 
+ * to Google's OAuth servers, which would be blocked by CORS if attempted 
+ * via a standard AJAX request. A full browser navigation via form submission 
+ * allows the redirect and cookie-setting to happen naturally.
+ * * @throws {Error} If the `VITE_AUTH_API_URL` environment variable is not defined.
+ */
 export function loginWithEmptyBody() {
 	if (!authApiUrl) {
 		throw new Error("Missing VITE_AUTH_API_URL in environment variables.");
 	}
 
-	// OAuth login endpoints should be initiated by browser navigation, not XHR.
 	const form = document.createElement("form");
 	form.method = "POST";
 	form.action = `${authApiUrl}/api/auth/tokens`;
