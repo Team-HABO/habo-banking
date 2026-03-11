@@ -18,7 +18,8 @@
     "**/docs/diagrams",
     "services/service-transaction/generated/**",
     "**/services/service-ai/obj/**",
-    "services/service-transaction/prisma/**"
+    "services/service-transaction/prisma/**",
+    "**/obj/**"
   ],
   "words": [
     "habo",
