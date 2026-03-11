@@ -26,7 +26,8 @@ public class CheckFraudConsumerTests(CheckFraudConsumerFixture fixture)
         Metadata = new CheckFraudMetadata
         {
             MessageType = "CheckFraud",
-            MessageTimestamp = DateTime.UtcNow
+            MessageTimestamp = DateTime.UtcNow,
+            MessageId = Guid.NewGuid()
         }
     };
 
