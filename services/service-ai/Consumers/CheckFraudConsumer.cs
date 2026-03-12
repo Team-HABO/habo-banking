@@ -40,7 +40,8 @@ public class CheckFraudConsumer(
                     Metadata = new FraudNotificationMetadata
                     {
                         MessageType = request.Metadata.MessageType,
-                        MessageTimestamp = DateTime.UtcNow
+                        MessageTimestamp = DateTime.UtcNow,
+                        MessageId = request.Metadata.MessageId
                     }
                 });
 
@@ -64,7 +65,8 @@ public class CheckFraudConsumer(
                     Metadata = new FraudCheckedMetadata
                     {
                         MessageType = request.Metadata.MessageType,
-                        MessageTimestamp = DateTime.UtcNow
+                        MessageTimestamp = DateTime.UtcNow,
+                        MessageId = request.Metadata.MessageId
                     }
                 });
 
@@ -84,7 +86,8 @@ public class CheckFraudConsumer(
                 Metadata = new FraudNotificationMetadata
                 {
                     MessageType = request.Metadata.MessageType,
-                    MessageTimestamp = DateTime.UtcNow
+                    MessageTimestamp = DateTime.UtcNow,
+                    MessageId = request.Metadata.MessageId
                 }
             });
         }
@@ -101,7 +104,8 @@ public class CheckFraudConsumer(
                 Metadata = new FraudNotificationMetadata
                 {
                     MessageType = request.Metadata.MessageType,
-                    MessageTimestamp = DateTime.UtcNow
+                    MessageTimestamp = DateTime.UtcNow,
+                    MessageId = request.Metadata.MessageId
                 }
             });
         }

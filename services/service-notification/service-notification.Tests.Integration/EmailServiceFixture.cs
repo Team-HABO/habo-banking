@@ -12,7 +12,7 @@ public class EmailServiceFixture : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        // Walk up from the test runner working directory to find the .env at the repo root
+        // Walk up from the test runner working directory to find the .env at the service root
         DotNetEnv.Env.TraversePath().Load();
 
         var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST")

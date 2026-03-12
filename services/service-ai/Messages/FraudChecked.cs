@@ -22,4 +22,5 @@ public record FraudCheckedMetadata
 {
     public string MessageType { get; init; } = string.Empty;
     public DateTime MessageTimestamp { get; init; }
+    public Guid MessageId { get; init; }
 }
