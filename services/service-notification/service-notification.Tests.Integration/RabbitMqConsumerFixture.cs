@@ -63,6 +63,13 @@ public sealed class RabbitMqConsumerFixture : IAsyncLifetime
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
+                // Ensure Host.StartAsync waits for MassTransit bus/endpoints to be ready.
+                services.Configure<MassTransitHostOptions>(options =>
+                {
+                    options.WaitUntilStarted = true;
+                    options.StartTimeout = TimeSpan.FromSeconds(30);
+                });
+
                 services.Configure<EmailSettings>(opts =>
                 {
                     opts.SmtpHost = emailSettings.SmtpHost;
@@ -85,7 +92,15 @@ public sealed class RabbitMqConsumerFixture : IAsyncLifetime
                     x.UsingRabbitMq((ctx, cfg) =>
                     {
                         cfg.Host(_container.GetConnectionString());
-                        cfg.ConfigureEndpoints(ctx);
+
+                        // FraudNotification uses [EntityName("habo.banking:Notification")].
+                        // Bind this endpoint explicitly so Bus.Publish(FraudNotification)
+                        // reaches the consumer in integration tests.
+                        cfg.ReceiveEndpoint("fraud-notification-consumer", e =>
+                        {
+                            e.Bind("habo.banking:Notification");
+                            e.ConfigureConsumer<FraudNotificationConsumer>(ctx);
+                        });
                     });
                 });
             })
