@@ -86,20 +86,20 @@ public sealed class RabbitMqConsumerFixture : IAsyncLifetime
 
                 services.AddMassTransit(x =>
                 {
-                    x.AddConsumer<FraudNotificationConsumer>();
+                    x.AddConsumer<NotificationConsumer>();
                     x.SetKebabCaseEndpointNameFormatter();
 
                     x.UsingRabbitMq((ctx, cfg) =>
                     {
                         cfg.Host(_container.GetConnectionString());
 
-                        // FraudNotification uses [EntityName("habo.banking:Notification")].
-                        // Bind this endpoint explicitly so Bus.Publish(FraudNotification)
+                        // Notification uses [EntityName("habo.banking:Notification")].
+                        // Bind this endpoint explicitly so Bus.Publish(Notification)
                         // reaches the consumer in integration tests.
-                        cfg.ReceiveEndpoint("fraud-notification-consumer", e =>
+                        cfg.ReceiveEndpoint("notification-consumer", e =>
                         {
                             e.Bind("habo.banking:Notification");
-                            e.ConfigureConsumer<FraudNotificationConsumer>(ctx);
+                            e.ConfigureConsumer<NotificationConsumer>(ctx);
                         });
                     });
                 });
