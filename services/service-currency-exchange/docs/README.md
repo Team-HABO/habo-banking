@@ -57,12 +57,14 @@ Frankfurter is a free, open-source API — no API key required. The base URL is 
 ## Running
 
 ```bash
-# Start RabbitMQ
+# Start the service (builds and runs the service-currency-exchange container)
 docker compose up -d
 
-# Run the service
+# Run the service locally (requires RabbitMQ to be running separately, e.g. via a shared root-level compose)
 dotnet run
 ```
+
+> **Note:** The `compose.yaml` in this directory builds and runs the `service-currency-exchange` image only — it does not include a RabbitMQ service. Make sure RabbitMQ is available (e.g. started from the root-level compose or another compose file) before running the service.
 
 ## Testing via RabbitMQ UI
 
@@ -70,7 +72,7 @@ dotnet run
 2. Go to **Queues** → find the `exchange-requested` queue → **Publish message**.
 3. Paste a test payload:
 
-Successful exchange (DKK → GBP):
+Successful exchange (DKK → USD):
 
 ```json
 {
@@ -79,7 +81,7 @@ Successful exchange (DKK → GBP):
     "data": {
       "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       "amount": "1000",
-      "currency": "GBP",
+      "currency": "USD",
       "transactionType": "exchange"
     },
     "metadata": {
@@ -114,11 +116,11 @@ Unsupported currency (triggers `ExchangeNotification`):
 
 ### Test Cases
 
-| # | Scenario               | Currency | Expected                          |
-|---|------------------------|----------|-----------------------------------|
-| 1 | Valid target currency  | `GBP`    | `ExchangeProcessed` published     |
-| 2 | Valid target currency  | `CHF`    | `ExchangeProcessed` published     |
-| 3 | Unsupported currency   | `XYZ`    | `ExchangeNotification` published  |
+| # | Scenario                        | Currency | Expected                          |
+|---|---------------------------------|----------|-----------------------------------|
+| 1 | Valid target currency           | `USD`    | `ExchangeProcessed` published     |
+| 2 | Unsupported currency            | `XYZ`    | `ExchangeNotification` published  |
+| 3 | Service throws unexpected error | `EUR`    | `ExchangeNotification` published  |
 
 ## File Structure
 
@@ -134,8 +136,13 @@ service-currency-exchange/
 │   └── FrankfurterDtos.cs            # Frankfurter API response DTOs
 ├── Services/
 │   └── CurrencyService.cs            # Frankfurter API client
+├── service-currency-exchange.Tests.Integration/
+│   ├── CurrencyServiceTests.cs       # Integration tests for CurrencyService (real HTTP calls to Frankfurter)
+│   ├── ExchangeRequestedConsumerTests.cs  # Integration tests for the consumer (in-memory MassTransit bus)
+│   ├── CurrencyServiceFixture.cs     # xUnit fixture for CurrencyService
+│   └── ExchangeRequestedConsumerFixture.cs  # xUnit fixture for the consumer
 ├── Program.cs                        # Host & dependency configuration
-├── compose.yaml                      # Docker Compose (RabbitMQ)
+├── compose.yaml                      # Docker Compose (builds & runs the service image)
 └── docs/
     └── README.md
 ```

@@ -14,7 +14,6 @@ services:
         required: true
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - EXCHANGERATE_API_KEY=${EXCHANGERATE_API_KEY}
 
   rabbitmq:
     image: rabbitmq:4-management-alpine

@@ -1,6 +1,6 @@
-# Dev Container – AI Service
+# Dev Container – Currency Exchange Service
 
-The dev container provides a fully configured, reproducible development environment for the **AI Service**. It runs two containers: the development environment itself (`app`) and a RabbitMQ broker (`rabbitmq`).
+The dev container provides a fully configured, reproducible development environment for the **Currency Exchange Service**. It runs two containers: the development environment itself (`app`) and a RabbitMQ broker (`rabbitmq`).
 
 ---
 
@@ -33,14 +33,13 @@ The container VS Code attaches to. The project root is bind-mounted to `/workspa
 
 **Environment variables:**
 
-| Variable             | Source                                             |
-|----------------------|----------------------------------------------------|
-| `RABBITMQ_HOST`      | Hardcoded to `rabbitmq` (the Compose service name) |
-| `OPENROUTER_API_KEY` | Interpolated from `../../../.env` (required)       |
+| Variable        | Source                                             |
+|-----------------|----------------------------------------------------|
+| `RABBITMQ_HOST` | Hardcoded to `rabbitmq` (the Compose service name) |
 
-The `.env` file at `../../../.env` (relative to `.devcontainer/`) is required and must exist before the container starts.
+The `.env` file at `../../../.env` (relative to `.devcontainer/`) is required and must exist before the container starts. The currency exchange API ([Frankfurter](https://www.frankfurter.app/)) is free and open-source — no API key is needed.
 
-**Startup:** The container runs `while sleep 1000; do :; done` to stay alive without starting the application. The application is started manually from the integrated terminal.
+**Startup:** The container runs `sleep infinity` to stay alive without starting the application. The application is started manually from the integrated terminal.
 
 **Dependencies:** The `app` service waits for `rabbitmq` to pass its health check before starting.
 
@@ -98,12 +97,12 @@ Installed automatically inside the container, not on the host.
 
 Applied inside the container workspace.
 
-| Setting                                    | Value                   |
-|--------------------------------------------|-------------------------|
-| `editor.formatOnSave`                      | `true`                  |
-| `editor.defaultFormatter`                  | `ms-dotnettools.csharp` |
-| `dotnet.defaultSolution`                   | `service-ai.sln`        |
-| `terminal.integrated.defaultProfile.linux` | `bash`                  |
+| Setting                                    | Value                                    |
+|--------------------------------------------|------------------------------------------|
+| `editor.formatOnSave`                      | `true`                                   |
+| `editor.defaultFormatter`                  | `ms-dotnettools.csharp`                  |
+| `dotnet.defaultSolution`                   | `service-currency-exchange.sln`          |
+| `terminal.integrated.defaultProfile.linux` | `bash`                                   |
 
 ---
 
