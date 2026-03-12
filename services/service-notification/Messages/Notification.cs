@@ -5,8 +5,9 @@ namespace service_notification.Messages;
 /// <summary>
 /// Generic notification message consumed from the habo.banking:Notification exchange.
 /// All services that need to trigger an email publish to this shared exchange.
-/// <see cref="NotificationMetadata.MessageType"/> identifies the origin
-/// (e.g. "FraudNotification", "ExchangeNotification") and drives the email subject.
+/// <see cref="NotificationMetadata.MessageType"/> carries the originating transaction type
+/// (e.g. "TRANSACTION_EXCHANGE", "TRANSACTION_TRANSFER", "TRANSACTION_WITHDRAW", "TRANSACTION_DEPOSIT")
+/// and drives the email subject line selection in the NotificationConsumer.
 /// </summary>
 [EntityName("habo.banking:Notification")]
 [MessageUrn("habo.banking:Notification")]

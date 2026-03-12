@@ -26,8 +26,10 @@ public class NotificationConsumer(
 
         var subject = notification.Metadata.MessageType switch
         {
-            "FraudNotification"    => "HABO Bank - Potential fraud notification!",
-            "ExchangeNotification" => "HABO Bank - Currency exchange failed!",
+            "TRANSACTION_TRANSFER" or
+            "TRANSACTION_WITHDRAW" or
+            "TRANSACTION_DEPOSIT"  => "HABO Bank - Potential fraud notification!",
+            "TRANSACTION_EXCHANGE" => "HABO Bank - Currency exchange failed!",
             _                      => "HABO Bank - Notification"
         };
 
