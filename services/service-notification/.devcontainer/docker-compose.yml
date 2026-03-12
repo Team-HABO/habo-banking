@@ -10,11 +10,10 @@ services:
       rabbitmq:
         condition: service_healthy
     env_file:
-      - path: ../../../.env
+      - path: ../.env
         required: true
     environment:
       - RABBITMQ_HOST=rabbitmq
-
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
