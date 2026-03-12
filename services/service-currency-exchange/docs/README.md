@@ -138,9 +138,9 @@ service-currency-exchange/
 │   └── CurrencyService.cs            # Frankfurter API client
 ├── service-currency-exchange.Tests.Integration/
 │   ├── CurrencyServiceTests.cs       # Integration tests for CurrencyService (real HTTP calls to Frankfurter)
-│   ├── ExchangeRequestedConsumerTests.cs  # Integration tests for the consumer (in-memory MassTransit bus)
+│   ├── ExchangeRequestedConsumerTests.cs  # Integration tests for the consumer (real RabbitMQ via Testcontainers)
 │   ├── CurrencyServiceFixture.cs     # xUnit fixture for CurrencyService
-│   └── ExchangeRequestedConsumerFixture.cs  # xUnit fixture for the consumer
+│   └── ExchangeRequestedConsumerFixture.cs  # xUnit fixture for the consumer (Testcontainers + real RabbitMQ broker)
 ├── Program.cs                        # Host & dependency configuration
 ├── compose.yaml                      # Docker Compose (builds & runs the service image)
 └── docs/
