@@ -1,12 +1,12 @@
-﻿using MassTransit;
+﻿﻿using MassTransit;
 
 namespace service_notification.Messages;
 
 /// <summary>
 /// Consumed from the message bus when fraud is detected by service-ai.
 /// </summary>
-[EntityName("habo.banking:FraudNotification")]
-[MessageUrn("habo.banking:FraudNotification")]
+[EntityName("habo.banking:Notification")]
+[MessageUrn("habo.banking:Notification")]
 public record FraudNotification
 {
     public FraudNotificationData Data { get; init; } = new();

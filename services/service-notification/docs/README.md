@@ -1,4 +1,4 @@
-﻿# Service Notification
+﻿﻿# Service Notification
 
 Fraud notification microservice for the Habo Banking platform. Consumes fraud notification events from RabbitMQ and
 sends alert emails to the relevant recipient via **SMTP**.
@@ -56,7 +56,7 @@ dotnet run
 
 ```json
 {
-  "messageType": ["urn:message:habo.banking:FraudNotification"],
+  "messageType": ["urn:message:habo.banking:Notification"],
   "message": {
     "data": {
       "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."

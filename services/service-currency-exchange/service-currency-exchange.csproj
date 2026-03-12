@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-service_currency_exchange-f4f4c17f-71b5-4b1b-918d-19e18cb651bb</UserSecretsId>
+        <RootNamespace>service_currency_exchange</RootNamespace>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DefaultItemExcludes>$(DefaultItemExcludes);service-currency-exchange.Tests.Integration\**</DefaultItemExcludes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DotNetEnv" Version="3.1.1"/>
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.6"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include=".devcontainer\devcontainer.json" />
+      <Content Include=".devcontainer\docker-compose.yml" />
+      <Content Include=".devcontainer\README.md" />
+    </ItemGroup>
+</Project>
