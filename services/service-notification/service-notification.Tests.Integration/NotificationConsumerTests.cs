@@ -19,7 +19,7 @@ public class NotificationConsumerTests(RabbitMqConsumerFixture fixture)
             Data = new NotificationData { Message = "Suspicious transaction detected on account 12345." },
             Metadata = new NotificationMetadata
             {
-                MessageType = "FraudNotification",
+                MessageType = "TRANSACTION_TRANSFER",
                 MessageTimestamp = DateTime.UtcNow
             }
         });
@@ -40,7 +40,7 @@ public class NotificationConsumerTests(RabbitMqConsumerFixture fixture)
             Data = new NotificationData { Message = "Currency exchange for account 67890 could not be completed." },
             Metadata = new NotificationMetadata
             {
-                MessageType = "ExchangeNotification",
+                MessageType = "TRANSACTION_EXCHANGE",
                 MessageTimestamp = DateTime.UtcNow
             }
         });
