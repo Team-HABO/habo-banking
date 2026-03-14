@@ -10,6 +10,9 @@ jobs:
     permissions:
       pull-requests: write
 
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
     steps:
       - uses: actions/checkout@v6
 

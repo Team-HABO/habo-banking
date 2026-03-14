@@ -16,3 +16,4 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-ai-tests.yml
+    secrets: inherit
