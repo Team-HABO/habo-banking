@@ -357,7 +357,7 @@ Step 4, Produce message back to Transaction-Service
         "amount": "string",
         "currency": "string",
         "transactionType": "string",
-        "exchangeRate": "string"
+        "exchangeRate": "double"
     },
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
