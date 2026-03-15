@@ -39,7 +39,44 @@ export class RabbitMQ<T> {
 		}
 	}
 
-	public async consumeFromQueue(queue: string, callback: (data: T) => void) {
+	public async consumeFromExchange(
+		queue: string,
+		exchange: string,
+		exchangeType: string,
+		callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void
+	) {
+		if (!this.channel) {
+			throw new Error("RabbitMQ is not initialized. Call connect() first.");
+		}
+
+		await this.channel.assertExchange(exchange, exchangeType, { durable: true });
+		await this.channel.assertQueue(queue, { durable: true });
+		await this.channel.bindQueue(queue, exchange, "");
+
+		console.log(`[*] Waiting for messages in ${queue} via exchange ${exchange}. To exit press CTRL+C`);
+		this.channel.consume(
+			queue,
+			(msg) => {
+				if (!msg || !msg.content) {
+					return console.error("Error: No message content received");
+				}
+
+				try {
+					const data = JSON.parse(msg.content.toString()) as T;
+					console.log(" [x] Received: ", data);
+					const ack = () => this.channel!.ack(msg);
+					const nack = (requeue = true) => this.channel!.nack(msg, false, requeue);
+					callback(data, ack, nack);
+				} catch (error) {
+					console.error("Error parsing message content: " + msg.content + ", Error: " + error);
+					this.channel!.nack(msg, false, false);
+				}
+			},
+			{ noAck: false }
+		);
+	}
+
+	public async consumeFromQueue(queue: string, callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void) {
 		if (!this.channel) {
 			throw new Error("RabbitMQ is not initialized. Call connect() first.");
 		}
@@ -57,13 +94,15 @@ export class RabbitMQ<T> {
 				try {
 					const data = JSON.parse(msg.content.toString()) as T;
 					console.log(" [x] Received: ", data);
-					callback(data);
+					const ack = () => this.channel!.ack(msg);
+					const nack = (requeue = true) => this.channel!.nack(msg, false, requeue);
+					callback(data, ack, nack);
 				} catch (error) {
-					console.error("Error parsing message content: ", msg.content);
-					throw error;
+					console.error("Error parsing message content: " + msg.content + ", Error: " + error);
+					this.channel!.nack(msg, false, false);
 				}
 			},
-			{ noAck: true }
+			{ noAck: false }
 		);
 	}
 
