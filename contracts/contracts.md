@@ -175,7 +175,7 @@ Step 1, Initial POST request:
 {
     "receiverAccountGuid": "string (optional)",
     "amount": "string",
-    "transactionType": "string",
+    "transactionType": "TRANSFER/WITHDRAW/DEPOSIT",
     "messageId": "GUID"
 }
 ```
@@ -198,7 +198,7 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
             "type": "string",
         },
         "amount": "string",
-        "transactionType": "string",
+        "transactionType": "TRANSFER/WITHDRAW/DEPOSIT",
         "originIpAddress": "string",
     },
     "metadata": {
@@ -244,7 +244,7 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
             "type": "string",
         },
         "amount": "string",
-        "transactionType": "string"
+        "transactionType": "TRANSFER/WITHDRAW/DEPOSIT"
     },
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
@@ -284,7 +284,7 @@ Step 4, Produce message to Synchronize-Service
             "audits": {
                 "receiver": "string (name, optional)",
                 "amount": "string",
-                "type": "string",
+                "type": "TRANSFER/WITHDRAW/DEPOSIT",
                 "timestamp": "string"
             }
         }
@@ -318,7 +318,7 @@ Step 2, Produce message to Transaction-Service:
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
-        "transactionType": "exchange",
+        "transactionType": "EXCHANGE",
     },
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
@@ -396,7 +396,7 @@ Step 5, Produce message to Synchronize-Service
             },
             "audits": {
                 "amount": "string",
-                "type": "exchange",
+                "type": "EXCHANGE",
                 "timestamp": "string"
             }
         }
