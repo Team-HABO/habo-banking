@@ -1,0 +1,85 @@
+name: Integration Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:3
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_SCHEME: postgresql
+      DB_USER: testuser
+      DB_PASSWORD: testpassword
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: testdb
+      RABBITMQ_HOST: localhost
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set DATABASE_URL
+        run: |
+          echo "DATABASE_URL=${DB_SCHEME}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" >> "$GITHUB_ENV"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: services/service-transaction/package-lock.json
+
+      - name: Install dependencies
+        working-directory: "services/service-transaction"
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: "services/service-transaction"
+        run: npm run generate
+
+      - name: Run database migrations
+        working-directory: "services/service-transaction"
+        run: npm run migrate
+
+      - name: Run database seeding
+        working-directory: "services/service-transaction"
+        run: npx prisma db seed
+
+      - name: Run tests
+        working-directory: "services/service-transaction"
+        run: npm run test
+
+      - name: Report Coverage
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          working-directory: "services/service-transaction"
