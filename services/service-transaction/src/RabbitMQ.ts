@@ -76,36 +76,6 @@ export class RabbitMQ<T> {
 		);
 	}
 
-	public async consumeFromQueue(queue: string, callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void) {
-		if (!this.channel) {
-			throw new Error("RabbitMQ is not initialized. Call connect() first.");
-		}
-
-		await this.channel.assertQueue(queue, { durable: true });
-
-		console.log(`[*] Waiting for messages in ${queue}. To exit press CTRL+C`);
-		this.channel.consume(
-			queue,
-			(msg) => {
-				if (!msg || !msg.content) {
-					return console.error("Error: No message content received");
-				}
-
-				try {
-					const data = JSON.parse(msg.content.toString()) as T;
-					console.log(" [x] Received: ", data);
-					const ack = () => this.channel!.ack(msg);
-					const nack = (requeue = true) => this.channel!.nack(msg, false, requeue);
-					callback(data, ack, nack);
-				} catch (error) {
-					console.error("Error parsing message content: " + msg.content + ", Error: " + error);
-					this.channel!.nack(msg, false, false);
-				}
-			},
-			{ noAck: false }
-		);
-	}
-
 	public async closeConnection(): Promise<void> {
 		if (this.channel) {
 			await this.channel.close();
