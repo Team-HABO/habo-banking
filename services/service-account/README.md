@@ -1,45 +1,84 @@
 # Service Account
 
-A minimal Django microservice demo.
+Minimal Django microservice for account data, running in a VS Code Dev Container with PostgreSQL.
 
-## Overview
+## Project Structure
 
-- **Health Check**: `/health/` endpoint to verify the service is running
-- **Welcome Endpoint**: `/` returns a welcome message
+- [`manage.py`](manage.py)
+- [`account_service/settings.py`](account_service/settings.py)
+- [`account_service/urls.py`](account_service/urls.py)
+- [`accounts/models.py`](accounts/models.py)
+- [`accounts/views.py`](accounts/views.py)
+- [`accounts/migrations/0001_initial.py`](accounts/migrations/0001_initial.py)
+- [`.devcontainer/docker-compose.yml`](.devcontainer/docker-compose.yml)
 
-## Prerequisites
+## Endpoints
 
-- Docker
-- VSCode with [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+Defined in [`account_service/urls.py`](account_service/urls.py) and implemented in [`accounts/views.py`](accounts/views.py):
 
-## Getting Started
+- `GET /` → welcome message
+- `GET /health/` → `{ "status": "ok" }`
 
-1. Open this folder in VSCode.
-2. Run `SHIFT + CTRL + P` and select `>Dev Containers: Rebuild and Reopen in Container`.
+## Tech Stack
 
-## Usage
+- Django 5.0.1 (see [`requirements.txt`](requirements.txt))
+- PostgreSQL 15 (see [`.devcontainer/docker-compose.yml`](.devcontainer/docker-compose.yml))
+- Dev Container config (see [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json))
 
-### Running the Development Server
+## Run in Dev Container
+
+1. Open project in VS Code.
+2. Run **Dev Containers: Rebuild and Reopen in Container**.
+3. Start server:
+   ```bash
+   python manage.py runserver 0.0.0.0:8000
+   ```
+
+## Database
+
+Connection config is in [`DATABASES`](account_service/settings.py) inside [`account_service/settings.py`](account_service/settings.py).
+
+### Apply only app migrations
 
 ```bash
-python manage.py runserver 0.0.0.0:8000
+python manage.py migrate accounts
 ```
 
-### Health Check
+### Open PostgreSQL shell
 
-Open [http://localhost:8000/health/](http://localhost:8000/health/) in your browser  
-or run:
 ```bash
-curl http://localhost:8000/health/
+python manage.py dbshell
 ```
 
-### Welcome Endpoint
+### List tables
 
-Open [http://localhost:8000/](http://localhost:8000/) in your browser
+```sql
+\dt
+```
 
-### Database Migrations (if needed)
+Expected core tables from [`accounts/migrations/0001_initial.py`](accounts/migrations/0001_initial.py):
+
+- `accounts`
+- `account_types`
+- `account_details`
+- `deleted_accounts`
+- `django_migrations` (Django migration tracking)
+
+## Query Data
+
+Example in `dbshell`:
+
+```sql
+SELECT * FROM accounts;
+SELECT * FROM account_types;
+SELECT * FROM account_details;
+SELECT * FROM deleted_accounts;
+```
+
+## Local Demo Script
+
+You can run [`demo.py`](demo.py):
 
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+python demo.py
 ```

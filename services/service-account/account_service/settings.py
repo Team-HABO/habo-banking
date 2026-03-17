@@ -1,13 +1,13 @@
 import os
 
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
+
+DEBUG = True
+
+ALLOWED_HOSTS = ['*']
+
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'accounts',
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -36,6 +36,8 @@ TEMPLATES = [
     },
 ]
 
+ROOT_URLCONF = 'account_service.urls'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -47,7 +49,4 @@ DATABASES = {
     }
 }
 
-ROOT_URLCONF = 'account_service.urls'
-ALLOWED_HOSTS = ['*']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-SECRET_KEY = 'django-insecure-please-change-this-key'
