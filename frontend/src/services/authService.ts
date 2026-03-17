@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const authApiUrl = import.meta.env.VITE_AUTH_API_URL;
 
 /**
@@ -10,7 +12,7 @@ const authApiUrl = import.meta.env.VITE_AUTH_API_URL;
  * allows the redirect and cookie-setting to happen naturally.
  * * @throws {Error} If the `VITE_AUTH_API_URL` environment variable is not defined.
  */
-export function loginWithEmptyBody() {
+export function login() {
 	if (!authApiUrl) {
 		throw new Error("Missing VITE_AUTH_API_URL in environment variables.");
 	}
@@ -22,4 +24,26 @@ export function loginWithEmptyBody() {
 
 	document.body.appendChild(form);
 	form.submit();
+}
+
+/**
+ * Logs the user out by calling the backend API to clear the auth cookie.
+ * @remarks
+ * automatically handles the cookie deletion based on the server response.
+ */
+export async function logout() {
+    if (!authApiUrl) {
+        throw new Error("Missing VITE_AUTH_API_URL in environment variables.");
+    }
+
+    try {
+        await axios.post(`${authApiUrl}/api/auth/logout`, {}, {
+            withCredentials: true // Required to send/receive cookies
+        });
+        
+        // Used to ensure the browser completely clears out any sensitive in-memory data
+        window.location.href = '/';
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
 }

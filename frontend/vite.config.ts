@@ -14,5 +14,10 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    coverage: {
+			reporter: ["text", "json-summary", "json"],
+			reportOnFailure: true
+		},
+		fileParallelism: true
   },
 })

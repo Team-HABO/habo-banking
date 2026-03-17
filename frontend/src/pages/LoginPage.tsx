@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { loginWithEmptyBody } from "../services/authService";
+import { login } from "../services/authService";
 import "./styles/LoginPage.css";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = () => {
     setIsLoading(true);
-    setStatusMessage(null);
+    setErrorMessage(null);
 
     try {
-      loginWithEmptyBody();
-      setStatusMessage("Redirecting to Google login...");
+      login();
+      setErrorMessage(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login request failed.";
       setIsLoading(false);
-      setStatusMessage(message);
+      setErrorMessage(message);
     }
   };
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
           {isLoading ? "Redirecting..." : "Login with Google"}
         </button>
 
-        {statusMessage && <p className="login-page-status">{statusMessage}</p>}
+        {errorMessage && <p className="login-page-error">{errorMessage}</p>}
       </div>
     </section>
   );

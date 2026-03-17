@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
+import axios from "axios";
+import { logout } from "./authService";
 
 afterEach(() => {
   document.body.innerHTML = "";
   vi.unstubAllEnvs();
 });
 
-describe("loginWithEmptyBody", () => {
+describe("login", () => {
   beforeEach(() => {
     vi.resetModules();
     document.body.innerHTML = '';
@@ -14,10 +16,10 @@ describe("loginWithEmptyBody", () => {
   it("throws an error when VITE_AUTH_API_URL is missing", async () => {
     vi.stubEnv("VITE_AUTH_API_URL", "");
 
-    // 2. Import it fresh so it re-reads the empty env
-    const { loginWithEmptyBody } = await import("./authService");
+    // Import it fresh so it re-reads the empty env
+    const { login: login } = await import("./authService");
 
-    expect(() => loginWithEmptyBody()).toThrow(
+    expect(() => login()).toThrow(
       "Missing VITE_AUTH_API_URL in environment variables."
     );
   });
@@ -30,11 +32,11 @@ describe("loginWithEmptyBody", () => {
       .spyOn(HTMLFormElement.prototype, "submit")
       .mockImplementation(() => {});
 
-    const { loginWithEmptyBody } = await import("./authService");
+    const { login: login } = await import("./authService");
 
-    loginWithEmptyBody();
+    login();
 
-    // Assert against the ACTUAL DOM instead of mocking createElement
+    // Assert against the actual DOM instead of mocking createElement
     const form = document.body.querySelector("form");
     
     expect(form).not.toBeNull();
@@ -43,4 +45,42 @@ describe("loginWithEmptyBody", () => {
     expect(form?.style.display).toBe("none");
     expect(submitSpy).toHaveBeenCalledTimes(1);
   });
+});
+
+vi.mock("axios");
+
+describe("logout", () => {
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("calls logout API and redirects on success", async () => {
+    vi.mocked(axios.post).mockResolvedValue({});
+
+    Object.defineProperty(window, "location", {
+      value: { href: "" },
+      writable: true
+    });
+
+    await logout();
+
+    expect(axios.post).toHaveBeenCalledWith(
+      expect.stringContaining("/api/auth/logout"),
+      {},
+      { withCredentials: true }
+    );
+
+    expect(window.location.href).toBe("/");
+  });
+
+  it("logs error when request fails", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(axios.post).mockRejectedValue(new Error("Network error"));
+
+    await logout();
+
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
 });
