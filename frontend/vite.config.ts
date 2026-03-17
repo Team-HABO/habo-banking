@@ -18,6 +18,9 @@ export default defineConfig({
 			reporter: ["text", "json-summary", "json"],
 			reportOnFailure: true
 		},
-		fileParallelism: true
+		fileParallelism: true,
+    env: {
+      VITE_AUTH_API_URL: 'http://localhost:5000',
+    },
   },
 })

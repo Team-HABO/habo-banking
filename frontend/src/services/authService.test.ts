@@ -17,7 +17,7 @@ describe("login", () => {
     vi.stubEnv("VITE_AUTH_API_URL", "");
 
     // Import it fresh so it re-reads the empty env
-    const { login: login } = await import("./authService");
+    const { login } = await import("./authService");
 
     expect(() => login()).toThrow(
       "Missing VITE_AUTH_API_URL in environment variables."
@@ -58,7 +58,7 @@ describe("logout", () => {
   it("calls logout API and redirects on success", async () => {
     vi.mocked(axios.post).mockResolvedValue({});
 
-    Object.defineProperty(window, "location", {
+    Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true
     });
@@ -71,7 +71,7 @@ describe("logout", () => {
       { withCredentials: true }
     );
 
-    expect(window.location.href).toBe("/");
+    expect(globalThis.location.href).toBe("/");
   });
 
   it("logs error when request fails", async () => {

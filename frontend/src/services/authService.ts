@@ -42,7 +42,7 @@ export async function logout() {
         });
         
         // Used to ensure the browser completely clears out any sensitive in-memory data
-        window.location.href = '/';
+        globalThis.location.href = '/';
     } catch (error) {
         console.error("Logout failed:", error);
     }
