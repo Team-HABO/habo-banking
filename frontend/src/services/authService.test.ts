@@ -32,7 +32,7 @@ describe("login", () => {
       .spyOn(HTMLFormElement.prototype, "submit")
       .mockImplementation(() => {});
 
-    const { login: login } = await import("./authService");
+    const { login } = await import("./authService");
 
     login();
 
