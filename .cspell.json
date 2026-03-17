@@ -15,7 +15,31 @@
     "**/.devcontainer/**",
     "**/Dockerfile",
     "**/docs/architecture",
-    "**/docs/diagrams"
+    "**/docs/diagrams",
+    "services/service-transaction/generated/**",
+    "**/services/service-ai/obj/**",
+    "services/service-transaction/prisma/**",
+    "**/obj/**"
   ],
-  "words": ["habo"]
+  "words": [
+    "habo",
+    "autoincrement",
+    "ASPNETCORE",
+    "accessibilities",
+    "appsettings",
+    "azds",
+    "dbmdl",
+    "nameof",
+    "rsuser",
+    "toolstarget",
+    "Dtos",
+    "OPENROUTER",
+    "Serilog",
+    "stepfun",
+    "Xunit",
+    "xunit",
+    "Hmac",
+    "buildtransitive",
+    "contentfiles"
+  ]
 }
