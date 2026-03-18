@@ -22,7 +22,8 @@
     "**/obj/**",
     "services/service-transaction/coverage/**",
     ".github/workflows/**",
-    "**/Debug/**"
+    "**/Debug/**",
+    ".github/workflows/**"
   ],
   "words": [
     "habo",
@@ -47,6 +48,8 @@
     "vitest",
     "fanout",
     "uuidv",
-    "transactionid"
+    "transactionid",
+    "VITE",
+    "normalised"
   ]
 }

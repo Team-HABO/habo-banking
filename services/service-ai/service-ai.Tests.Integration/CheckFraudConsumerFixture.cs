@@ -39,6 +39,11 @@ public sealed class CheckFraudConsumerFixture : IAsyncLifetime
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
+                services.Configure<MassTransitHostOptions>(opts =>
+                {
+                    opts.WaitUntilStarted = true;
+                });
+
                 services.AddSingleton(OpenRouterService);
 
                 // Register the pre-created capturing instances as singletons so MassTransit
