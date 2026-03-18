@@ -1,0 +1,23 @@
+name: AuthService CI
+
+permissions:
+  pull-requests: write
+
+on:
+  push:
+      paths:
+        - "services/service-auth/**"
+        - ".github/workflows/service-auth.yml"
+        - ".github/workflows/service-auth-tests.yml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "services/service-auth/**"
+      - ".github/workflows/service-auth.yml"
+      - ".github/workflows/service-auth-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/service-auth-tests.yml
+

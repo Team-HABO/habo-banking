@@ -1,0 +1,22 @@
+name: Frontend CI
+
+permissions:
+  pull-requests: write
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+      - ".github/workflows/frontend-tests.yml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+      - ".github/workflows/frontend-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/frontend-tests.yml

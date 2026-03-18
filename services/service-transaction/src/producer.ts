@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import type { TMessagePayload } from "./events/message.js";
+import type { TMessagePayload } from "./events/transaction.js";
 import { RabbitMQ } from "./RabbitMQ.js";
 
 const rabbit = new RabbitMQ<TMessagePayload>();

@@ -1,0 +1,18 @@
+name: Service Transaction CI
+
+permissions:
+  pull-requests: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - services/service-transaction/**
+  pull_request:
+    paths:
+      - services/service-transaction/**
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/service-transaction-tests.yml

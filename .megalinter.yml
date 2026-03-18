@@ -5,8 +5,10 @@ DISABLE_LINTERS:
   - TYPESCRIPT_STANDARD
   - REPOSITORY_TRIVY
   - REPOSITORY_GRYPE
+  - COPYPASTE_JSCPD
 
-COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
 PYTHON_MYPY_CONFIG_FILE: services/service-account/mypy.ini
 PYTHON_PYRIGHT_CONFIG_FILE: services/service-account/pyrightconfig.json
 PYTHON_PYLINT_CONFIG_FILE: services/service-account/.pylintrc
+
+# COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json

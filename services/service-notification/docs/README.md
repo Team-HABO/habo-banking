@@ -1,6 +1,6 @@
-﻿# Service Notification
+﻿﻿# Service Notification
 
-Fraud notification microservice for the Habo Banking platform. Consumes fraud notification events from RabbitMQ and
+Notification microservice for the Habo Banking platform. Consumes generic notification events from RabbitMQ and
 sends alert emails to the relevant recipient via **SMTP**.
 
 **Stack:** .NET 9 · MassTransit · RabbitMQ · MailKit · Serilog
@@ -8,22 +8,23 @@ sends alert emails to the relevant recipient via **SMTP**.
 ## Architecture
 
 ```
-AI Service ──► RabbitMQ (FraudNotification) ──► Notification Service ──► SMTP Server ──► Email Recipient
+AI Service / Other Services ──► RabbitMQ (habo.banking:Notification exchange) ──► Notification Service ──► SMTP Server ──► Email Recipient
 ```
 
-## Flow (Contract ID 5 — Bank Transaction, Step 2.5)
+## Flow
 
-| Trigger                      | Action                                              |
-|------------------------------|-----------------------------------------------------|
-| `FraudNotification` consumed | Sends an HTML alert email via SMTP to the recipient |
+| Trigger                   | Action                                              |
+|---------------------------|-----------------------------------------------------|
+| `Notification` consumed   | Sends an HTML alert email via SMTP to the recipient |
 
 ## Messages
 
-### FraudNotification (consumed)
+### Notification (consumed)
 
-Published by the AI-Service (contract ID 5, step 2.5) when fraud is detected or the AI service fails. Contains
-`data.message` with a human-readable fraud reason and `metadata.messageType` / `metadata.messageTimestamp` passed
-through from the original `CheckFraud` message.
+Published by any upstream service (e.g. the AI-Service when fraud is detected, or the currency-exchange service on
+failure). Contains `data.message` with a human-readable description and `metadata.messageType` /
+`metadata.messageTimestamp` / `metadata.messageId` passed through from the originating service. The
+`metadata.messageType` value (e.g. `TRANSACTION_DEPOSIT`, `TRANSACTION_EXCHANGE`) drives the email subject line.
 
 ## Configuration
 
@@ -51,12 +52,12 @@ dotnet run
 ## Testing via RabbitMQ UI
 
 1. Open `http://localhost:15672` (login `guest`/`guest`).
-2. Go to **Queues** → find the `fraud-notification` queue → **Publish message**.
+2. Go to **Queues** → find the `notification-consumer` queue → **Publish message**.
 3. Paste a test payload:
 
 ```json
 {
-  "messageType": ["urn:message:habo.banking:FraudNotification"],
+  "messageType": ["urn:message:habo.banking:Notification"],
   "message": {
     "data": {
       "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
@@ -74,15 +75,15 @@ dotnet run
 ```
 service-notification/
 ├── Consumers/
-│   └── FraudNotificationConsumer.cs  # Consumes FraudNotification and triggers email sending
+│   └── NotificationConsumer.cs  # Consumes Notification and triggers email sending
 ├── Messages/
-│   └── FraudNotification.cs          # Input message (consumed from AI-Service)
+│   └── Notification.cs          # Input message (consumed from the habo.banking:Notification exchange)
 ├── Services/
-│   ├── IEmailService.cs              # Email service interface
-│   └── EmailService.cs               # MailKit SMTP email sender implementation
+│   ├── IEmailService.cs         # Email service interface
+│   └── EmailService.cs          # MailKit SMTP email sender implementation
 ├── Settings/
-│   └── EmailSettings.cs              # SMTP configuration settings
-├── Program.cs                        # Host & dependency configuration
+│   └── EmailSettings.cs         # SMTP configuration settings
+├── Program.cs                   # Host & dependency configuration
 └── docs/
     └── README.md
 ```
