@@ -15,10 +15,10 @@ async function main() {
 		}
 	});
 	await prisma.transactionType.upsert({
-		where: { name: "WITHDRAWAL" },
+		where: { name: "WITHDRAW" },
 		update: {},
 		create: {
-			name: "WITHDRAWAL"
+			name: "WITHDRAW"
 		}
 	});
 	await prisma.transactionType.upsert({
@@ -26,6 +26,13 @@ async function main() {
 		update: {},
 		create: {
 			name: "TRANSFER"
+		}
+	});
+	await prisma.transactionType.upsert({
+		where: { name: "EXCHANGE" },
+		update: {},
+		create: {
+			name: "EXCHANGE"
 		}
 	});
 }

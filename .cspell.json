@@ -19,7 +19,11 @@
     "services/service-transaction/generated/**",
     "**/services/service-ai/obj/**",
     "services/service-transaction/prisma/**",
-    "**/obj/**"
+    "**/obj/**",
+    "services/service-transaction/coverage/**",
+    ".github/workflows/**",
+    "**/Debug/**",
+    ".github/workflows/**"
   ],
   "words": [
     "habo",
@@ -40,6 +44,12 @@
     "xunit",
     "Hmac",
     "buildtransitive",
-    "contentfiles"
+    "contentfiles",
+    "vitest",
+    "fanout",
+    "uuidv",
+    "transactionid",
+    "VITE",
+    "normalised"
   ]
 }

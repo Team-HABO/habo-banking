@@ -67,7 +67,7 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddMassTransit(config =>
 {
     // Register consumer - MassTransit uses this to know what messages to subscribe to
-    config.AddConsumer<FraudNotificationConsumer>();
+    config.AddConsumer<NotificationConsumer>();
     config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>

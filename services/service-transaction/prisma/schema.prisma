@@ -54,6 +54,7 @@ model TransactionAudit {
   amount            String
   typeId            Int
   createdAt         DateTime @default(now())
+  transactionId     String @unique // @unique creates implicit index
 
   senderBalance   Balance         @relation("SenderBalance", fields: [senderBalanceId], references: [id])
   receiverBalance Balance         @relation("ReceiverBalance", fields: [receiverBalanceId], references: [id])
