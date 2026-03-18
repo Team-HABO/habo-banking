@@ -40,6 +40,11 @@
     "xunit",
     "Hmac",
     "buildtransitive",
-    "contentfiles"
+    "contentfiles",
+    "matplotlib",
+    "numpy",
+    "psycopg",
+    "pylint",
+    "pycache"
   ]
 }
