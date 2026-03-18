@@ -20,6 +20,9 @@
     "**/services/service-ai/obj/**",
     "services/service-transaction/prisma/**",
     "**/obj/**",
+    "services/service-transaction/coverage/**",
+    ".github/workflows/**",
+    "**/Debug/**",
     ".github/workflows/**"
   ],
   "words": [
@@ -42,6 +45,10 @@
     "Hmac",
     "buildtransitive",
     "contentfiles",
+    "vitest",
+    "fanout",
+    "uuidv",
+    "transactionid",
     "VITE",
     "normalised"
   ]
