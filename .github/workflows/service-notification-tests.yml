@@ -1,0 +1,31 @@
+name: Notification Integration Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    env:
+      SMTP_HOST: ${{ vars.SMTP_HOST }}
+      SMTP_PORT: ${{ vars.SMTP_PORT }}
+      SMTP_FROM_EMAIL: ${{ vars.SMTP_FROM_EMAIL }}
+      SMTP_FROM_NAME: ${{ vars.SMTP_FROM_NAME }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Run integration tests
+        working-directory: "services/service-notification/service-notification.Tests.Integration"
+        run: dotnet test --verbosity normal
