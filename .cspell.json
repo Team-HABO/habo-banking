@@ -19,7 +19,8 @@
     "services/service-transaction/generated/**",
     "**/services/service-ai/obj/**",
     "services/service-transaction/prisma/**",
-    "**/obj/**"
+    "**/obj/**",
+    ".github/workflows/**"
   ],
   "words": [
     "habo",
@@ -41,6 +42,7 @@
     "Hmac",
     "buildtransitive",
     "contentfiles",
+    "VITE",
     "normalised"
   ]
 }
