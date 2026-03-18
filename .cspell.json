@@ -42,6 +42,7 @@
     "Hmac",
     "buildtransitive",
     "contentfiles",
-    "VITE"
+    "VITE",
+    "normalised"
   ]
 }

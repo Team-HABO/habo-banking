@@ -1,0 +1,7 @@
+﻿services:
+  service-currency-exchange:
+    image: service-currency-exchange
+    build:
+      context: .
+      dockerfile: Dockerfile
+
