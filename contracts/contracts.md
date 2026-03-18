@@ -17,7 +17,7 @@ Step 1, Initial POST request:
 
 ```json
 {
-    "guid": "string",
+    "accountGuid": "string",
     "name": "string",
     "type": "string"
 }
@@ -74,7 +74,7 @@ Step 1, Initial PATCH request:
 
 ```json
 {
-    "freeze": "boolean (true/false)"
+    "freeze": "boolean (true/false)",
 }
 ```
 
@@ -104,7 +104,7 @@ Step 1, Initial PUT request:
 ```json
 {
     "name": "string",
-    "type": "string"
+    "type": "string",
 }
 ```
 
@@ -175,7 +175,8 @@ Step 1, Initial POST request:
 {
     "receiverAccountGuid": "string (optional)",
     "amount": "string",
-    "transactionType": "string"
+    "transactionType": "TRANSFER/WITHDRAW/DEPOSIT",
+    "messageId": "GUID"
 }
 ```
 
@@ -197,12 +198,13 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
             "type": "string",
         },
         "amount": "string",
-        "transactionType": "string",
+        "transactionType": "TRANSFER/WITHDRAW/DEPOSIT",
         "originIpAddress": "string",
     },
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -218,6 +220,7 @@ Step 2.5, If fraudulent, Produce message to Notification-Service:
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -241,11 +244,12 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
             "type": "string",
         },
         "amount": "string",
-        "transactionType": "string"
+        "transactionType": "TRANSFER/WITHDRAW/DEPOSIT"
     },
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -261,6 +265,7 @@ Step 3.5, If not possible to do transaction type, then produce message to Notifi
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -279,7 +284,7 @@ Step 4, Produce message to Synchronize-Service
             "audits": {
                 "receiver": "string (name, optional)",
                 "amount": "string",
-                "type": "string",
+                "type": "TRANSFER/WITHDRAW/DEPOSIT",
                 "timestamp": "string"
             }
         }
@@ -287,6 +292,7 @@ Step 4, Produce message to Synchronize-Service
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER/WITHDRAW/DEPOSIT",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -300,6 +306,7 @@ Step 1, Initial POST request:
 {
     "amount": "string",
     "currency": "string",
+    "messageId": "GUID",
 }
 ```
 
@@ -311,11 +318,12 @@ Step 2, Produce message to Transaction-Service:
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
-        "transactionType": "exchange",
+        "transactionType": "EXCHANGE",
     },
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -334,6 +342,7 @@ Step 3, Produce message to Currency-Service
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -348,11 +357,12 @@ Step 4, Produce message back to Transaction-Service
         "amount": "string",
         "currency": "string",
         "transactionType": "string",
-        "exchangeRate": "string"
+        "exchangeRate": "double"
     },
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -368,6 +378,7 @@ Step 4.4, If not possible to do currency exchange, then produce message to Notif
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }
@@ -385,7 +396,7 @@ Step 5, Produce message to Synchronize-Service
             },
             "audits": {
                 "amount": "string",
-                "type": "exchange",
+                "type": "EXCHANGE",
                 "timestamp": "string"
             }
         }
@@ -393,6 +404,7 @@ Step 5, Produce message to Synchronize-Service
     "metadata": {
         "messageType": "TRANSACTION_EXCHANGE",
         "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
         "...": "..."
     }
 }

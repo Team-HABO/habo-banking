@@ -1,0 +1,86 @@
+.dashboard {
+  max-width: 860px;
+}
+
+.dashboard-title {
+  margin: 0 0 1rem;
+  color: #0f2f49;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.dashboard-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #d4dfec;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7fbff 100%);
+  box-shadow: 0 14px 28px rgb(10 40 70 / 8%);
+}
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
+
+.dashboard-table thead th {
+  text-align: left;
+  padding: 0.9rem 1rem;
+  color: #1f4f76;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #edf5ff;
+  border-bottom: 1px solid #d4dfec;
+}
+
+.dashboard-table tbody td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid #e5edf7;
+  color: #173a56;
+}
+
+.dashboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-table tbody tr:hover {
+  background: #f5faff;
+}
+
+.dashboard-account-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #14548a;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dashboard-account-link:hover {
+  color: #0f4673;
+}
+
+.dashboard-account-link:focus-visible {
+  outline: 3px solid #73b8f0;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.dashboard-balance {
+  font-weight: 700;
+  color: #0f2f49;
+}
+
+@media (width <= 640px) {
+  .dashboard-title {
+    margin-bottom: 0.8rem;
+  }
+
+  .dashboard-table thead th,
+  .dashboard-table tbody td {
+    padding: 0.75rem 0.8rem;
+  }
+}

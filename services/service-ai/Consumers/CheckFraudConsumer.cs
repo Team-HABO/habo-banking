@@ -11,56 +11,105 @@ public class CheckFraudConsumer(
     public async Task Consume(ConsumeContext<CheckFraud> context)
     {
         var request = context.Message;
-        logger.LogInformation("Received fraud check request {Id} for {Amount} {Currency}",
-            request.Id, request.Amount, request.Currency);
+        var data = request.Data;
+        logger.LogInformation("Received fraud check request for account {AccountGuid}, type {TransactionType}, amount {Amount}",
+            data.Account.Guid, data.TransactionType, data.Amount);
 
         // Build the user prompt from transaction fields
-        var prompt = $"Sender Account: {request.SenderAccount}\n" +
-                     $"Receiver Account: {request.ReceiverAccount}\n" +
-                     $"Amount: {request.Amount}\n" +
-                     $"Currency: {request.Currency}\n" +
-                     $"Origin IP Address: {request.OriginIpAddress}";
+        var prompt = $"Amount: {data.Amount}\n" +
+                     $"Transaction Type: {data.TransactionType}\n" +
+                     $"Origin IP Address: {data.OriginIpAddress}";
 
         // Send the prompt to OpenRouter AI
-        FraudChecked fraudChecked;
-        
         try
         {
             var result = await openRouterService.SendPromptAsync(prompt, context.CancellationToken);
-            fraudChecked = new FraudChecked
+
+            if (result.IsFraud)
             {
-                RequestId = request.Id,
-                IsFraud = result.IsFraud,
-                Reason = result.Reason,
-                RiskScore = result.RiskScore
-            };
+                logger.LogWarning(
+                    "Fraud detected for account {AccountGuid}: {Reason} (risk score: {RiskScore})",
+                    data.Account.Guid, result.Reason, result.RiskScore);
+
+                await context.Publish(new FraudNotification
+                {
+                    Data = new FraudNotificationData
+                    {
+                        Message = $"Fraudulent transaction blocked: {result.Reason}"
+                    },
+                    Metadata = new FraudNotificationMetadata
+                    {
+                        MessageType = request.Metadata.MessageType,
+                        MessageTimestamp = DateTime.UtcNow,
+                        MessageId = request.Metadata.MessageId
+                    }
+                });
+
+                logger.LogInformation("Published fraud notification for account {AccountGuid}", data.Account.Guid);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "No fraud detected for account {AccountGuid} (risk score: {RiskScore})",
+                    data.Account.Guid, result.RiskScore);
+
+                await context.Publish(new FraudChecked
+                {
+                    Data = new FraudCheckedData
+                    {
+                        Account = data.Account,
+                        Receiver = data.Receiver,
+                        Amount = data.Amount,
+                        TransactionType = data.TransactionType
+                    },
+                    Metadata = new FraudCheckedMetadata
+                    {
+                        MessageType = request.Metadata.MessageType,
+                        MessageTimestamp = DateTime.UtcNow,
+                        MessageId = request.Metadata.MessageId
+                    }
+                });
+
+                logger.LogInformation("Published fraud-cleared transaction for account {AccountGuid}", data.Account.Guid);
+            }
         }
         catch (HttpRequestException ex)
         {
-            logger.LogError(ex, "OpenRouter request failed for fraud check {Id}. Publishing fallback response.", request.Id);
-            fraudChecked = new FraudChecked
+            logger.LogError(ex, "OpenRouter request failed for fraud check on account {AccountGuid}. Blocking transaction due to uncertainty.", data.Account.Guid);
+
+            await context.Publish(new FraudNotification
             {
-                RequestId = request.Id,
-                IsFraud = false,
-                Reason = "Fraud check could not be completed due to an AI service error.",
-                RiskScore = 0
-            };
+                Data = new FraudNotificationData
+                {
+                    Message = "Transaction blocked: fraud check could not be completed due to an AI service error."
+                },
+                Metadata = new FraudNotificationMetadata
+                {
+                    MessageType = request.Metadata.MessageType,
+                    MessageTimestamp = DateTime.UtcNow,
+                    MessageId = request.Metadata.MessageId
+                }
+            });
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error during fraud check {Id}. Publishing fallback response.", request.Id);
-            fraudChecked = new FraudChecked
+            logger.LogError(ex, "Unexpected error during fraud check on account {AccountGuid}. Blocking transaction due to uncertainty.", data.Account.Guid);
+
+            await context.Publish(new FraudNotification
             {
-                RequestId = request.Id,
-                IsFraud = false,
-                Reason = "Fraud check could not be completed due to an unexpected error.",
-                RiskScore = 0
-            };
+                Data = new FraudNotificationData
+                {
+                    Message = "Transaction blocked: fraud check could not be completed due to an unexpected error."
+                },
+                Metadata = new FraudNotificationMetadata
+                {
+                    MessageType = request.Metadata.MessageType,
+                    MessageTimestamp = DateTime.UtcNow,
+                    MessageId = request.Metadata.MessageId
+                }
+            });
         }
 
-        // Publish response back to bus
-        await context.Publish(fraudChecked);
-
-        logger.LogInformation("Published response for request {Id}", request.Id);
+        logger.LogInformation("Fraud check complete for account {AccountGuid}", data.Account.Guid);
     }
 }

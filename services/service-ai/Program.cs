@@ -6,8 +6,8 @@ using service_ai.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Load OpenRouter API Key
-DotNetEnv.Env.TraversePath().Load();
+// Load environment variables from service .env file
+DotNetEnv.Env.Load();
 
 var openRouterApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
     ?? throw new InvalidOperationException("OPENROUTER_API_KEY is not set. Make sure it is defined in the .env file.");

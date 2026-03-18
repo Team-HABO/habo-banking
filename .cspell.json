@@ -18,7 +18,12 @@
     "**/docs/diagrams",
     "services/service-transaction/generated/**",
     "**/services/service-ai/obj/**",
-    "services/service-transaction/prisma/**"
+    "services/service-transaction/prisma/**",
+    "**/obj/**",
+    "services/service-transaction/coverage/**",
+    ".github/workflows/**",
+    "**/Debug/**",
+    ".github/workflows/**"
   ],
   "words": [
     "habo",
@@ -34,6 +39,17 @@
     "Dtos",
     "OPENROUTER",
     "Serilog",
-    "stepfun"
+    "stepfun",
+    "Xunit",
+    "xunit",
+    "Hmac",
+    "buildtransitive",
+    "contentfiles",
+    "vitest",
+    "fanout",
+    "uuidv",
+    "transactionid",
+    "VITE",
+    "normalised"
   ]
 }

@@ -1,0 +1,129 @@
+.login-page {
+  display: block;
+  min-height: calc(100vh - 88px);
+  padding: clamp(1.5rem, 4vw, 3rem) 0;
+}
+
+.login-page-card {
+  width: min(100%, 760px);
+  padding: 0.35rem 0.1rem;
+}
+
+.login-page-eyebrow {
+  margin: 0;
+  color: #235a88;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.login-page-title {
+  margin: 0.6rem 0 0;
+  color: #0f2f49;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+}
+
+.login-page-subtitle {
+  margin: 0.85rem 0 0;
+  color: #32566f;
+  font-size: 1rem;
+  max-width: 62ch;
+}
+
+.login-page-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.login-page-feature {
+  border: 1px solid #c8d9eb;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #1f4f76;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+}
+
+.login-page-cta {
+  margin-top: 1.35rem;
+  width: auto;
+  min-width: 240px;
+  border: 1px solid #14548a;
+  border-radius: 12px;
+  background: #14548a;
+  color: #ffff;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.78rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.login-page-cta:hover {
+  transform: translateY(-1px);
+  background-color: #0f4673;
+  box-shadow: 0 10px 22px rgb(20 84 138 / 28%);
+}
+
+.login-page-cta:disabled {
+  opacity: 0.78;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-page-cta:focus-visible {
+  outline: 3px solid #74b6ef;
+  outline-offset: 2px;
+}
+
+.login-page-google-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: #ffff;
+  color: #14548a;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.login-page-status {
+  margin: 0.8rem 0 0;
+  color: #2f5673;
+  font-size: 0.88rem;
+}
+
+.login-page-footnote {
+  margin: 1.1rem 0 0;
+  color: #5b7a93;
+  font-size: 0.78rem;
+  max-width: 62ch;
+}
+
+@media (width <= 640px) {
+  .login-page {
+    min-height: calc(100vh - 78px);
+    padding: 1rem 0.15rem;
+  }
+
+  .login-page-card {
+    width: 100%;
+    padding: 0;
+  }
+
+  .login-page-cta {
+    width: 100%;
+    min-width: 0;
+  }
+}

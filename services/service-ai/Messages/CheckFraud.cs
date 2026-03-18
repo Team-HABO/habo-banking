@@ -2,10 +2,22 @@
 
 public record CheckFraud
 {
-    public Guid Id { get; init; }
-    public string SenderAccount { get; init; } = string.Empty;
-    public string ReceiverAccount { get; init; } = string.Empty;
-    public decimal Amount { get; init; }
-    public string Currency { get; init; } = string.Empty;
+    public CheckFraudData Data { get; init; } = new();
+    public CheckFraudMetadata Metadata { get; init; } = new();
+}
+
+public record CheckFraudData
+{
+    public AccountInfo Account { get; init; } = new();
+    public AccountInfo? Receiver { get; init; }
+    public string Amount { get; init; } = string.Empty;
+    public string TransactionType { get; init; } = string.Empty;
     public string OriginIpAddress { get; init; } = string.Empty;
+}
+
+public record CheckFraudMetadata
+{
+    public string MessageType { get; init; } = string.Empty;
+    public DateTime MessageTimestamp { get; init; }
+    public Guid MessageId { get; init; }
 }
