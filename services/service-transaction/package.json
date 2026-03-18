@@ -30,7 +30,7 @@
 		"vitest": "^4.0.18"
 	},
 	"dependencies": {
-		"@prisma/adapter-pg": "^7.4.1",
+		"@prisma/adapter-pg": "^7.5.0",
 		"@prisma/client": "^7.5.0",
 		"amqplib": "^0.10.9",
 		"dotenv": "^17.3.1",
