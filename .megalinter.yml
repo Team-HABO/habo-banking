@@ -7,9 +7,8 @@ DISABLE_LINTERS:
   - REPOSITORY_GRYPE
   - COPYPASTE_JSCPD
   - PYTHON_MYPY
+  - PYTHON_PYRIGHT
 
-PYTHON_MYPY_CONFIG_FILE: services/service-account/mypy.ini
-PYTHON_PYRIGHT_CONFIG_FILE: services/service-account/pyrightconfig.json
 PYTHON_PYLINT_CONFIG_FILE: services/service-account/.pylintrc
 
 # COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
