@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/anaconda:1-3
 
-# Copy environment.yml and requirements.txt
 COPY environment.yml* /tmp/conda-tmp/
 COPY requirements.txt* /tmp/pip-tmp/
 
