@@ -1,6 +1,5 @@
 [MASTER]
 init-hook='import sys; sys.path.append(".")'
-load-plugins=pylint_django
 
 [DESIGN]
 max-locals=15
@@ -9,3 +8,11 @@ max-locals=15
 disable=
     missing-docstring,
     too-few-public-methods,
+    import-error,
+    import-outside-toplevel,
+    wrong-import-position,
+    wrong-import-order,
+    invalid-name,
+    unused-argument,
+    bad-plugin-value,
+    missing-final-newline

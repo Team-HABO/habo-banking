@@ -49,7 +49,7 @@
     "numpy",
     "psycopg",
     "pylint",
-    "pycache"
+    "pycache",
     "vitest",
     "fanout",
     "uuidv",

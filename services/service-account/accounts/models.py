@@ -60,4 +60,4 @@ class DeletedAccount(models.Model):
         db_table = "deleted_accounts"
 
     def __str__(self):
-        return f"DeletedAccount({self.account_id})"
+        return f"DeletedAccount({self.pk})"

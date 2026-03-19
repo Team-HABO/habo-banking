@@ -1,7 +1,13 @@
-from django.http import JsonResponse # type: ignore
+"""Account service views."""
+
+from django.http import JsonResponse  # type: ignore[import-untyped]
+
 
 def health(request):
-    return JsonResponse({'status': 'ok'})
+    """Return service health status."""
+    return JsonResponse({"status": "ok"})
+
 
 def root(request):
-    return JsonResponse({'message': 'Welcome to the Account Service microservice'})
+    """Return welcome message."""
+    return JsonResponse({"message": "Welcome to the Account Service microservice"})
