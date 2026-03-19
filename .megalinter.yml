@@ -6,6 +6,7 @@ DISABLE_LINTERS:
   - REPOSITORY_TRIVY
   - REPOSITORY_GRYPE
   - COPYPASTE_JSCPD
+  - PYTHON_MYPY
 
 PYTHON_MYPY_CONFIG_FILE: services/service-account/mypy.ini
 PYTHON_PYRIGHT_CONFIG_FILE: services/service-account/pyrightconfig.json

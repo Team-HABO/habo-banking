@@ -54,6 +54,11 @@
     "fanout",
     "uuidv",
     "transactionid",
+    "accounttype",
+    "dbshell",
+    "pylintrc",
+    "runserver",
+    "toplevel",
     "VITE",
     "normalised"
   ]
