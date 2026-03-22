@@ -2,6 +2,8 @@ name: Service Currency Exchange CI
 
 permissions:
   pull-requests: write
+  contents: read
+  packages: write
 
 on:
   workflow_dispatch:
@@ -16,3 +18,9 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-currency-exchange-tests.yml
+    secrets: inherit
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/service-currency-exchange-dockerize.yml
+    secrets: inherit
