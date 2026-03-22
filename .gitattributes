@@ -1,0 +1,13 @@
+# Dev container compatibility: developers on Windows commit files with CRLF line endings,
+# but the dev container runs Linux, which expects LF. Without this, files checked out on
+# Windows and mounted into the container can cause subtle issues (e.g. shell scripts
+# failing with "bad interpreter" errors, or tools seeing stray \r characters).
+#
+# The rule below tells Git to normalize all text files to LF on commit and checkout,
+# so the container always gets clean LF files regardless of the host OS.
+# Exception: .cmd and .bat files must keep CRLF because Windows requires it to run them.
+# Case-insensitive patterns (e.g. [cC][mM][dD]) are needed because Git attribute
+# matching is case-sensitive on Linux, so this catches any casing variant (e.g. .CMD).
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf

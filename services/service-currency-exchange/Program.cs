@@ -6,7 +6,7 @@ using service_currency_exchange.Services;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Load environment variables from service .env file
-DotNetEnv.Env.Load();
+DotNetEnv.Env.NoClobber().Load();
 
 var rabbitMqUsername = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")
     ?? throw new InvalidOperationException("RABBITMQ_USERNAME is not set. Make sure it is defined in the .env file.");

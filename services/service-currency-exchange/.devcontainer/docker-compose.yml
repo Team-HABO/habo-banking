@@ -1,17 +1,17 @@
 services:
-  app:
+  currency-exchange-service-dev-container:
     image: mcr.microsoft.com/devcontainers/dotnet:9.0
     volumes:
-      - ..:/workspace:cached
-      - ../../../.git:/workspace/.git:ro
-      - ~/.gitconfig:/home/vscode/.gitconfig:ro
+      # Mounts the project folder to '/workspace'. The target path inside the container
+      # should match what your application expects. In this case, the compose file is
+      # in a sub-folder, so you will mount '..'. You would then reference this path as the
+      # 'workspaceFolder' in '.devcontainer/devcontainer.json' so VS Code starts here.
+      - ../../..:/workspace:cached
+
     command: sleep infinity
     depends_on:
       rabbitmq:
         condition: service_healthy
-    env_file:
-      - path: ../.env
-        required: true
     environment:
       - RABBITMQ_HOST=rabbitmq
 
@@ -20,8 +20,8 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "0.0.0.0:5672:5672"
+      - "0.0.0.0:15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
