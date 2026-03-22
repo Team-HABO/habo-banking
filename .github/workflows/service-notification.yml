@@ -1,4 +1,4 @@
-name: Service AI CI
+name: Service Notification CI
 
 permissions:
   pull-requests: write
