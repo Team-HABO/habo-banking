@@ -17,3 +17,7 @@ jobs:
   run-tests:
     uses: ./.github/workflows/service-ai-tests.yml
     secrets: inherit
+  dockerize:
+    needs: run-tests
+    uses: ./.github/workflows/service-ai-dockerize.yml
+    secrets: inherit
