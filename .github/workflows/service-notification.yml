@@ -1,7 +1,9 @@
-name: Service Notification CI
+name: Service AI CI
 
 permissions:
   pull-requests: write
+  contents: read
+  packages: write
 
 on:
   workflow_dispatch:
@@ -16,4 +18,9 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-notification-tests.yml
+    secrets: inherit
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/service-notification-dockerize.yml
     secrets: inherit
