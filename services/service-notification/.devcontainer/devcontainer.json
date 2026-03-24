@@ -18,7 +18,7 @@
 			"settings": {
 				"editor.formatOnSave": true,
 				"editor.defaultFormatter": "ms-dotnettools.csharp",
-				"dotnet.defaultSolution": "service-ai.sln",
+				"dotnet.defaultSolution": "service-notification.sln",
 				"terminal.integrated.defaultProfile.linux": "bash"
 			}
 		}
