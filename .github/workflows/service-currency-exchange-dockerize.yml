@@ -1,4 +1,4 @@
-﻿name: Service Currency Exchange Dockerize
+name: Service Currency Exchange Dockerize
 on:
   workflow_call:
   workflow_dispatch:

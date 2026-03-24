@@ -1,4 +1,4 @@
-﻿name: Service Notification Dockerize
+name: Service Notification Dockerize
 on:
   workflow_call:
   workflow_dispatch:
