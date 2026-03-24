@@ -23,6 +23,5 @@
 			}
 		}
 	},
-	"postCreateCommand": "dotnet restore",
-	"remoteUser": "root"
+	"postCreateCommand": "dotnet restore"
 }
