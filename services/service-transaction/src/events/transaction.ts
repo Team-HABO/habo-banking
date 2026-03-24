@@ -13,6 +13,8 @@ export type TData = {
 	receiver?: { guid: string; name: string; type: string };
 	amount: string;
 	transactionType: string;
+	currency?: string | null;
+	exchangeRate?: number | null;
 };
 
 export type TTransactionPayload = {
