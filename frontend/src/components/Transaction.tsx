@@ -6,11 +6,14 @@ import "./styles/Transaction.css";
 export const Transaction = () => {
     const [amount, setAmount] = useState<number>(0);
     const [type, setType] = useState<"Withdrawal" | "Deposit">("Deposit");
+    const senderId = "1"; // Replace with actual sender account GUID
+    // const senderId = crypto.randomUUID();
     const handleSubmit = async () => {
-        accountService.postTransaction(amount, type).then((response) => {
+        accountService.postTransaction(amount, type, senderId).then((response) => {
             console.log(response);
         });
     };
+
     return (
         <div className="transaction-container">
             <h1>Transaction</h1>
