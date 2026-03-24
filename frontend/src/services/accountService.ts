@@ -14,18 +14,9 @@ export interface Transaction {
 class AccountService {
 //   private readonly baseUrl = import.meta.env["VITE_ACCOUNT_API_URL"];
   private readonly baseUrl = "http://localhost:5288/api";
+  async postTransaction(transaction: Transaction, senderId: string): Promise<any> {
 
-  async postTransaction(amount: number, type: "Withdrawal" | "Deposit" | "Transfer", senderId: string): Promise<any> {
-
-    
-    const payload: Transaction = {
-      receiverAccountGuid: (type === "Transfer") ? crypto.randomUUID() : null,
-      transactionType: type,
-      amount: amount,
-      messageId: crypto.randomUUID(),
-    };
-
-    const response = await axios.post(`${this.baseUrl}/accounts/${senderId}`, payload, {
+    const response = await axios.post(`${this.baseUrl}/accounts/${senderId}`, transaction, {
       withCredentials: true,
     });
 

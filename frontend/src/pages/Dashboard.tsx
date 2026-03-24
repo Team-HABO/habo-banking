@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./styles/Dashboard.css";
-import { Transaction } from "../components/Transaction";
+import { TransactionComponent } from "../components/TransactionComponent";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ export default function Dashboard() {
                 </tbody>
             </table>
             </div>
-            <Transaction />
+            <TransactionComponent />
         </section>
     );
 }

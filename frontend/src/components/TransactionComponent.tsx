@@ -1,15 +1,23 @@
 import { useState } from "react";
-import { accountService } from "../services/accountService";
+import { accountService, type Transaction } from "../services/accountService";
 import "./styles/Transaction.css";
 
 
-export const Transaction = () => {
+export const TransactionComponent = () => {
     const [amount, setAmount] = useState<number>(0);
     const [type, setType] = useState<"Withdrawal" | "Deposit">("Deposit");
-    const senderId = "1"; // Replace with actual sender account GUID
-    // const senderId = crypto.randomUUID();
+    
+    const senderId = "1"; 
+    const messageId = crypto.randomUUID();
+    const transaction: Transaction = {
+        amount: amount,
+        transactionType: type,
+        receiverAccountGuid: null,
+        messageId: messageId,
+    }
+
     const handleSubmit = async () => {
-        accountService.postTransaction(amount, type, senderId).then((response) => {
+        accountService.postTransaction(transaction, senderId).then((response) => {
             console.log(response);
         });
     };
