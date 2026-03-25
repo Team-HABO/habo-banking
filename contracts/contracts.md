@@ -1,13 +1,13 @@
 # Contracts
 
-| Id | Method | Description                          | Endpoint                      | Notes                                    |
-|----|--------|--------------------------------------|-------------------------------|------------------------------------------|
-| 1  | POST   | Create Account                       | /accounts                     |                                          |
-| 2  | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
-| 3  | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
-| 4  | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
-| 5  | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
-| 6  | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
+| Id  | Method | Description                          | Endpoint                      | Notes                                    |
+| --- | ------ | ------------------------------------ | ----------------------------- | ---------------------------------------- |
+| 1   | POST   | Create Account                       | /accounts                     |                                          |
+| 2   | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
+| 3   | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
+| 4   | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
+| 5   | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
+| 6   | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
@@ -51,10 +51,10 @@ Step 3, Produce message to Synchronize-Service:
 exchange: `syncronize-events` DIRECT
 queue: `syncronize-account-queue`
 
-
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "type": "string",
@@ -93,6 +93,7 @@ queue: `syncronize-account-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "isFrozen": "boolean",
@@ -126,6 +127,7 @@ queue: `syncronize-account-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "name": "string",
@@ -173,6 +175,7 @@ queue: `syncronize-account-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "timestamp": "string",
@@ -209,6 +212,7 @@ queue: `ai-transaction-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "receiver": {
             "guid": "string",
             "name": "string",
@@ -261,6 +265,7 @@ queue: `check-fraud`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "receiver": {
             "guid": "string",
             "name": "string",
@@ -310,6 +315,7 @@ queue: `syncronize-transaction-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "balance": {
                 "amount": "string",
@@ -349,10 +355,10 @@ Step 2, Produce message to Fraud-Service:
 exchange: `ai-service-transaction` FANOUT
 queue: `ai-transaction-queue`
 
-
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "guid": "string",
             "name": "string",
@@ -398,6 +404,7 @@ queue: `check-fraud`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -417,10 +424,10 @@ Step 3, Produce message to Currency-Service
 exchange: `currency-exchange-events` DIRECT
 queue: `currency-exchange-requests-queue`
 
-
 ```json
 {
     "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -443,6 +450,7 @@ queue: `currency-exchange-response-queue`
 ```json
 {
     "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -482,10 +490,10 @@ Step 5, Produce message to Synchronize-Service
 exchange: `syncronize-events` DIRECT
 queue: `syncronize-transaction-queue`
 
-
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "balance": {
                 "amount": "string",
