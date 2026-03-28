@@ -22,5 +22,9 @@ jobs:
   dockerize:
     needs: run-tests
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/service-notification-dockerize.yml
-    secrets: inherit
+    uses: ./.github/workflows/dockerize.yml
+    with:
+      docker-image-name: service-notification
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.BRIAN_DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.BRIAN_DOCKER_PASSWORD }}
