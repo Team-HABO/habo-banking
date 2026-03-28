@@ -13,10 +13,11 @@ public class CheckFraudConsumerTests(CheckFraudConsumerFixture fixture)
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
-    private static CheckFraud BuildRequest(string message = "normal transaction") => new()
+    private static CheckFraud BuildRequest() => new()
     {
         Data = new CheckFraudData
         {
+            OwnerId = "owner-123",
             Account = new AccountInfo { Guid = "acc-001", Name = "Alice", Type = "personal" },
             Receiver = new AccountInfo { Guid = "acc-002", Name = "Bob", Type = "personal" },
             Amount = "250.00",
@@ -42,6 +43,7 @@ public class CheckFraudConsumerTests(CheckFraudConsumerFixture fixture)
 
         var message = await fixture.FraudCheckedConsumer.WaitForMessageAsync(Timeout);
 
+        message.Data.OwnerId.Should().Be("owner-123");
         message.Data.Account.Guid.Should().Be("acc-001");
         message.Data.Amount.Should().Be("250.00");
         message.Data.TransactionType.Should().Be("transfer");

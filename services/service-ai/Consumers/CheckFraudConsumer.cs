@@ -57,6 +57,7 @@ public class CheckFraudConsumer(
                 {
                     Data = new FraudCheckedData
                     {
+                        OwnerId = data.OwnerId,
                         Account = data.Account,
                         Receiver = data.Receiver,
                         Amount = data.Amount,

@@ -15,6 +15,7 @@ public record ExchangeProcessed
 
 public record ExchangeProcessedData
 {
+    public string OwnerId { get; init; } = string.Empty;
     public string AccountGuid { get; init; } = string.Empty;
     public string Amount { get; init; } = string.Empty;
     public string Currency { get; init; } = string.Empty;

@@ -27,6 +27,7 @@ public class ExchangeRequestedConsumerTests(ExchangeRequestedConsumerFixture fix
     {
         Data = new ExchangeRequestedData
         {
+            OwnerId = "123e4567-e89b-12d3-a456-426614174000",
             AccountGuid = "3fa85f64-5717-4562-b3fc-2c963f66afa6",
             Amount = "1000",
             Currency = currency,
@@ -51,6 +52,7 @@ public class ExchangeRequestedConsumerTests(ExchangeRequestedConsumerFixture fix
 
         var message = await fixture.ExchangeProcessedConsumer.WaitForMessageAsync(Timeout);
 
+        message.Data.OwnerId.Should().Be("123e4567-e89b-12d3-a456-426614174000");
         message.Data.AccountGuid.Should().Be("3fa85f64-5717-4562-b3fc-2c963f66afa6");
         message.Data.Currency.Should().Be("USD");
         message.Data.ExchangeRate.Should().BeApproximately(0.1425, 0.0001);

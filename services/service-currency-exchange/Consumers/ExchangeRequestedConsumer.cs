@@ -52,6 +52,7 @@ public class ExchangeRequestedConsumer(
             {
                 Data = new ExchangeProcessedData
                 {
+                    OwnerId = data.OwnerId,
                     AccountGuid = data.AccountGuid,
                     Amount = data.Amount,
                     Currency = data.Currency,
