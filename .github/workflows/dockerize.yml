@@ -13,13 +13,6 @@ on:
       DOCKER_PASSWORD:
         description: "The docker password to use for pushing the image"
         required: true
-  workflow_dispatch:
-    inputs:
-      docker-image-name:
-        description: "The name of the docker image to push"
-        required: false
-        default: "test-image"
-        type: string
 
 jobs:
   build-and-push:
@@ -28,9 +21,9 @@ jobs:
       contents: read
       packages: write
     env:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME || secrets.BRIAN_DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.BRIAN_DOCKER_PASSWORD }}
-      IMAGE_NAME: ${{ inputs.docker-image-name || 'test-image' }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      IMAGE_NAME: ${{ inputs.docker-image-name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,7 +38,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: services/service-ai
+          context: services/${{ env.IMAGE_NAME }}
           push: true
           tags: |
             docker.io/${{ env.DOCKER_USERNAME }}/habo-bank-${{ env.IMAGE_NAME }}:latest
