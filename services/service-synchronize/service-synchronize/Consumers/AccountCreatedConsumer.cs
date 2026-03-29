@@ -5,7 +5,7 @@ using service_synchronize.Models;
 
 namespace service_synchronize.Consumers
 {
-    internal class AccountCreatedConsumer(IAccountsRepository accountRepository) : IConsumer<AccountCreated>
+    internal class AccountCreatedConsumer(IUsersRepository userRepository) : IConsumer<AccountCreated>
     {
         public async Task Consume(ConsumeContext<AccountCreated> context)
         {
@@ -15,10 +15,9 @@ namespace service_synchronize.Consumers
                 return;
             }
 
-            Console.WriteLine($"Creating account: {message.Data.Name}");
 
             Console.WriteLine("Message received.");
-            await accountRepository.CreateAccountAsync(message.Data);
+            await userRepository.CreateAccountAsync(message.UserId, message.NewAccount);
         }
     }
 }

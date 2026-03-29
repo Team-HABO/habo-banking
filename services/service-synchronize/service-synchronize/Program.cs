@@ -7,7 +7,7 @@ using service_synchronize.Consumers;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<IMongoClient>(new MongoClient("mongodb://localhost:27018"));
-builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
 builder.Services.AddMassTransit(x =>
 {
