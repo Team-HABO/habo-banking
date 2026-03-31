@@ -12,6 +12,7 @@ public record FraudChecked
 
 public record FraudCheckedData
 {
+    public string OwnerId { get; init; } = string.Empty;
     public AccountInfo Account { get; init; } = new();
     public AccountInfo? Receiver { get; init; }
     public string Amount { get; init; } = string.Empty;

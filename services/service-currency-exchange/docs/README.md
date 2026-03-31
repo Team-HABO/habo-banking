@@ -17,20 +17,20 @@ Transaction Service ──► RabbitMQ (habo.banking:CurrencyExchangeRequested) 
 
 ## Flow (Contract ID 6 — Currency Exchange)
 
-| Outcome                              | Published message      | Destination                  |
-|--------------------------------------|------------------------|------------------------------|
-| Rate resolved successfully           | `ExchangeProcessed`    | Transaction-Service (step 4) |
-| Unsupported currency / API failure   | `ExchangeNotification` | Notification-Service (step 4.4) |
+| Outcome                            | Published message      | Destination                     |
+|------------------------------------|------------------------|---------------------------------|
+| Rate resolved successfully         | `ExchangeProcessed`    | Transaction-Service (step 4)    |
+| Unsupported currency / API failure | `ExchangeNotification` | Notification-Service (step 4.4) |
 
 ## Messages
 
 ### ExchangeRequested (consumed)
 
-Published by the Transaction-Service (contract ID 6, step 3). Contains `data` with `accountGuid`, `amount`, `currency` (target currency to exchange DKK into), and `transactionType`. `metadata.messageType` is `TRANSACTION_EXCHANGE`.
+Published by the Transaction-Service (contract ID 6, step 3). Contains `data` with `ownerId`, `accountGuid`, `amount`, `currency` (target currency to exchange DKK into), and `transactionType`. `metadata.messageType` is `TRANSACTION_EXCHANGE`.
 
 ### ExchangeProcessed (published — step 4)
 
-Published to the Transaction-Service when the exchange rate is successfully resolved. Carries all original `data` fields plus `exchangeRate` (DKK → target currency as a `double`) and `metadata` passed through from `ExchangeRequested`.
+Published to the Transaction-Service when the exchange rate is successfully resolved. Carries all original `data` fields (`ownerId`, `accountGuid`, `amount`, `currency`, `transactionType`) plus `exchangeRate` (DKK → target currency as a `double`) and `metadata` passed through from `ExchangeRequested`.
 
 ### ExchangeNotification (published — step 4.4)
 
@@ -50,9 +50,9 @@ Set the following environment variables in a `.env` file at the project root (lo
 
 Frankfurter is a free, open-source API — no API key required. The base URL is configured via `appsettings.json`:
 
-| Key                    | Description              |
-|------------------------|--------------------------|
-| `Frankfurter:BaseUrl`  | Frankfurter API base URL |
+| Key                   | Description              |
+|-----------------------|--------------------------|
+| `Frankfurter:BaseUrl` | Frankfurter API base URL |
 
 ## Running
 
@@ -76,9 +76,12 @@ Successful exchange (DKK → USD):
 
 ```json
 {
-  "messageType": ["urn:message:habo.banking:CurrencyExchangeRequested"],
+  "messageType": [
+    "urn:message:habo.banking:CurrencyExchangeRequested"
+  ],
   "message": {
     "data": {
+      "ownerId": "user-123",
       "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       "amount": "1000",
       "currency": "USD",
@@ -97,30 +100,31 @@ Unsupported currency (triggers `ExchangeNotification`):
 
 ```json
 {
-  "messageType": ["urn:message:habo.banking:CurrencyExchangeRequested"],
-  "message": {
-    "data": {
-      "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "amount": "500",
-      "currency": "XYZ",
-      "transactionType": "exchange"
-    },
-    "metadata": {
-      "messageType": "TRANSACTION_EXCHANGE",
-      "messageTimestamp": "2026-03-12T12:00:00Z",
-      "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-    }
+ "messageType": ["urn:message:habo.banking:CurrencyExchangeRequested"],
+ "message": {
+  "data": {
+   "ownerId": "user-456",
+   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+   "amount": "500",
+   "currency": "XYZ",
+   "transactionType": "exchange"
+  },
+  "metadata": {
+   "messageType": "TRANSACTION_EXCHANGE",
+   "messageTimestamp": "2026-03-12T12:00:00Z",
+   "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   }
+ }
 }
 ```
 
 ### Test Cases
 
-| # | Scenario                        | Currency | Expected                          |
-|---|---------------------------------|----------|-----------------------------------|
-| 1 | Valid target currency           | `USD`    | `ExchangeProcessed` published     |
-| 2 | Unsupported currency            | `XYZ`    | `ExchangeNotification` published  |
-| 3 | Service throws unexpected error | `EUR`    | `ExchangeNotification` published  |
+| # | Scenario                        | Currency | Expected                         |
+|---|---------------------------------|----------|----------------------------------|
+| 1 | Valid target currency           | `USD`    | `ExchangeProcessed` published    |
+| 2 | Unsupported currency            | `XYZ`    | `ExchangeNotification` published |
+| 3 | Service throws unexpected error | `EUR`    | `ExchangeNotification` published |
 
 ## File Structure
 
@@ -146,6 +150,3 @@ service-currency-exchange/
 └── docs/
     └── README.md
 ```
-
-
-

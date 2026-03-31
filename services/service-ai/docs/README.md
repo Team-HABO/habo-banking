@@ -37,11 +37,11 @@ The AI model flags transactions matching these rules:
 
 ### CheckFraud (consumed)
 
-Sent by the Account-Service (contract ID 5, step 2). Contains `data` with `account` (guid, name, type), optional `receiver` (transfer only), `amount`, `transactionType`, and `originIpAddress`. `metadata.messageType` is one of `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT`.
+Sent by the Account-Service (contract ID 5, step 2). Contains `data` with `ownerId`, `account` (guid, name, type), optional `receiver` (transfer only), `amount`, `transactionType`, and `originIpAddress`. `metadata.messageType` is one of `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT`.
 
 ### FraudChecked (published — step 3)
 
-Published to the Transaction-Service when no fraud is detected. Passes `data` (account, receiver, amount, transactionType) and `metadata` through unchanged for the Transaction-Service to process.
+Published to the Transaction-Service when no fraud is detected. Passes `data` (`ownerId`, `account`, `receiver`, `amount`, `transactionType`) and `metadata` through unchanged for the Transaction-Service to process.
 
 ### FraudNotification (published — step 2.5)
 
@@ -80,13 +80,16 @@ dotnet run
 2. Go to **Queues** → find the `check-fraud` queue → **Publish message**.
 3. Paste a test payload:
 
-Deposit example:
+#### Deposit Example (Expected Outcome: FRAUD)
+
+Reason: Amount is over 10,000 AND the IP originates from Vietnam (1.52.0.0/14).
 
 ```json
 {
  "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
  "message": {
   "data": {
+   "ownerId": "user-123",
    "account": {
     "guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "name": "Main Account",
@@ -94,7 +97,7 @@ Deposit example:
    },
    "amount": "15000",
    "transactionType": "deposit",
-   "originIpAddress": "185.93.2.100"
+   "originIpAddress": "1.52.1.1"
   },
   "metadata": {
    "messageType": "TRANSACTION_DEPOSIT",
@@ -104,13 +107,16 @@ Deposit example:
 }
 ```
 
-Transfer example (includes receiver):
+#### Transfer Example (Expected Outcome: CLEAR)
+
+Reason: Amount is under 10,000 and the IP is not in the high-risk country list.
 
 ```json
 {
  "messageType": ["urn:message:service_ai.Messages:CheckFraud"],
  "message": {
   "data": {
+   "ownerId": "user-456",
    "account": {
     "guid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "name": "Main Account",
@@ -123,7 +129,7 @@ Transfer example (includes receiver):
    },
    "amount": "500",
    "transactionType": "transfer",
-   "originIpAddress": "80.71.142.50"
+   "originIpAddress": "8.8.8.8"
   },
   "metadata": {
    "messageType": "TRANSACTION_TRANSFER",
@@ -135,12 +141,14 @@ Transfer example (includes receiver):
 
 ### Test Cases
 
-| # | Scenario              | Amount  | IP                       | Expected                      |
-|---|-----------------------|---------|--------------------------|-------------------------------|
-| 1 | Threshold violation   | `25000` | `80.71.142.50`           | `FraudNotification` published |
-| 2 | Geographical risk     | `500`   | `103.21.244.15` (India)  | `FraudNotification` published |
-| 3 | Clean transaction     | `750`   | `185.93.2.100`           | `FraudChecked` published      |
-| 4 | Multiple risk factors | `50000` | `49.36.128.42` (Nigeria) | `FraudNotification` published |
+| # | Scenario                            | Amount  | Origin IP Address | Expected Outcome  | Reasoning for LLM                                        |
+|:--|:------------------------------------|:--------|:------------------|:------------------|:---------------------------------------------------------|
+| 1 | **Threshold Violation**             | `25000` | `8.8.8.8`         | `is_fraud: true`  | Amount exceeds 10,000 threshold.                         |
+| 2 | **Geographical Risk (India)**       | `500`   | `103.21.244.15`   | `is_fraud: true`  | IP falls within India's `103.0.0.0/8` range.             |
+| 3 | **Clean Transaction**               | `750`   | `1.1.1.1`         | `is_fraud: false` | Amount is low and IP is not in a high-risk range.        |
+| 4 | **Multiple Risk Factors (Nigeria)** | `50000` | `41.203.64.1`     | `is_fraud: true`  | Both threshold and Nigeria `41.0.0.0/8` range triggered. |
+| 5 | **Geographical Risk (Brazil)**      | `1200`  | `177.42.10.5`     | `is_fraud: true`  | IP falls within Brazil's `177.0.0.0/8` range.            |
+| 6 | **Geographical Risk (Romania)**     | `9000`  | `5.2.128.50`      | `is_fraud: true`  | IP falls within Romania's `5.2.0.0/14` range.            |
 
 ## File Structure
 
