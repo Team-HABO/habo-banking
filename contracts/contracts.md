@@ -1,13 +1,13 @@
 # Contracts
 
-| Id | Method | Description                          | Endpoint                      | Notes                                    |
-|----|--------|--------------------------------------|-------------------------------|------------------------------------------|
-| 1  | POST   | Create Account                       | /accounts                     |                                          |
-| 2  | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
-| 3  | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
-| 4  | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
-| 5  | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
-| 6  | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
+| Id  | Method | Description                          | Endpoint                      | Notes                                    |
+| --- | ------ | ------------------------------------ | ----------------------------- | ---------------------------------------- |
+| 1   | POST   | Create Account                       | /accounts                     |                                          |
+| 2   | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
+| 3   | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
+| 4   | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
+| 5   | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
+| 6   | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
@@ -24,6 +24,9 @@ Step 1, Initial POST request:
 ```
 
 Step 2, Produce message to Transaction-Service:
+
+exchange: `account-service-create` FANOUT
+queue: `account-create-queue`
 
 ```json
 {
@@ -45,9 +48,13 @@ Step 2, Produce message to Transaction-Service:
 
 Step 3, Produce message to Synchronize-Service:
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-account-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "type": "string",
@@ -80,9 +87,13 @@ Step 1, Initial PATCH request:
 
 Step 2, Produce message to Synchronize-Service:
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-account-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "isFrozen": "boolean",
@@ -110,9 +121,13 @@ Step 1, Initial PUT request:
 
 Step 2, Produce message to Synchronize-Service:
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-account-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "name": "string",
@@ -134,6 +149,9 @@ Step 1, Initial DELETE request. No request.body.
 
 Step 2, Produce message to Transaction-Service:
 
+exchange: `account-service-delete` FANOUT
+queue: `account-delete-queue`
+
 ```json
 {
     "data": {
@@ -151,9 +169,13 @@ Step 2, Produce message to Transaction-Service:
 
 Step 3, Produce message to Synchronize-Service:
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-account-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "accountGuid": "string",
             "timestamp": "string",
@@ -184,9 +206,13 @@ Step 2, Produce message to Fraud-Service:
 
 IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
 
+exchange: `ai-service-transaction` FANOUT
+queue: `ai-transaction-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "receiver": {
             "guid": "string",
             "name": "string",
@@ -212,6 +238,9 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
 
 Step 2.5, If fraudulent, Produce message to Notification-Service:
 
+exchange: `notification-events` DIRECT
+queue: `notification-queue`
+
 ```json
 {
     "data": {
@@ -230,9 +259,13 @@ Step 3, If NOT fraudulent, Produce message to Transaction-Service
 
 IMPORTANT: `data.receiver` object is only relevant if transaction type is transfer.
 
+exchange: `service_ai.Messages:FraudChecked` TO `transaction-service-events` FANOUT
+queue: `check-fraud`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "receiver": {
             "guid": "string",
             "name": "string",
@@ -257,6 +290,9 @@ IMPORTANT: `data.receiver` object is only relevant if transaction type is transf
 
 Step 3.5, If not possible to do transaction type, then produce message to Notification-Service
 
+exchange: `notification-events` DIRECT
+queue: `notification-queue`
+
 ```json
 {
     "data": {
@@ -273,9 +309,13 @@ Step 3.5, If not possible to do transaction type, then produce message to Notifi
 
 Step 4, Produce message to Synchronize-Service
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-transaction-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "balance": {
                 "amount": "string",
@@ -310,11 +350,61 @@ Step 1, Initial POST request:
 }
 ```
 
-Step 2, Produce message to Transaction-Service:
+Step 2, Produce message to Fraud-Service:
+
+exchange: `ai-service-transaction` FANOUT
+queue: `ai-transaction-queue`
 
 ```json
 {
     "data": {
+        "ownerId": "string",
+        "account": {
+            "guid": "string",
+            "name": "string",
+            "type": "string",
+        },
+        "amount": "string",
+        "transactionType": "EXCHANGE",
+        "originIpAddress": "string",
+    },
+    "metadata": {
+        "messageType": "TRANSACTION_EXCHANGE",
+        "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
+        "...": "..."
+    }
+}
+```
+
+Step 2.5, If fraudulent, Produce message to Notification-Service:
+
+exchange: `notification-events` DIRECT
+queue: `notification-queue`
+
+```json
+{
+    "data": {
+        "message": "string"
+    },
+    "metadata": {
+        "messageType": "TRANSACTION_EXCHANGE",
+        "messageTimestamp": "dateTime.now()",
+        "messageId": "GUID",
+        "...": "..."
+    }
+}
+```
+
+Step 3, If NOT fraudulent, Produce message to Transaction-Service
+
+exchange: `service_ai.Messages:FraudChecked` TO `transaction-service-events` FANOUT
+queue: `check-fraud`
+
+```json
+{
+    "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -331,9 +421,13 @@ Step 2, Produce message to Transaction-Service:
 
 Step 3, Produce message to Currency-Service
 
+exchange: `currency-exchange-events` DIRECT
+queue: `currency-exchange-requests-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -350,9 +444,13 @@ Step 3, Produce message to Currency-Service
 
 Step 4, Produce message back to Transaction-Service
 
+exchange: `currency-exchange-events` DIRECT
+queue: `currency-exchange-response-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "accountGuid": "string",
         "amount": "string",
         "currency": "string",
@@ -368,7 +466,10 @@ Step 4, Produce message back to Transaction-Service
 }
 ```
 
-Step 4.4, If not possible to do currency exchange, then produce message to Notification-Service
+Step 4.5, If not possible to do currency exchange, then produce message to Notification-Service
+
+exchange: `notification-events` DIRECT
+queue: `notification-queue`
 
 ```json
 {
@@ -386,9 +487,13 @@ Step 4.4, If not possible to do currency exchange, then produce message to Notif
 
 Step 5, Produce message to Synchronize-Service
 
+exchange: `syncronize-events` DIRECT
+queue: `syncronize-transaction-queue`
+
 ```json
 {
     "data": {
+        "ownerId": "string",
         "account": {
             "balance": {
                 "amount": "string",

@@ -15,6 +15,7 @@ public record ExchangeRequested
 
 public record ExchangeRequestedData
 {
+    public string OwnerId { get; init; } = string.Empty;
     public string AccountGuid { get; init; } = string.Empty;
     public string Amount { get; init; } = string.Empty;
 
