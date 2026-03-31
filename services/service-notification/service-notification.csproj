@@ -7,6 +7,7 @@
         <UserSecretsId>dotnet-service_notification-d1423c97-a9f6-42db-9ba4-f7be69b50b42</UserSecretsId>
         <RootNamespace>service_notification</RootNamespace>
         <DefaultItemExcludes>$(DefaultItemExcludes);service-notification.Tests.Integration\**</DefaultItemExcludes>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,17 +1,8 @@
 {
   "name": "Notification Service",
   "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest",
-      "ppa": true
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "version": "latest"
-    }
-  },
+  "service": "notification-service-dev-container",
+  "workspaceFolder": "/workspace/services/service-notification",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -32,17 +23,5 @@
       }
     }
   },
-  "postCreateCommand": "dotnet restore",
-  "forwardPorts": [5672, 15672],
-  "portsAttributes": {
-    "15672": {
-      "label": "RabbitMQ Management",
-      "onAutoForward": "notify"
-    },
-    "5672": {
-      "label": "RabbitMQ AMQP",
-      "onAutoForward": "silent"
-    }
-  },
-  "remoteUser": "vscode"
+  "postCreateCommand": "dotnet restore"
 }

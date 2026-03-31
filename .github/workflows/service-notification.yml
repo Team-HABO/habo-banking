@@ -2,6 +2,8 @@ name: Service Notification CI
 
 permissions:
   pull-requests: write
+  contents: read
+  packages: write
 
 on:
   workflow_dispatch:
@@ -17,3 +19,12 @@ jobs:
   run-tests:
     uses: ./.github/workflows/service-notification-tests.yml
     secrets: inherit
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/dockerize.yml
+    with:
+      docker-image-name: service-notification
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.BRIAN_DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.BRIAN_DOCKER_PASSWORD }}
