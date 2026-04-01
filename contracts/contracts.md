@@ -1,13 +1,13 @@
 # Contracts
 
-| Id  | Method | Description                          | Endpoint                      | Notes                                    |
-| --- | ------ | ------------------------------------ | ----------------------------- | ---------------------------------------- |
-| 1   | POST   | Create Account                       | /accounts                     |                                          |
-| 2   | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
-| 3   | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
-| 4   | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
-| 5   | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
-| 6   | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
+| Id | Method | Description                          | Endpoint                      | Notes                                    |
+|----|--------|--------------------------------------|-------------------------------|------------------------------------------|
+| 1  | POST   | Create Account                       | /accounts                     |                                          |
+| 2  | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
+| 3  | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
+| 4  | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
+| 5  | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
+| 6  | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
