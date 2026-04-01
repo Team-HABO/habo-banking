@@ -23,7 +23,9 @@
     "services/service-transaction/coverage/**",
     ".github/workflows/**",
     "**/Debug/**",
-    ".github/workflows/**"
+    ".github/workflows/**",
+    "**/mypy.ini",
+    "**/requirements.txt"
   ],
   "words": [
     "habo",
@@ -60,6 +62,10 @@
     "runserver",
     "toplevel",
     "VITE",
-    "normalised"
+    "normalised",
+    "Konto",
+    "Opsparing",
+    "Ooops",
+    "unstub"
   ]
 }

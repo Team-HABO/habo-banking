@@ -2,22 +2,22 @@
 import { RabbitMQ } from "./RabbitMQ.js";
 import type { TTransactionPayload } from "./events/transaction.js";
 import handleDeposit from "./handlers/handleDeposit.js";
+import handleExchange from "./handlers/handleExchange.js";
+import handleExchangeRequest from "./handlers/handleExchangeRequest.js";
 import handleTransfer from "./handlers/handleTransfer.js";
 import handleWithdraw from "./handlers/handleWithdraw.js";
 
 const handlers: Record<string, (data: TTransactionPayload) => Promise<void>> = {
 	TRANSFER: handleTransfer,
 	DEPOSIT: handleDeposit,
-	WITHDRAW: handleWithdraw
+	WITHDRAW: handleWithdraw,
+	EXCHANGE: handleExchangeRequest
 };
 
 const rabbit = new RabbitMQ<TTransactionPayload>();
 await rabbit.connect();
 
-const queue = "check-fraud";
-const exchange = "service_ai.Messages:FraudChecked";
-
-await rabbit.consumeFromExchange(queue, exchange, "fanout", async (data, ack, nack) => {
+await rabbit.consumeFromExchange("check-fraud", "service_ai.Messages:FraudChecked", "fanout", async (data, ack, nack) => {
 	const transactionType = data.message.data.transactionType.toUpperCase();
 	const handler = handlers[transactionType];
 
@@ -32,6 +32,16 @@ await rabbit.consumeFromExchange(queue, exchange, "fanout", async (data, ack, na
 		ack();
 	} catch (error) {
 		console.error(`Handler failed for transactionType: ${transactionType}`, error);
+		nack(true);
+	}
+});
+
+await rabbit.consumeFromExchange("exchange-rate", "service_currency_exchange.Messages:change_me", "fanout", async (data, ack, nack) => {
+	try {
+		await handleExchange(data);
+		ack();
+	} catch (error) {
+		console.error(`Handler failed for event ${data}. Error: `, error);
 		nack(true);
 	}
 });
