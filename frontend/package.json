@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "npx vitest --coverage.enabled true --run",
-		"test:watch": "npx vitest --coverage.enabled true",
+    "test:watch": "npx vitest --coverage.enabled true",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
