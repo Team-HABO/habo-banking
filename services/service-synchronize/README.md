@@ -1,22 +1,50 @@
-to test consumer in rabbit mq UI:
+# Service Synchronize
 
+This service is a core component of our CQRS (Command Query Responsibility Segregation) architecture. Its primary responsibility is to maintain data consistency by updating the Query Database (MongoDB) based on state changes occurring in the system's command-side services. It listens for account-related events from service-account, and transaction-related events from trans-action service
+
+## RabbitMQ Consumer Test (UI)
+
+Use the RabbitMQ management UI to manually publish a message and verify the consumer flow.
+
+### 1) Payload
+
+```json
 {
-  "messageId": "00000000-0000-0000-0000-000000000001",
-  "messageType": ["urn:message:service_synchronize.Models:AccountCreated"],
-  "message": {
     "data": {
-      "accountGuid": "ACC-999-XYZ",
-      "type": "Savings",
-      "name": "John Doe",
-      "isFrozen": false,
-      "timestamp": "2026-03-17T20:10:00Z"
+        "ownerId": "user-1",
+        "account": {
+            "accountGuid": "1",
+            "type": "savings",
+            "name": "my savings",
+            "isFrozen": false,
+            "timestamp": "2026-04-06T09:21:00Z",
+            "balance": {
+                "amount": "0",
+                "timestamp": "string"
+            }
+        }
     },
     "metadata": {
-      "messageType": "ACCOUNT_CREATE",
-      "messageTimestamp": "2026-03-17T20:10:00Z"
+        "messageType": "ACCOUNT_CREATE",
+        "messageTimestamp": "2026-04-06T09:22:00Z"
     }
-  }
 }
-And in the RabbitMQ UI **Properties** field add:
 ```
-content-type: application/vnd.masstransit+json
+
+### 2) Routing key
+
+`account.created`
+
+### 3) Properties
+
+In the RabbitMQ UI **Properties** field, add:
+
+```text
+content_type=application/json
+```
+
+## Quick Notes
+
+- Use ISO-8601 UTC timestamps (for example: `2026-04-06T09:22:00Z`).
+- Ensure message `metadata.messageType` matches the event type expected by the consumer.
+- If no message is consumed, verify exchange, queue binding, and routing key configuration.

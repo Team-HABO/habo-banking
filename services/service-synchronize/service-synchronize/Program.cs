@@ -1,13 +1,25 @@
 ﻿using MassTransit;
 using MongoDB.Driver;
+using DotNetEnv;
 using service_synchronize.Database;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using service_synchronize.Consumers;
+using service_synchronize.Services;
 
+// TraversePath() helps locate .env in parent directories
+// NoClobber makes sure a .env file does not override env variables in docker compose
+Env.NoClobber().TraversePath().Load();
+
+
+string mongoConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
+    ?? "mongodb://localhost:27018";
+string rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST")
+    ?? "localhost";
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddSingleton<IMongoClient>(new MongoClient("mongodb://localhost:27018"));
+builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -15,11 +27,19 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost");
+        cfg.Host(rabbitMqHost);
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 
-        cfg.ReceiveEndpoint("AccountCreated", e =>
+        cfg.ReceiveEndpoint("synchronize-account-queue", e =>
         {
+            e.UseRawJsonDeserializer();
             e.ConfigureConsumer<AccountCreatedConsumer>(context);
+
+            e.Bind("synchronize-events", s =>
+            {
+                s.ExchangeType = "direct"; 
+                s.RoutingKey = "account.created"; // Key for direct exchange, might change
+            });
         });
     });
 });

@@ -1,0 +1,69 @@
+services:
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27018:27017" # external:internal
+    environment:
+      MONGO_INITDB_DATABASE: HABO_DB
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "mongodb://localhost:27017/HABO_DB", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  service-synchronize:
+    image: service-synchronize
+    build:
+      context: ./service-synchronize
+      dockerfile: Dockerfile
+      target: build
+    working_dir: /src
+    command: ["dotnet", "watch", "run", "--project", "service-synchronize.csproj"]
+    environment:
+      ASPNETCORE_URLS: http://+:5002
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
+      RABBITMQ_HOST: rabbitmq
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./service-synchronize:/src
+      - synchronize-bin:/src/bin
+      - synchronize-obj:/src/obj
+      - synchronize-nuget:/root/.nuget/packages
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  mongodb-data:
+  rabbitmq-data:
+  synchronize-bin:
+  synchronize-obj:
+  synchronize-nuget:
+
+

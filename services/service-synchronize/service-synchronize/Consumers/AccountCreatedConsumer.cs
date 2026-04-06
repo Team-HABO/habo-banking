@@ -1,23 +1,37 @@
 ﻿
 using MassTransit;
-using service_synchronize.Database;
-using service_synchronize.Models;
+using Microsoft.Extensions.Logging;
+using service_synchronize.Messages;
+using service_synchronize.Services;
 
 namespace service_synchronize.Consumers
 {
-    internal class AccountCreatedConsumer(IUsersRepository userRepository) : IConsumer<AccountCreated>
+    public class AccountCreatedConsumer(IAccountService accountService, ILogger<AccountCreatedConsumer> logger) : IConsumer<AccountCreated>
     {
         public async Task Consume(ConsumeContext<AccountCreated> context)
         {
-            AccountCreated message = context.Message;
-            if (message.Metadata.MessageType != "ACCOUNT_CREATE")
+            try
             {
-                return;
+                AccountCreated message = context.Message;
+
+                if (message.Metadata.MessageType != "ACCOUNT_CREATE")
+                {
+                    logger.LogWarning("Discarded message with unexpected type: {Type}", message.Metadata.MessageType);
+                    return;
+                }
+                await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
             }
-
-
-            Console.WriteLine("Message received.");
-            await userRepository.CreateAccountAsync(message.UserId, message.NewAccount);
+            catch (InvalidDataException ex)
+            {
+                // No retry
+                logger.LogWarning(ex, "Permanent data error for User {UserId}. Moving to error queue.", context.Message.Data.OwnerId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Transient error processing user {UserId}. Triggering retry.", context.Message.Data.    OwnerId);
+                // Using throw will make it retry
+                throw;
+            }
         }
     }
 }

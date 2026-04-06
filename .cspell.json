@@ -66,6 +66,8 @@
     "Konto",
     "Opsparing",
     "Ooops",
-    "unstub"
+    "unstub",
+    "mongosh",
+    "mypy"
   ]
 }

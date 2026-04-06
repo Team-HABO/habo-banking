@@ -4,7 +4,10 @@ namespace service_synchronize.Database
 {
     public interface IUsersRepository
     {
-        Task CreateAccountAsync2(Account newAccount);
-        Task CreateAccountAsync(string userId, Account newAccount);
+        Task<User?> GetUserByIdAsync(string userId);
+
+        Task CreateUserWithAccountAsync(User user);
+
+        Task AddAccountToUserAsync(string userId, Account account);
     }
 }
