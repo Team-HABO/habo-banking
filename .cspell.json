@@ -68,6 +68,7 @@
     "Ooops",
     "unstub",
     "mongosh",
-    "mypy"
+    "mypy",
+    "healthcheck"
   ]
 }
