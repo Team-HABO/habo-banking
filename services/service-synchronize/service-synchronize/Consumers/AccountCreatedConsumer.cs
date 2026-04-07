@@ -10,28 +10,15 @@ namespace service_synchronize.Consumers
     {
         public async Task Consume(ConsumeContext<AccountCreated> context)
         {
-            try
-            {
-                AccountCreated message = context.Message;
+            AccountCreated message = context.Message;
 
-                if (message.Metadata.MessageType != "ACCOUNT_CREATE")
-                {
-                    logger.LogWarning("Discarded message with unexpected type: {Type}", message.Metadata.MessageType);
-                    return;
-                }
-                await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
-            }
-            catch (InvalidDataException ex)
+            if (message.Metadata.MessageType != "ACCOUNT_CREATE")
             {
-                // No retry
-                logger.LogWarning(ex, "Permanent data error for User {UserId}. Moving to error queue.", context.Message.Data.OwnerId);
+                logger.LogWarning("Discarded message with unexpected type: {Type}", message.Metadata.MessageType);
+                return;
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Transient error processing user {UserId}. Triggering retry.", context.Message.Data.    OwnerId);
-                // Using throw will make it retry
-                throw;
-            }
+
+            await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
         }
     }
 }

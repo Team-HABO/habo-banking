@@ -6,8 +6,6 @@ namespace service_synchronize.Database
     {
         Task<User?> GetUserByIdAsync(string userId);
 
-        Task CreateUserWithAccountAsync(User user);
-
-        Task AddAccountToUserAsync(string userId, Account account);
+        Task UpsertAccountAsync(string userId, Account account);
     }
 }

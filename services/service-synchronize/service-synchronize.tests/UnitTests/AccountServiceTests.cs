@@ -22,15 +22,14 @@ namespace service_synchronize.tests.UnitTests
         [Fact]
         public async Task ProcessAccountCreationAsync_ShouldCallCreateUserWithAccountAsync_WhenUserDoesNotExist()
         {
-            _repositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync((User?)null);
 
             await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
+
             _repositoryMock.Verify(r =>
-                r.CreateUserWithAccountAsync(It.Is<User>(u =>
-                    u.Id == userId &&
-                    u.Accounts.Count == 1 &&
-                    u.Accounts[0].AccountGuid == firstAccountDto.AccountGuid
-                )),
+                r.UpsertAccountAsync(
+                    userId,
+                    It.Is<Account>(a => a.AccountGuid == firstAccountDto.AccountGuid)
+                ),
                 Times.Once);
         }
 
@@ -44,11 +43,10 @@ namespace service_synchronize.tests.UnitTests
                 Id = userId,
                 Accounts = [firstAccount]
             };
-            _repositoryMock .Setup(r => r.GetUserByIdAsync(userId)).ReturnsAsync(existingUser);
 
             await _service.ProcessAccountCreationAsync(userId, secondAccountDto);
 
-            _repositoryMock.Verify(r => r.AddAccountToUserAsync(
+            _repositoryMock.Verify(r => r.UpsertAccountAsync(
                 userId,
                 It.Is<Account>(a => a.AccountGuid == secondAccount.AccountGuid)
             ), Times.Once);
@@ -64,18 +62,17 @@ namespace service_synchronize.tests.UnitTests
                 Id = userId,
                 Accounts = [firstAccount]
             };
-            _repositoryMock.Setup(r => r.GetUserByIdAsync(userId)).ReturnsAsync(existingUser);
             await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
 
-
-            _repositoryMock.Verify(r => r.AddAccountToUserAsync(It.IsAny<string>(), It.IsAny<Account>()), Times.Never);
-            _repositoryMock.Verify(r => r.CreateUserWithAccountAsync(It.IsAny<User>()), Times.Never);
+            _repositoryMock.Verify(r =>
+                r.UpsertAccountAsync(userId, It.IsAny<Account>()),
+                Times.Once);
         }
 
         [Fact]
         public async Task ProcessAccountCreationAsync_ShouldThrow_WhenUserIdIsNullOrEmpty()
         {
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
                 _service.ProcessAccountCreationAsync("", firstAccountDto));
         }
     }

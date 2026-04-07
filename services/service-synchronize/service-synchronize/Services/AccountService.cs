@@ -8,23 +8,10 @@ namespace service_synchronize.Services
     {
         public async Task ProcessAccountCreationAsync(string userId, AccountDto dto)
         {
-            if (string.IsNullOrEmpty(userId)) throw new ArgumentException("User ID is required.");
+            if (string.IsNullOrEmpty(userId)) throw new InvalidDataException($"OwnerId is missing for account {dto.AccountGuid}");
 
-            User? user = await repository.GetUserByIdAsync(userId);
             Account modelAccount = MapAccountToModel(dto);
-
-            if (user == null)
-            {
-                User newUser = new() { Id = userId, Accounts = [modelAccount] };
-                await repository.CreateUserWithAccountAsync(newUser);
-                return;
-            }
-
-            bool alreadyExists = user.Accounts.Any(a => a.AccountGuid == modelAccount.AccountGuid);
-            if (!alreadyExists)
-            {
-                await repository.AddAccountToUserAsync(userId, modelAccount);
-            }
+            await repository.UpsertAccountAsync(userId, modelAccount);
         }
         public static Account MapAccountToModel(AccountDto dto)
         {
@@ -35,20 +22,19 @@ namespace service_synchronize.Services
                 IsFrozen = dto.IsFrozen,
                 Timestamp = dto.Timestamp,
 
-                Type = Enum.TryParse<Account.AccountType>(dto.Type, true, out var type)
-            ? type
-            : Account.AccountType.Main,
+                Type = Enum.TryParse(dto.Type, true, out Account.AccountType type) ? type : Account.AccountType.Main,
 
-                    Balances = new List<Balance>
-            {
-                new Balance
-                {
-                    Amount = dto.Balance.Amount,
-                    Timestamp = dto.Balance.Timestamp
-                }
-            }
-                };
-            }
+                Balances =
+                [
+                    new()
+                    {
+                        Amount = dto.Balance.Amount,
+                        Timestamp = dto.Balance.Timestamp
+                    }
+                ]
+            };
+            
+        }
 
     }
 }

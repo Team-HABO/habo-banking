@@ -1,15 +1,20 @@
 services:
-
   mongodb:
     image: mongo:7
     ports:
       - "27018:27017" # external:internal
-    environment:
-      MONGO_INITDB_DATABASE: HABO_DB
     volumes:
       - mongodb-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "mongodb://localhost:27017/HABO_DB", "--eval", "db.adminCommand('ping').ok"]
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "mongodb://localhost:27017/HABO_DB",
+          "--eval",
+          "db.adminCommand('ping').ok",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,7 +41,8 @@ services:
       dockerfile: Dockerfile
       target: build
     working_dir: /src
-    command: ["dotnet", "watch", "run", "--project", "service-synchronize.csproj"]
+    command:
+      ["dotnet", "watch", "run", "--project", "service-synchronize.csproj"]
     environment:
       ASPNETCORE_URLS: http://+:5002
       MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
@@ -65,5 +71,3 @@ volumes:
   synchronize-bin:
   synchronize-obj:
   synchronize-nuget:
-
-

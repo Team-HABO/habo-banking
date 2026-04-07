@@ -2,16 +2,16 @@
 {
     public class AccountCreated
     {
-        public required Data Data { get; set; }
-        public required Metadata Metadata { get; set; }
+        public required AccountCreatedData Data { get; set; }
+        public required AccountCreatedMetadata Metadata { get; set; }
     }
 
-    public class Data
+    public class AccountCreatedData
     {
         public required string OwnerId { get; set; }
         public required AccountDto Account { get; set; }
     }
-    public class Metadata
+    public class AccountCreatedMetadata
     {
         public required string MessageType { get; set; }
         public required DateTime MessageTimestamp { get; set; }

@@ -28,10 +28,15 @@ builder.Services.AddMassTransit(x =>
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost);
-        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 
         cfg.ReceiveEndpoint("synchronize-account-queue", e =>
         {
+            e.UseMessageRetry(r =>
+            {
+                r.Interval(3, TimeSpan.FromSeconds(5));
+                // Do not retry this specific exception
+                r.Ignore<InvalidDataException>();
+            });
             e.UseRawJsonDeserializer();
             e.ConfigureConsumer<AccountCreatedConsumer>(context);
 

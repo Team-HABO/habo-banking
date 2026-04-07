@@ -12,21 +12,24 @@ namespace service_synchronize.tests.UnitTests
     {
         private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
 
-        private readonly Metadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
+        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
         [Fact]
         public async Task Consumer_Should_Process_Message_When_Published()
         {
+            Mock<IAccountService> accountServiceMock = new();
+            string userId = "user-1";
             await using ServiceProvider provider = new ServiceCollection()
                 .AddMassTransitTestHarness(x =>
                 {
                     x.AddConsumer<AccountCreatedConsumer>();
                 })
-                .AddScoped(_ => new Mock<IAccountService>().Object) 
+                .AddSingleton(accountServiceMock.Object)
+                .AddLogging()
                 .BuildServiceProvider();
 
             ITestHarness harness = provider.GetRequiredService<ITestHarness>();
             await harness.Start();
-            Data messageData = new() { Account = firstAccount, OwnerId = "user-1" };
+            AccountCreatedData messageData = new() { Account = firstAccount, OwnerId = userId };
 
             await harness.Bus.Publish(new AccountCreated
             {
@@ -35,9 +38,10 @@ namespace service_synchronize.tests.UnitTests
             });
 
             Assert.True(await harness.Consumed.Any<AccountCreated>());
-
-            IConsumerTestHarness<AccountCreatedConsumer> consumerHarness = harness.GetConsumerHarness<AccountCreatedConsumer>();
-            Assert.True(await consumerHarness.Consumed.Any<AccountCreated>());
+            accountServiceMock.Verify(
+                s => s.ProcessAccountCreationAsync(userId, It.IsAny<AccountDto>()),
+                Times.Once
+            );
         }
     }
 }

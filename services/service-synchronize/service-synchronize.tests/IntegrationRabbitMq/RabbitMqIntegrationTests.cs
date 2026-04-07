@@ -16,7 +16,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
         private readonly Mock<IAccountService> _serviceMock = new();
         private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
 
-        private readonly Metadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
+        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
         public async Task DisposeAsync()
         {
             await _bus.StopAsync();
@@ -59,7 +59,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                 .Returns(Task.CompletedTask)
                 .Callback(() => signal.SetResult(true)); // Signal success!
 
-            Data messageData = new() { Account = firstAccount, OwnerId = "user-1" };
+            AccountCreatedData messageData = new() { Account = firstAccount, OwnerId = "user-1" };
             AccountCreated message = new() { Data = messageData, Metadata = md };
 
             await _bus.Publish(message);
