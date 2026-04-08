@@ -20,7 +20,7 @@ namespace service_synchronize.tests.UnitTests
         }
 
         [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldCallCreateUserWithAccountAsync_WhenUserDoesNotExist()
+        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenUserDoesNotExist()
         {
 
             await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
@@ -34,15 +34,10 @@ namespace service_synchronize.tests.UnitTests
         }
 
         [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldAddAccount_WhenUserExistsAndAccountDoesNotExist()
+        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenUserExistsAndAccountDoesNotExist()
         {
             Account firstAccount = AccountService.MapAccountToModel(firstAccountDto);
             Account secondAccount = AccountService.MapAccountToModel(secondAccountDto);
-            User existingUser = new()
-            {
-                Id = userId,
-                Accounts = [firstAccount]
-            };
 
             await _service.ProcessAccountCreationAsync(userId, secondAccountDto);
 
@@ -53,20 +48,21 @@ namespace service_synchronize.tests.UnitTests
         }
 
         [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldDoNothing_WhenAccountAlreadyExists()
+        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenAccountAlreadyExists()
         {
             Account firstAccount = AccountService.MapAccountToModel(firstAccountDto);
 
-            User existingUser = new()
-            {
-                Id = userId,
-                Accounts = [firstAccount]
-            };
             await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
 
             _repositoryMock.Verify(r =>
                 r.UpsertAccountAsync(userId, It.IsAny<Account>()),
                 Times.Once);
+        }
+        [Fact]
+        public async Task ProcessAccountCreationAsync_ShouldThrow_WhenDtoIsNull()
+        {
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                _service.ProcessAccountCreationAsync(userId, null!));
         }
 
         [Fact]
@@ -74,6 +70,41 @@ namespace service_synchronize.tests.UnitTests
         {
             await Assert.ThrowsAsync<InvalidDataException>(() =>
                 _service.ProcessAccountCreationAsync("", firstAccountDto));
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                _service.ProcessAccountCreationAsync(null!, firstAccountDto));
+        }
+        [Fact]
+        public async Task ProcessAccountCreationAsync_ShouldMapAllFieldsCorrectly_AndCallRepository()
+        {
+            string timestamp = DateTime.UtcNow.ToString();
+            BalanceDto bDto = new()
+            { 
+                Amount = "100", 
+                Timestamp = timestamp 
+            };
+            AccountDto dto = new()
+            {
+                AccountGuid = "guid-123",
+                Name = "My savings",
+                Type = "SAVINGS",
+                Balance = bDto,
+                IsFrozen = false,
+                Timestamp = timestamp
+            };
+
+            await _service.ProcessAccountCreationAsync(userId, dto);
+
+            _repositoryMock.Verify(r => r.UpsertAccountAsync(
+                userId,
+                It.Is<Account>(a =>
+                    a.AccountGuid == dto.AccountGuid &&
+                    a.Type == Account.AccountType.Savings &&
+                    a.Name == dto.Name &&
+                    a.IsFrozen == dto.IsFrozen &&
+                    a.Timestamp == dto.Timestamp &&
+                    a.Balances.Count == 1
+                )
+            ), Times.Once);
         }
     }
 }

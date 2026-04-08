@@ -6,12 +6,13 @@ namespace service_synchronize.Services
 {
     public class AccountService(IUsersRepository repository) : IAccountService
     {
-        public async Task ProcessAccountCreationAsync(string userId, AccountDto dto)
+        public async Task ProcessAccountCreationAsync(string ownerId, AccountDto dto)
         {
-            if (string.IsNullOrEmpty(userId)) throw new InvalidDataException($"OwnerId is missing for account {dto.AccountGuid}");
+            if (dto == null) throw new InvalidDataException("Account data transfer object cannot be null.");
+            if (string.IsNullOrWhiteSpace(ownerId)) throw new InvalidDataException($"OwnerId is missing for account {dto.AccountGuid}");
 
             Account modelAccount = MapAccountToModel(dto);
-            await repository.UpsertAccountAsync(userId, modelAccount);
+            await repository.UpsertAccountAsync(ownerId, modelAccount);
         }
         public static Account MapAccountToModel(AccountDto dto)
         {

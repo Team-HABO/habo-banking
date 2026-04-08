@@ -13,15 +13,23 @@ namespace service_synchronize.Database
         }
         public async Task UpsertAccountAsync(string userId, Account account)
         {
-            FilterDefinition<User> filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            FilterDefinition<User> filter = Builders<User>.Filter.And(
+                Builders<User>.Filter.Eq(u => u.Id, userId),
+                Builders<User>.Filter.Not(
+                    Builders<User>.Filter.ElemMatch(u => u.Accounts, a => a.AccountGuid == account.AccountGuid)
+                )
+            );
 
-            UpdateDefinition<User> update = Builders<User>.Update
-                // If the user is not in database create new document
-                .SetOnInsert(u => u.Id, userId)
-                // Add the account to the array if AccountGuid is not already there
-                .AddToSet(u => u.Accounts, account);
+            UpdateDefinition<User> update = Builders<User>.Update.SetOnInsert(u => u.Id, userId).Push(u => u.Accounts, account);
 
-            await _usersCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
+            try
+            {
+                await _usersCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
+            }
+            catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                return;
+            }
         }
 
         public async Task<User?> GetUserByIdAsync(string userId)

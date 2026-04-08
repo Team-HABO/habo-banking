@@ -20,4 +20,3 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-synchronize-tests.yml
-

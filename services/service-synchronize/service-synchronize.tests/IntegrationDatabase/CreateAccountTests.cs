@@ -14,6 +14,7 @@ namespace service_synchronize.tests.IntegrationDatabase
         private string _dbName = default!;
         private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
         private readonly AccountDto secondAccount = TestData.CreateAccountDto("2");
+        private readonly AccountDto secondAccountDiffPayloadSameGuid = TestData.CreateAccountDto("2", "my other account");
         private readonly string mongoConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
     ?? "mongodb://localhost:27018";
         public CreateAccountTests()
@@ -55,16 +56,14 @@ namespace service_synchronize.tests.IntegrationDatabase
         {
             await _service.ProcessAccountCreationAsync(userId, firstAccount);
             await _service.ProcessAccountCreationAsync(userId, secondAccount);
-            await _service.ProcessAccountCreationAsync(userId, secondAccount);
+            await _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid);
 
             User? user = await _repository.GetUserByIdAsync(userId);
-
             Assert.NotNull(user);
             Assert.Equal(userId, user.Id);
             Assert.Equal(2, user.Accounts.Count);
             Assert.Equal("1", user.Accounts[0].AccountGuid);
             Assert.Equal("2", user.Accounts[1].AccountGuid);
-
         }
 
         public Task InitializeAsync()
