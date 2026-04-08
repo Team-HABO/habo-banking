@@ -1,0 +1,68 @@
+name: Synchronize Service tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27018:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:4
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGODB_CONNECTION_STRING: mongodb://localhost:27018
+      RABBITMQ_HOST: localhost
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore services/service-synchronize/service-synchronize.tests/service-synchronize.tests.csproj
+
+      - name: Build
+        run: dotnet build services/service-synchronize/service-synchronize.tests/service-synchronize.tests.csproj --configuration Release --no-restore
+
+      - name: Test with Coverage
+        run: dotnet test services/service-synchronize/service-synchronize.tests/service-synchronize.tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Report Coverage
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "**/TestResults/**/coverage.cobertura.xml"
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Add Coverage PR Comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
+          

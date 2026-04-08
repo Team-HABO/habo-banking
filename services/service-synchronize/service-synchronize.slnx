@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="service-synchronize.tests/service-synchronize.tests.csproj" Id="7196e4c9-b596-498c-acae-17abd1806313" />
+  <Project Path="service-synchronize/service-synchronize.csproj" />
+</Solution>
