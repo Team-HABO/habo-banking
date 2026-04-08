@@ -26,7 +26,7 @@ namespace service_synchronize.Database
                 )
             );
 
-            var accountUpdate = Builders<User>.Update.Push(u => u.Accounts, account);
+            UpdateDefinition<User> accountUpdate = Builders<User>.Update.Push(u => u.Accounts, account);
 
             await _usersCollection.UpdateOneAsync(accountFilter, accountUpdate, new UpdateOptions { IsUpsert = false });
         }

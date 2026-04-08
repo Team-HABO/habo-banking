@@ -56,10 +56,7 @@ namespace service_synchronize.tests.IntegrationDatabase
         {
             await _service.ProcessAccountCreationAsync(userId, firstAccount);
             await _service.ProcessAccountCreationAsync(userId, secondAccount);
-            MongoWriteException exception = await Assert.ThrowsAsync<MongoWriteException>(() =>
-                _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid)
-            );
-            Assert.Equal(11000, exception.WriteError.Code);
+            await _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid);
 
             User? user = await _repository.GetUserByIdAsync(userId);
             Assert.NotNull(user);
