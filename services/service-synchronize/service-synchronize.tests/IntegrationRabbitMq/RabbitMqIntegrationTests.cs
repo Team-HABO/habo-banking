@@ -37,7 +37,18 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(_rabbitMqContainer.GetConnectionString());
-                    cfg.ConfigureEndpoints(context);
+
+                    cfg.ReceiveEndpoint("synchronize-account-queue-test", e =>
+                    {
+                        e.UseRawJsonDeserializer(); 
+                        e.ConfigureConsumer<AccountCreatedConsumer>(context);
+
+                        e.Bind("synchronize-events", s =>
+                        {
+                            s.ExchangeType = "direct";
+                            s.RoutingKey = "account.created";
+                        });
+                    });
                 });
             });
 

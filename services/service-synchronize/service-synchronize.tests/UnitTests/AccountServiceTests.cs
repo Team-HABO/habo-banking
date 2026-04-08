@@ -106,5 +106,22 @@ namespace service_synchronize.tests.UnitTests
                 )
             ), Times.Once);
         }
+        [Fact]
+        public async Task ProcessAccountCreationAsync_ShouldThrow_AndCallRepository()
+        {
+            string timestamp = DateTime.UtcNow.ToString();
+            BalanceDto? bDto = null;
+            AccountDto dto = new()
+            {
+                AccountGuid = "guid-123",
+                Name = "My savings",
+                Type = "SAVINGS",
+                Balance = bDto,
+                IsFrozen = false,
+                Timestamp = timestamp
+            };
+
+            await Assert.ThrowsAsync<InvalidDataException>(async () => await _service.ProcessAccountCreationAsync(userId, dto));
+        }
     }
 }

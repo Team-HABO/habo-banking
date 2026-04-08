@@ -22,14 +22,7 @@ namespace service_synchronize.Database
 
             UpdateDefinition<User> update = Builders<User>.Update.SetOnInsert(u => u.Id, userId).Push(u => u.Accounts, account);
 
-            try
-            {
-                await _usersCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
-            }
-            catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                return;
-            }
+            await _usersCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
         }
 
         public async Task<User?> GetUserByIdAsync(string userId)

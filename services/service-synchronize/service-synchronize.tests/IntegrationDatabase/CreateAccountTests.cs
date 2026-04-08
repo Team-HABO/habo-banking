@@ -52,11 +52,14 @@ namespace service_synchronize.tests.IntegrationDatabase
 
         }
         [Fact]
-        public async Task CreateAccount_ShouldDoNothing_WhenAccountAlreadyExists()
+        public async Task CreateAccount_ShouldThrow_WhenAccountAlreadyExists()
         {
             await _service.ProcessAccountCreationAsync(userId, firstAccount);
             await _service.ProcessAccountCreationAsync(userId, secondAccount);
-            await _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid);
+            MongoWriteException exception = await Assert.ThrowsAsync<MongoWriteException>(() =>
+                _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid)
+            );
+            Assert.Equal(11000, exception.WriteError.Code);
 
             User? user = await _repository.GetUserByIdAsync(userId);
             Assert.NotNull(user);

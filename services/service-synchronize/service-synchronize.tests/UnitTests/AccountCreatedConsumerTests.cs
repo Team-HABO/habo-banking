@@ -67,7 +67,7 @@ namespace service_synchronize.tests.UnitTests
             ITestHarness harness = provider.GetRequiredService<ITestHarness>();
             await harness.Start();
 
-            AccountCreated invalidAccountDto = new AccountCreated
+            AccountCreated invalidAccountDto = new()
             {
                 Data = new() { Account = firstAccount, OwnerId = userId },
                 Metadata = md

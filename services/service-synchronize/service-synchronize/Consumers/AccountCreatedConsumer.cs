@@ -25,7 +25,17 @@ namespace service_synchronize.Consumers
                 return;
             }
 
-            await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
+            try
+            {
+                await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
+            }
+            catch (InvalidDataException ex)
+            {
+                logger.LogWarning(ex,
+                    "Discarded invalid account message. AccountGuid: {Guid}, OwnerId: {OwnerId}",
+                    message.Data.Account.AccountGuid,
+                    message.Data.OwnerId);
+            }
         }
     }
 }

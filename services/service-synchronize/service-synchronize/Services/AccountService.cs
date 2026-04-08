@@ -16,7 +16,9 @@ namespace service_synchronize.Services
         }
         public static Account MapAccountToModel(AccountDto dto)
         {
-            return new Account
+            return dto.Balance == null
+                ? throw new InvalidDataException($"Balance data is missing for account {dto.AccountGuid}")
+                : new Account
             {
                 AccountGuid = dto.AccountGuid,
                 Name = dto.Name,
@@ -34,8 +36,6 @@ namespace service_synchronize.Services
                     }
                 ]
             };
-            
         }
-
     }
 }
