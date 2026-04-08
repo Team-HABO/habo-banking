@@ -1,13 +1,13 @@
 # Contracts
 
-| Id  | Method | Description                          | Endpoint                      | Notes                                    |
-| --- | ------ | ------------------------------------ | ----------------------------- | ---------------------------------------- |
-| 1   | POST   | Create Account                       | /accounts                     |                                          |
-| 2   | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
-| 3   | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
-| 4   | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
-| 5   | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
-| 6   | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
+| Id | Method | Description                          | Endpoint                      | Notes                                    |
+|----|--------|--------------------------------------|-------------------------------|------------------------------------------|
+| 1  | POST   | Create Account                       | /accounts                     |                                          |
+| 2  | PATCH  | Freeze/Unfreeze Account              | /accounts/{guid}              |                                          |
+| 3  | PUT    | Rename Account / Change Account Type | /accounts/{guid}              |                                          |
+| 4  | DELETE | Delete Account                       | /accounts/{guid}              | Creates the account in the deleted table |
+| 5  | POST   | Bank Transaction                     | /accounts/{guid}/transactions | Transfer, deposit and withdraw           |
+| 6  | POST   | Currency Exchange                    | /accounts/{guid}/exchanges    | Exchange currency                        |
 
 IMPORTANT: the `ownerId` is filled by the value inside the JWT!
 
@@ -48,8 +48,8 @@ queue: `account-create-queue`
 
 Step 3, Produce message to Synchronize-Service:
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-account-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-account-queue`
 
 ```json
 {
@@ -87,8 +87,8 @@ Step 1, Initial PATCH request:
 
 Step 2, Produce message to Synchronize-Service:
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-account-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-account-queue`
 
 ```json
 {
@@ -121,8 +121,8 @@ Step 1, Initial PUT request:
 
 Step 2, Produce message to Synchronize-Service:
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-account-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-account-queue`
 
 ```json
 {
@@ -169,8 +169,8 @@ queue: `account-delete-queue`
 
 Step 3, Produce message to Synchronize-Service:
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-account-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-account-queue`
 
 ```json
 {
@@ -309,14 +309,26 @@ queue: `notification-queue`
 
 Step 4, Produce message to Synchronize-Service
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-transaction-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-transaction-queue`
 
 ```json
 {
     "data": {
         "ownerId": "string",
         "account": {
+            "balance": {
+                "amount": "string",
+                "timestamp": "string"
+            },
+            "audits": {
+                "receiver": "string (name, optional)",
+                "amount": "string",
+                "type": "TRANSFER/WITHDRAW/DEPOSIT",
+                "timestamp": "string"
+            }
+        },
+        "receiver": {
             "balance": {
                 "amount": "string",
                 "timestamp": "string"
@@ -487,8 +499,8 @@ queue: `notification-queue`
 
 Step 5, Produce message to Synchronize-Service
 
-exchange: `syncronize-events` DIRECT
-queue: `syncronize-transaction-queue`
+exchange: `synchronize-events` DIRECT
+queue: `synchronize-transaction-queue`
 
 ```json
 {

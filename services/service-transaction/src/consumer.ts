@@ -36,7 +36,7 @@ await rabbit.consumeFromExchange("check-fraud", "service_ai.Messages:FraudChecke
 	}
 });
 
-await rabbit.consumeFromExchange("exchange-rate", "service_currency_exchange.Messages:change_me", "fanout", async (data, ack, nack) => {
+await rabbit.consumeFromExchange("currency-exchange-response-queue", "currency-exchange-events", "direct", async (data, ack, nack) => {
 	try {
 		await handleExchange(data);
 		ack();

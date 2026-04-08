@@ -9,6 +9,7 @@ export type TMetadata = {
 };
 
 export type TData = {
+	ownerId: string;
 	account: { guid: string; name: string; type: string };
 	receiver?: { guid: string; name: string; type: string };
 	amount: string;
@@ -21,5 +22,27 @@ export type TTransactionPayload = {
 	message: {
 		data: TData;
 		metadata: TMetadata;
+	};
+};
+
+export type TSynchronizeTransactionPayload = {
+	data: {
+		ownerId: string;
+		account: TSynchronizeData;
+		receiver?: TSynchronizeData;
+	};
+	metadata: TMetadata;
+};
+
+type TSynchronizeData = {
+	balance: {
+		amount: string;
+		timestamp: Date;
+	};
+	audits: {
+		receiver: string;
+		amount: string;
+		type: string;
+		timestamp: Date;
 	};
 };

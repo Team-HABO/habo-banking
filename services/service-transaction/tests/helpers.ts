@@ -15,6 +15,7 @@ export function makePayload(amount: string, accountGuid = ACCOUNT_GUID, offsetMs
 	return {
 		message: {
 			data: {
+				ownerId: OWNER_ID,
 				account: { guid: accountGuid, name: "Test Account", type: "SAVINGS" },
 				amount,
 				transactionType
@@ -28,15 +29,11 @@ export function makePayload(amount: string, accountGuid = ACCOUNT_GUID, offsetMs
 	};
 }
 
-export function makeTransferPayload(
-	amount: string,
-	senderGuid: string,
-	receiverGuid: string,
-	offsetMs = 0
-): TTransactionPayload {
+export function makeTransferPayload(amount: string, senderGuid: string, receiverGuid: string, offsetMs = 0): TTransactionPayload {
 	return {
 		message: {
 			data: {
+				ownerId: OWNER_ID,
 				account: { guid: senderGuid, name: "Sender Account", type: "SAVINGS" },
 				receiver: { guid: receiverGuid, name: "Receiver Account", type: "SAVINGS" },
 				amount,
