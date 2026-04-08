@@ -67,14 +67,14 @@ namespace service_synchronize.tests.UnitTests
             ITestHarness harness = provider.GetRequiredService<ITestHarness>();
             await harness.Start();
 
-            AccountCreated invatlidAccountDto = new AccountCreated
+            AccountCreated invalidAccountDto = new AccountCreated
             {
                 Data = new() { Account = firstAccount, OwnerId = userId },
                 Metadata = md
             };
-            invatlidAccountDto.Data.Account.Type = "kkhsjklf";
+            invalidAccountDto.Data.Account.Type = "wrongType";
             
-            await harness.Bus.Publish(invatlidAccountDto);
+            await harness.Bus.Publish(invalidAccountDto);
 
             Assert.True(await harness.GetConsumerHarness<AccountCreatedConsumer>().Consumed.Any<AccountCreated>());
 
