@@ -3,10 +3,10 @@
 namespace service_currency_exchange.Messages;
 
 /// <summary>
-/// Published back to Transaction-Service after a successful exchange rate lookup (contract ID 6, step 4).
+/// Published back to Transaction-Service after a successful exchange rate lookup.
 /// </summary>
-[EntityName("habo.banking:CurrencyExchangeProcessed")]
-[MessageUrn("habo.banking:CurrencyExchangeProcessed")]
+[EntityName("currency-exchange-events")]
+[MessageUrn("currency-exchange-events")]
 public record ExchangeProcessed
 {
     public ExchangeProcessedData Data { get; init; } = new();

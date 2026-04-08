@@ -7,8 +7,8 @@ namespace service_currency_exchange.Messages;
 /// Reuses the shared habo.banking:Notification exchange so the Notification-Service
 /// receives it without any changes on its end.
 /// </summary>
-[EntityName("habo.banking:Notification")]
-[MessageUrn("habo.banking:Notification")]
+[EntityName("notification-events")]
+[MessageUrn("notification-events")]
 public record ExchangeNotification
 {
     public ExchangeNotificationData Data { get; init; } = new();

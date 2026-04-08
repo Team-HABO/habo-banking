@@ -1,6 +1,7 @@
 using MassTransit;
 using Serilog;
 using service_ai.Consumers;
+using service_ai.Messages;
 using service_ai.Services;
 
 
@@ -38,7 +39,6 @@ builder.Services.AddMassTransit(config =>
 {
     // Register consumer - MassTransit uses this to know what messages to subscribe to
     config.AddConsumer<CheckFraudConsumer>();
-    config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>
         {
@@ -48,8 +48,15 @@ builder.Services.AddMassTransit(config =>
                 host.Password(rabbitMqPassword);
             });
 
-            // Automatically creates and binds queues based on registered consumers
-            cfg.ConfigureEndpoints(context);
+            // Publish FraudNotification to notification-events DIRECT exchange
+            cfg.Publish<FraudNotification>(x => x.ExchangeType = "direct");
+
+            // Consume CheckFraud from ai-service-transaction FANOUT, queue ai-transaction-queue
+            cfg.ReceiveEndpoint("ai-transaction-queue", ep =>
+            {
+                ep.Bind("ai-service-transaction", x => x.ExchangeType = "fanout");
+                ep.ConfigureConsumer<CheckFraudConsumer>(context);
+            });
         }
     );
 });

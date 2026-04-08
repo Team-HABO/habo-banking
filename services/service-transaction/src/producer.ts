@@ -6,7 +6,7 @@ export async function produceNotification(payload: object) {
 
 	try {
 		await rabbit.connect();
-		await rabbit.sendToExchange("notification-events", "direct", payload);
+		await rabbit.sendToExchange("notification-events", "direct", payload, "notification-queue");
 	} finally {
 		await rabbit.closeConnection();
 	}
@@ -16,7 +16,7 @@ export async function produceSynchronization(payload: TSynchronizeTransactionPay
 	const rabbit = new RabbitMQ<TSynchronizeTransactionPayload>();
 	try {
 		await rabbit.connect();
-		await rabbit.sendToExchange("synchronize-events", "direct", payload, "synchronize-transaction");
+		await rabbit.sendToExchange("synchronize-events", "direct", payload, "synchronize-transaction-queue");
 	} finally {
 		await rabbit.closeConnection();
 	}
@@ -26,7 +26,7 @@ export async function produceCurrencyExchanger(payload: TTransactionPayload) {
 	const rabbit = new RabbitMQ<TTransactionPayload>();
 	try {
 		await rabbit.connect();
-		await rabbit.sendToExchange("currency-exchange-events", "direct", payload);
+		await rabbit.sendToExchange("currency-exchange-events", "direct", payload, "currency-exchange-requests-queue");
 	} finally {
 		await rabbit.closeConnection();
 	}

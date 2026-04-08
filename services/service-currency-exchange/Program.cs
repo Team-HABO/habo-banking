@@ -1,6 +1,7 @@
 using MassTransit;
 using Serilog;
 using service_currency_exchange.Consumers;
+using service_currency_exchange.Messages;
 using service_currency_exchange.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -35,7 +36,6 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>(client =>
 builder.Services.AddMassTransit(config =>
 {
     config.AddConsumer<ExchangeRequestedConsumer>();
-    config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>
     {
@@ -45,7 +45,22 @@ builder.Services.AddMassTransit(config =>
             host.Password(rabbitMqPassword);
         });
 
-        cfg.ConfigureEndpoints(context);
+        // Publish ExchangeProcessed to currency-exchange-events DIRECT
+        cfg.Publish<ExchangeProcessed>(x => x.ExchangeType = "direct");
+
+        // Publish ExchangeNotification to notification-events DIRECT
+        cfg.Publish<ExchangeNotification>(x => x.ExchangeType = "direct");
+
+        // Consume ExchangeRequested from currency-exchange-events DIRECT, queue currency-exchange-requests-queue
+        cfg.ReceiveEndpoint("currency-exchange-requests-queue", ep =>
+        {
+            ep.Bind("currency-exchange-events", x =>
+            {
+                x.ExchangeType = "direct";
+                x.RoutingKey = "currency-exchange-requests-queue";
+            });
+            ep.ConfigureConsumer<ExchangeRequestedConsumer>(context);
+        });
     });
 });
 
