@@ -8,14 +8,22 @@ sends alert emails to the relevant recipient via **SMTP**.
 ## Architecture
 
 ```
-AI Service / Other Services ──► RabbitMQ (habo.banking:Notification exchange) ──► Notification Service ──► SMTP Server ──► Email Recipient
+AI Service / Other Services ──► notification-events (DIRECT, routing key: notification-queue) ──► Notification Service ──► SMTP Server ──► Email Recipient
 ```
+
+## RabbitMQ Topology
+
+### Consumed
+
+| Exchange              | Exchange Type | Queue                | Binding Key          | Message        |
+| --------------------- | ------------- | -------------------- | -------------------- | -------------- |
+| `notification-events` | `direct`      | `notification-queue` | `notification-queue` | `Notification` |
 
 ## Flow
 
-| Trigger                   | Action                                              |
-|---------------------------|-----------------------------------------------------|
-| `Notification` consumed   | Sends an HTML alert email via SMTP to the recipient |
+| Trigger                 | Action                                              |
+| ----------------------- | --------------------------------------------------- |
+| `Notification` consumed | Sends an HTML alert email via SMTP to the recipient |
 
 ## Messages
 
@@ -31,7 +39,7 @@ failure). Contains `data.message` with a human-readable description and `metadat
 Set the following environment variables in a `.env` file at the project root (loaded via `DotNetEnv`):
 
 | Variable            | Description                       |
-|---------------------|-----------------------------------|
+| ------------------- | --------------------------------- |
 | `RABBITMQ_USERNAME` | RabbitMQ username                 |
 | `RABBITMQ_PASSWORD` | RabbitMQ password                 |
 | `RABBITMQ_HOST`     | RabbitMQ host (e.g. `localhost`)  |
@@ -52,21 +60,21 @@ dotnet run
 ## Testing via RabbitMQ UI
 
 1. Open `http://localhost:15672` (login `guest`/`guest`).
-2. Go to **Queues** → find the `notification-consumer` queue → **Publish message**.
+2. Go to **Queues** → find the `notification-queue` queue → **Publish message**.
 3. Paste a test payload:
 
 ```json
 {
-  "messageType": ["urn:message:habo.banking:Notification"],
-  "message": {
-    "data": {
-      "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
-    },
-    "metadata": {
-      "messageType": "TRANSACTION_DEPOSIT",
-      "messageTimestamp": "2026-03-10T12:00:00Z"
-    }
-  }
+	"messageType": ["urn:message:notification-events"],
+	"message": {
+		"data": {
+			"message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
+		},
+		"metadata": {
+			"messageType": "TRANSACTION_DEPOSIT",
+			"messageTimestamp": "2026-03-10T12:00:00Z"
+		}
+	}
 }
 ```
 
@@ -77,7 +85,7 @@ service-notification/
 ├── Consumers/
 │   └── NotificationConsumer.cs  # Consumes Notification and triggers email sending
 ├── Messages/
-│   └── Notification.cs          # Input message (consumed from the habo.banking:Notification exchange)
+│   └── Notification.cs          # Input message (consumed from the notification-events exchange)
 ├── Services/
 │   ├── IEmailService.cs         # Email service interface
 │   └── EmailService.cs          # MailKit SMTP email sender implementation
@@ -87,4 +95,3 @@ service-notification/
 └── docs/
     └── README.md
 ```
-
