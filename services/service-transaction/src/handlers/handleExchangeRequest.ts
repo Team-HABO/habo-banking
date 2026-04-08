@@ -1,4 +1,5 @@
 import type { TTransactionPayload } from "../events/transaction";
+import { produceCurrencyExchanger } from "../producer";
 
 export default async function handleExchangeRequest(payload: TTransactionPayload) {
 	console.log("Handling exchange request:", payload);
@@ -8,5 +9,5 @@ export default async function handleExchangeRequest(payload: TTransactionPayload
 		throw new Error(`'currency' is undefined`);
 	}
 
-	//TODO: Produce to currency exchange service
+	await produceCurrencyExchanger(payload);
 }

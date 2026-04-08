@@ -1,16 +1,33 @@
-#!/usr/bin/env node
-import type { TMessagePayload } from "./events/transaction.js";
-import { RabbitMQ } from "./RabbitMQ.js";
+import type { TSynchronizeTransactionPayload, TTransactionPayload } from "./events/transaction";
+import { RabbitMQ } from "./RabbitMQ";
 
-const rabbit = new RabbitMQ<TMessagePayload>();
+export async function produceNotification(payload: object) {
+	const rabbit = new RabbitMQ<object>();
 
-try {
-	await rabbit.connect();
+	try {
+		await rabbit.connect();
+		await rabbit.sendToExchange("notification-events", "direct", payload);
+	} finally {
+		await rabbit.closeConnection();
+	}
+}
 
-	const queue = "hello-queue";
-	const msg = { message: "Hello World!" };
+export async function produceSynchronization(payload: TSynchronizeTransactionPayload) {
+	const rabbit = new RabbitMQ<TSynchronizeTransactionPayload>();
+	try {
+		await rabbit.connect();
+		await rabbit.sendToExchange("synchronize-events", "direct", payload, "synchronize-transaction");
+	} finally {
+		await rabbit.closeConnection();
+	}
+}
 
-	await rabbit.sendToQueue(queue, msg);
-} finally {
-	await rabbit.closeConnection();
+export async function produceCurrencyExchanger(payload: TTransactionPayload) {
+	const rabbit = new RabbitMQ<TTransactionPayload>();
+	try {
+		await rabbit.connect();
+		await rabbit.sendToExchange("currency-exchange-events", "direct", payload);
+	} finally {
+		await rabbit.closeConnection();
+	}
 }
