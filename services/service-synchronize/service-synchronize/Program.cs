@@ -36,6 +36,7 @@ builder.Services.AddMassTransit(x =>
                 r.Interval(3, TimeSpan.FromSeconds(5));
                 // Do not retry this specific exception
                 r.Ignore<InvalidDataException>();
+                r.Ignore<MongoWriteException>(ex => ex.WriteError?.Category == ServerErrorCategory.DuplicateKey);
             });
             e.UseRawJsonDeserializer();
             e.ConfigureConsumer<AccountCreatedConsumer>(context);

@@ -13,16 +13,22 @@ namespace service_synchronize.Database
         }
         public async Task UpsertAccountAsync(string userId, Account account)
         {
-            FilterDefinition<User> filter = Builders<User>.Filter.And(
+            //Can not call GetUserByIdAsync before an update because it introduces a Race Condition
+            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            UpdateDefinition<User> userUpdate = Builders<User>.Update.SetOnInsert(u => u.Id, userId);
+
+            await _usersCollection.UpdateOneAsync(userFilter, userUpdate, new UpdateOptions { IsUpsert = true });
+
+            FilterDefinition<User> accountFilter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
                 Builders<User>.Filter.Not(
                     Builders<User>.Filter.ElemMatch(u => u.Accounts, a => a.AccountGuid == account.AccountGuid)
                 )
             );
 
-            UpdateDefinition<User> update = Builders<User>.Update.SetOnInsert(u => u.Id, userId).Push(u => u.Accounts, account);
+            var accountUpdate = Builders<User>.Update.Push(u => u.Accounts, account);
 
-            await _usersCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
+            await _usersCollection.UpdateOneAsync(accountFilter, accountUpdate, new UpdateOptions { IsUpsert = false });
         }
 
         public async Task<User?> GetUserByIdAsync(string userId)
