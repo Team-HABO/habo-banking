@@ -9,7 +9,7 @@
 		"lint": "npx eslint .",
 		"generate": "npx prisma generate",
 		"migrate": "npx prisma migrate deploy",
-		"produce": "npx tsx src/producer.ts",
+		"prepare": "npm run generate && npm run migrate",
 		"consume": "npx tsx src/consumer.ts"
 	},
 	"keywords": [],
