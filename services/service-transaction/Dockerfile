@@ -9,4 +9,4 @@ RUN npm ci --include=dev --ignore-scripts
 COPY . .
 RUN npm run generate
 
-CMD ["npm", "run", "consume"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run consume"]
