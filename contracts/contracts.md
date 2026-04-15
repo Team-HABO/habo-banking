@@ -317,6 +317,7 @@ queue: `synchronize-transaction-queue`
     "data": {
         "ownerId": "string",
         "account": {
+            "guid": "string",
             "balance": {
                 "amount": "string",
                 "timestamp": "string"
@@ -329,6 +330,7 @@ queue: `synchronize-transaction-queue`
             }
         },
         "receiver": {
+            "guid": "string",
             "balance": {
                 "amount": "string",
                 "timestamp": "string"

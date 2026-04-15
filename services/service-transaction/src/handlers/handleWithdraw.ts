@@ -41,6 +41,7 @@ export default async function handleWithdraw(payload: TTransactionPayload) {
 			data: {
 				ownerId: data.ownerId,
 				account: {
+					guid: data.account.guid,
 					balance: {
 						amount: updatedBalance.amount,
 						timestamp: updatedBalance.createdAt
