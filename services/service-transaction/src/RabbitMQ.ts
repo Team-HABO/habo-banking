@@ -61,7 +61,8 @@ export class RabbitMQ<T> {
 		queue: string,
 		exchange: string,
 		exchangeType: string,
-		callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void
+		callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void,
+		bindingKey = ""
 	) {
 		try {
 			if (!this.channel) {
@@ -70,7 +71,7 @@ export class RabbitMQ<T> {
 
 			await this.channel.assertExchange(exchange, exchangeType, { durable: true });
 			await this.channel.assertQueue(queue, { durable: true });
-			await this.channel.bindQueue(queue, exchange, "");
+			await this.channel.bindQueue(queue, exchange, bindingKey);
 
 			console.log(`[*] Waiting for messages in ${queue} via exchange ${exchange}. To exit press CTRL+C`);
 			this.channel.consume(
