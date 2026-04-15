@@ -16,3 +16,13 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-transaction-tests.yml
+
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/dockerize.yml
+    with:
+      docker-image-name: service-transaction
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.ALI_DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.ALI_DOCKER_PASSWORD }}
