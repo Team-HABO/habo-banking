@@ -36,12 +36,18 @@ await rabbit.consumeFromExchange("check-fraud", "service_ai.Messages:FraudChecke
 	}
 });
 
-await rabbit.consumeFromExchange("currency-exchange-response-queue", "currency-exchange-events", "direct", async (data, ack, nack) => {
-	try {
-		await handleExchange(data);
-		ack();
-	} catch (error) {
-		console.error(`Handler failed for event ${data}. Error: `, error);
-		nack(true);
-	}
-});
+await rabbit.consumeFromExchange(
+	"currency-exchange-response-queue",
+	"currency-exchange-events",
+	"direct",
+	async (data, ack, nack) => {
+		try {
+			await handleExchange(data);
+			ack();
+		} catch (error) {
+			console.error(`Handler failed for event ${data}. Error: `, error);
+			nack(true);
+		}
+	},
+	"currency-exchange-response-queue"
+);

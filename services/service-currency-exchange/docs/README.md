@@ -7,13 +7,28 @@ Currency exchange microservice for the Habo Banking platform. Consumes exchange 
 ## Architecture
 
 ```
-Transaction Service ──► RabbitMQ (habo.banking:CurrencyExchangeRequested) ──► Currency Service ──► Frankfurter API
-                                                                                       │
-                                                             ┌─────────────────────────┴────────────────────────┐
-                                                             ▼                                                  ▼
-                                      RabbitMQ (habo.banking:CurrencyExchangeProcessed)     RabbitMQ (habo.banking:Notification)
-                                               (→ Transaction-Service)                         (→ Notification-Service)
+Transaction Service ──► currency-exchange-events (DIRECT) ──► currency-exchange-requests-queue ──► Currency Service ──► Frankfurter API
+                                                                                                            │
+                                                                   ┌──────────────────────────┴─────────────────────────┐
+                                                                   ▼                                                       ▼
+                                      currency-exchange-events (DIRECT, routing key: currency-exchange-response-queue)     notification-events (DIRECT, routing key: notification-queue)
+                                                   (→ Transaction-Service)                                                        (→ Notification-Service)
 ```
+
+## RabbitMQ Topology
+
+### Consumed
+
+| Exchange                   | Exchange Type | Queue                              | Binding Key                        | Message             |
+|----------------------------|---------------|------------------------------------|------------------------------------|---------------------|
+| `currency-exchange-events` | `direct`      | `currency-exchange-requests-queue` | `currency-exchange-requests-queue` | `ExchangeRequested` |
+
+### Published
+
+| Exchange                   | Exchange Type | Routing Key                        | Message                | Destination          |
+|----------------------------|---------------|------------------------------------|------------------------|----------------------|
+| `currency-exchange-events` | `direct`      | `currency-exchange-response-queue` | `ExchangeProcessed`    | Transaction-Service  |
+| `notification-events`      | `direct`      | `notification-queue`               | `ExchangeNotification` | Notification-Service |
 
 ## Flow (Contract ID 6 — Currency Exchange)
 
@@ -34,9 +49,7 @@ Published to the Transaction-Service when the exchange rate is successfully reso
 
 ### ExchangeNotification (published — step 4.4)
 
-Published to the Notification-Service when the exchange rate cannot be retrieved (unsupported currency or API error). Contains `data.message` with a human-readable reason and `metadata` passed through from `ExchangeRequested`.
-
-> Reuses the shared `habo.banking:Notification` exchange so the Notification-Service receives it without any changes on its end. The message shape (`data.message` + `metadata`) is identical.
+> Published to the Notification-Service when the exchange rate cannot be retrieved (unsupported currency or API error). Contains `data.message` with a human-readable reason and `metadata` passed through from `ExchangeRequested`. The message shape (`data.message` + `metadata`) is identical to the `FraudNotification` published by the AI-Service.
 
 ## Configuration
 
@@ -69,30 +82,28 @@ dotnet run
 ## Testing via RabbitMQ UI
 
 1. Open `http://localhost:15672` (login `guest`/`guest`).
-2. Go to **Queues** → find the `exchange-requested` queue → **Publish message**.
+2. Go to **Queues** → find the `currency-exchange-requests-queue` queue → **Publish message**.
 3. Paste a test payload:
 
 Successful exchange (DKK → USD):
 
 ```json
 {
-  "messageType": [
-    "urn:message:habo.banking:CurrencyExchangeRequested"
-  ],
-  "message": {
-    "data": {
-      "ownerId": "user-123",
-      "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "amount": "1000",
-      "currency": "USD",
-      "transactionType": "exchange"
-    },
-    "metadata": {
-      "messageType": "TRANSACTION_EXCHANGE",
-      "messageTimestamp": "2026-03-12T12:00:00Z",
-      "messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
-    }
+ "messageType": ["urn:message:currency-exchange-events"],
+ "message": {
+  "data": {
+   "ownerId": "user-123",
+   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+   "amount": "1000",
+   "currency": "USD",
+   "transactionType": "exchange"
+  },
+  "metadata": {
+   "messageType": "TRANSACTION_EXCHANGE",
+   "messageTimestamp": "2026-03-12T12:00:00Z",
+   "messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
   }
+ }
 }
 ```
 
@@ -100,7 +111,7 @@ Unsupported currency (triggers `ExchangeNotification`):
 
 ```json
 {
- "messageType": ["urn:message:habo.banking:CurrencyExchangeRequested"],
+ "messageType": ["urn:message:currency-exchange-events"],
  "message": {
   "data": {
    "ownerId": "user-456",

@@ -9,8 +9,8 @@ namespace service_notification.Messages;
 /// (e.g. "TRANSACTION_EXCHANGE", "TRANSACTION_TRANSFER", "TRANSACTION_WITHDRAW", "TRANSACTION_DEPOSIT")
 /// and drives the email subject line selection in the NotificationConsumer.
 /// </summary>
-[EntityName("habo.banking:Notification")]
-[MessageUrn("habo.banking:Notification")]
+[EntityName("notification-events")]
+[MessageUrn("notification-events")]
 public record Notification
 {
     public NotificationData Data { get; init; } = new();

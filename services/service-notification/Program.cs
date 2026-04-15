@@ -68,7 +68,6 @@ builder.Services.AddMassTransit(config =>
 {
     // Register consumer - MassTransit uses this to know what messages to subscribe to
     config.AddConsumer<NotificationConsumer>();
-    config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>
     {
@@ -78,8 +77,16 @@ builder.Services.AddMassTransit(config =>
             host.Password(rabbitMqPassword);
         });
 
-        // Automatically creates and binds queues based on registered consumers
-        cfg.ConfigureEndpoints(context);
+        // Consume from notification-events DIRECT, queue notification-queue
+        cfg.ReceiveEndpoint("notification-queue", ep =>
+        {
+            ep.Bind("notification-events", x =>
+            {
+                x.ExchangeType = "direct";
+                x.RoutingKey = "notification-queue";
+            });
+            ep.ConfigureConsumer<NotificationConsumer>(context);
+        });
     });
 });
 

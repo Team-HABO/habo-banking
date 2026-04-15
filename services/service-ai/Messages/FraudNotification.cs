@@ -5,8 +5,8 @@ namespace service_ai.Messages;
 /// <summary>
 /// Published to the Notification-Service when fraud is detected (contract ID 5, step 2.5).
 /// </summary>
-[EntityName("habo.banking:Notification")]
-[MessageUrn("habo.banking:Notification")]
+[EntityName("notification-events")]
+[MessageUrn("notification-events")]
 public record FraudNotification
 {
     public FraudNotificationData Data { get; init; } = new();

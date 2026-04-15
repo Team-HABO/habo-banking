@@ -7,16 +7,31 @@ Fraud detection microservice for the Habo Banking platform. Consumes transaction
 ## Architecture
 
 ```
-Account Service ──► RabbitMQ (CheckFraud) ──► AI Service ──► OpenRouter API
-                                                    │
-                                      ┌─────────────┴──────────────┐
-                                      ▼                            ▼
-                           RabbitMQ (FraudChecked)     RabbitMQ (FraudNotification)
-                            (no fraud detected)          (fraud detected / error)
-                                      │                            │
-                                      ▼                            ▼
-                            Transaction Service          Notification Service
+Account Service ──► ai-service-transaction (FANOUT) ──► ai-transaction-queue ──► AI Service ──► OpenRouter API
+                                                                                        │
+                                                              ┌─────────────────────────┴──────────────────────┐
+                                                              ▼                                               ▼
+                                      service_ai.Messages:FraudChecked (FANOUT)     notification-events (DIRECT)
+                                               (no fraud detected)                    routing key: notification-queue
+                                                              │                                               │
+                                                              ▼                                               ▼
+                                                  Transaction Service                           Notification Service
 ```
+
+## RabbitMQ Topology
+
+### Consumed
+
+| Exchange                 | Exchange Type | Queue                  | Binding Key | Message      |
+|--------------------------|---------------|------------------------|-------------|--------------|
+| `ai-service-transaction` | `fanout`      | `ai-transaction-queue` | —           | `CheckFraud` |
+
+### Published
+
+| Exchange                           | Exchange Type | Routing Key          | Message             | Destination          |
+|------------------------------------|---------------|----------------------|---------------------|----------------------|
+| `service_ai.Messages:FraudChecked` | `fanout`      | —                    | `FraudChecked`      | Transaction-Service  |
+| `notification-events`              | `direct`      | `notification-queue` | `FraudNotification` | Notification-Service |
 
 ## Flow (Contract ID 5 — Bank Transaction)
 
@@ -77,7 +92,7 @@ dotnet run
 ## Testing via RabbitMQ UI
 
 1. Open `http://localhost:15672` (login `guest`/`guest`).
-2. Go to **Queues** → find the `check-fraud` queue → **Publish message**.
+2. Go to **Queues** → find the `ai-transaction-queue` queue → **Publish message**.
 3. Paste a test payload:
 
 #### Deposit Example (Expected Outcome: FRAUD)

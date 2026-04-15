@@ -43,7 +43,7 @@ public class CheckFraudConsumer(
                         MessageTimestamp = DateTime.UtcNow,
                         MessageId = request.Metadata.MessageId
                     }
-                });
+                }, x => x.SetRoutingKey("notification-queue"));
 
                 logger.LogInformation("Published fraud notification for account {AccountGuid}", data.Account.Guid);
             }
@@ -90,7 +90,7 @@ public class CheckFraudConsumer(
                     MessageTimestamp = DateTime.UtcNow,
                     MessageId = request.Metadata.MessageId
                 }
-            });
+            }, x => x.SetRoutingKey("notification-queue"));
         }
         catch (Exception ex)
         {
@@ -108,7 +108,7 @@ public class CheckFraudConsumer(
                     MessageTimestamp = DateTime.UtcNow,
                     MessageId = request.Metadata.MessageId
                 }
-            });
+            }, x => x.SetRoutingKey("notification-queue"));
         }
 
         logger.LogInformation("Fraud check complete for account {AccountGuid}", data.Account.Guid);

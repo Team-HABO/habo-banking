@@ -1,9 +1,13 @@
-﻿namespace service_ai.Messages;
+﻿using MassTransit;
+
+namespace service_ai.Messages;
 
 /// <summary>
-/// Published to the Transaction-Service when fraud check passes (contract ID 5, step 3).
+/// Published to the Transaction-Service when fraud check passes.
 /// Carries the original transaction data through for processing.
 /// </summary>
+[EntityName("service_ai.Messages:FraudChecked")]
+[MessageUrn("service_ai.Messages:FraudChecked")]
 public record FraudChecked
 {
     public FraudCheckedData Data { get; init; } = new();

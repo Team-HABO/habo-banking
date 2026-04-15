@@ -39,7 +39,7 @@ public class ExchangeRequestedConsumer(
                         MessageTimestamp = DateTime.UtcNow,
                         MessageId = request.Metadata.MessageId
                     }
-                });
+                }, x => x.SetRoutingKey("notification-queue"));
 
                 return;
             }
@@ -65,7 +65,7 @@ public class ExchangeRequestedConsumer(
                     MessageTimestamp = DateTime.UtcNow,
                     MessageId = request.Metadata.MessageId
                 }
-            });
+            }, x => x.SetRoutingKey("currency-exchange-response-queue"));
         }
         catch (Exception ex)
         {
@@ -83,7 +83,7 @@ public class ExchangeRequestedConsumer(
                     MessageTimestamp = DateTime.UtcNow,
                     MessageId = request.Metadata.MessageId
                 }
-            });
+            }, x => x.SetRoutingKey("notification-queue"));
         }
 
         logger.LogInformation("Exchange request processing complete for account {AccountGuid}", data.AccountGuid);

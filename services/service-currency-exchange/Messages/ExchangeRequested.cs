@@ -5,8 +5,8 @@ namespace service_currency_exchange.Messages;
 /// <summary>
 /// Consumed from Transaction-Service when a currency exchange is requested (contract ID 6, step 3).
 /// </summary>
-[EntityName("habo.banking:CurrencyExchangeRequested")]
-[MessageUrn("habo.banking:CurrencyExchangeRequested")]
+[EntityName("currency-exchange-events")]
+[MessageUrn("currency-exchange-events")]
 public record ExchangeRequested
 {
     public ExchangeRequestedData Data { get; init; } = new();
