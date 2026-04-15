@@ -2,6 +2,8 @@ name: Service Transaction CI
 
 permissions:
   pull-requests: write
+  contents: read
+  packages: write
 
 on:
   workflow_dispatch:
