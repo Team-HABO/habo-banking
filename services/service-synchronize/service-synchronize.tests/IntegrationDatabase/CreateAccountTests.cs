@@ -12,11 +12,11 @@ namespace service_synchronize.tests.IntegrationDatabase
         private UsersRepository _repository = default!;
         private AccountService _service = default!;
         private string _dbName = default!;
-        private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
-        private readonly AccountDto secondAccount = TestData.CreateAccountDto("2");
-        private readonly AccountDto secondAccountDiffPayloadSameGuid = TestData.CreateAccountDto("2", "my other account");
+        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountCreatedAccountDto secondAccount = TestData.CreateAccountDto("2");
+        private readonly AccountCreatedAccountDto secondAccountDiffPayloadSameGuid = TestData.CreateAccountDto("2", "my other account");
         private readonly string mongoConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
-    ?? "mongodb://localhost:27018";
+            ?? "mongodb://localhost:27017";
         public CreateAccountTests()
         {
             _client = new MongoClient(mongoConnectionString);
@@ -35,6 +35,7 @@ namespace service_synchronize.tests.IntegrationDatabase
             Assert.Single(createdUser.Accounts);
             Assert.Equal("Default Account", createdUser.Accounts[0].Name);
             Assert.Equal("1", createdUser.Accounts[0].AccountGuid);
+            Assert.Equal(Account.AccountType.Savings, createdUser.Accounts[0].Type);
         }
         [Fact]
         public async Task CreateAccount_ShouldEmbedAccount_WhenUserExistsAndAccountDoesNotExist()
@@ -52,7 +53,7 @@ namespace service_synchronize.tests.IntegrationDatabase
 
         }
         [Fact]
-        public async Task CreateAccount_ShouldThrow_WhenAccountAlreadyExists()
+        public async Task CreateAccount_ShouldNotCreateThirdAccount_WhenAccountAlreadyExists()
         {
             await _service.ProcessAccountCreationAsync(userId, firstAccount);
             await _service.ProcessAccountCreationAsync(userId, secondAccount);

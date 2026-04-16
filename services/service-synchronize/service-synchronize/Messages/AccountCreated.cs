@@ -9,15 +9,15 @@
     public class AccountCreatedData
     {
         public required string OwnerId { get; set; }
-        public required AccountDto Account { get; set; }
+        public required AccountCreatedAccountDto Account { get; set; }
     }
     public class AccountCreatedMetadata
     {
         public required string MessageType { get; set; }
-        public required DateTime MessageTimestamp { get; set; }
+        public required string MessageTimestamp { get; set; }
     }
 
-    public class AccountDto
+    public class AccountCreatedAccountDto
     {
         public required string AccountGuid { get; set; }
         public required string Type { get; set; }
@@ -30,6 +30,5 @@
     public class BalanceDto
     {
         public required string Amount { get; set; }
-        public required string Timestamp { get; set; }
     }
 }

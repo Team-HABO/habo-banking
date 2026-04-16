@@ -8,15 +8,15 @@ using Testcontainers.RabbitMq;
 
 namespace service_synchronize.tests.IntegrationRabbitMq
 {
-    public class RabbitMqIntegrationTests : IAsyncLifetime
+    public class AccountCreatedRabbitTests : IAsyncLifetime
     {
         private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder("rabbitmq:3-management").Build();
         private IServiceProvider _serviceProvider = default!;
         private  IBusControl _bus = default!;
         private readonly Mock<IAccountService> _serviceMock = new();
-        private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
 
-        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
+        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_CREATE" };
         public async Task DisposeAsync()
         {
             await _bus.StopAsync();
@@ -46,7 +46,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                         e.Bind("synchronize-events", s =>
                         {
                             s.ExchangeType = "direct";
-                            s.RoutingKey = "account.created";
+                            s.RoutingKey = "synchronize-account";
                         });
                     });
                 });
@@ -66,7 +66,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
             TaskCompletionSource<bool> signal = new();
 
             _serviceMock
-                .Setup(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountDto>()))
+                .Setup(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountCreatedAccountDto>()))
                 .Returns(Task.CompletedTask)
                 .Callback(() => signal.SetResult(true)); // Signal success!
 
@@ -81,7 +81,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
             // Assert that signal.Task completed first. If not it prints error message
             Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
 
-            _serviceMock.Verify(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountDto>()), Times.Once);
+            _serviceMock.Verify(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountCreatedAccountDto>()), Times.Once);
         }
     }
 }

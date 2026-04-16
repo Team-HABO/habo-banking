@@ -10,14 +10,16 @@
                 "isFrozen": "boolean",
                 "timestamp": "string",
                 "balance": {
-                    "amount": "string",
-                    "timestamp": "string"
+                    "amount": "string"
                 },
                 "audits": [
                     {
+                        "auditId": "string",
                         "amount": "200",
                         "type": "string",
-                        "timestamp": "string"
+                        "timestamp": "string",
+                        "receiver": "account name or null",
+                        "sender": "account name or null"
                     }
                 ]
             }
@@ -25,3 +27,4 @@
     }
 }
 ```
+

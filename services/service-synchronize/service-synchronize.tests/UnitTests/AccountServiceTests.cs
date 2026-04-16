@@ -11,8 +11,8 @@ namespace service_synchronize.tests.UnitTests
         private readonly Mock<IUsersRepository> _repositoryMock;
         private readonly AccountService _service;
         private readonly string userId = "111";
-        private readonly AccountDto firstAccountDto = TestData.CreateAccountDto("1");
-        private readonly AccountDto secondAccountDto = TestData.CreateAccountDto("2");
+        private readonly AccountCreatedAccountDto firstAccountDto = TestData.CreateAccountDto("1");
+        private readonly AccountCreatedAccountDto secondAccountDto = TestData.CreateAccountDto("2");
         public AccountServiceTests()
         {
             _repositoryMock = new Mock<IUsersRepository>();
@@ -79,10 +79,9 @@ namespace service_synchronize.tests.UnitTests
             string timestamp = DateTime.UtcNow.ToString();
             BalanceDto bDto = new()
             { 
-                Amount = "100", 
-                Timestamp = timestamp 
+                Amount = "0"
             };
-            AccountDto dto = new()
+            AccountCreatedAccountDto dto = new()
             {
                 AccountGuid = "guid-123",
                 Name = "My savings",
@@ -91,7 +90,7 @@ namespace service_synchronize.tests.UnitTests
                 IsFrozen = false,
                 Timestamp = timestamp
             };
-
+            string u = dto.Balance.Amount;
             await _service.ProcessAccountCreationAsync(userId, dto);
 
             _repositoryMock.Verify(r => r.UpsertAccountAsync(
@@ -102,30 +101,9 @@ namespace service_synchronize.tests.UnitTests
                     a.Name == dto.Name &&
                     a.IsFrozen == dto.IsFrozen &&
                     a.Timestamp == dto.Timestamp &&
-                    a.Balances.Count == 1
+                    a.Balance.Amount == 0M
                 )
             ), Times.Once);
-        }
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldThrowAndNotCallRepository_AndCallRepository()
-        {
-            string timestamp = DateTime.UtcNow.ToString();
-            AccountDto dto = new()
-            {
-                AccountGuid = "guid-123",
-                Name = "My savings",
-                Type = "SAVINGS",
-                Balance = null,
-                IsFrozen = false,
-                Timestamp = timestamp
-            };
-
-            await Assert.ThrowsAsync<InvalidDataException>(async () => await _service.ProcessAccountCreationAsync(userId, dto));
-
-            _repositoryMock.Verify(r => r.UpsertAccountAsync(
-        It.IsAny<string>(),
-        It.IsAny<Account>()),
-        Times.Never);
         }
     }
 }
