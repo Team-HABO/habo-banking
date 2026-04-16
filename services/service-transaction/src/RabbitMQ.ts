@@ -21,24 +21,6 @@ export class RabbitMQ<T> {
 		}
 	}
 
-	public async sendToQueue(queue: string, message: T) {
-		try {
-			if (!this.channel) {
-				throw new Error("RabbitMQ channel is not initialized. Call connect() first.");
-			}
-
-			await this.channel.assertQueue(queue, {
-				durable: true
-			});
-
-			this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
-			console.log("[X] Sent %s", message);
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
-	}
-
 	public async sendToExchange(exchange: string, exchangeType: string, message: T, routingKey = "") {
 		try {
 			if (!this.channel) {

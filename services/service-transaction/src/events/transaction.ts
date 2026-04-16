@@ -35,6 +35,7 @@ export type TSynchronizeTransactionPayload = {
 };
 
 type TSynchronizeData = {
+	guid: string;
 	balance: {
 		amount: string;
 		timestamp: Date;

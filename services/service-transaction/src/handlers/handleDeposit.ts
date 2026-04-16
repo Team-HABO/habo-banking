@@ -38,6 +38,7 @@ export default async function handleDeposit(payload: TTransactionPayload) {
 			data: {
 				ownerId: data.ownerId,
 				account: {
+					guid: data.account.guid,
 					balance: {
 						amount: updatedBalance.amount,
 						timestamp: updatedBalance.createdAt

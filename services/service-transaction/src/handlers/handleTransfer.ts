@@ -55,6 +55,7 @@ export default async function handleTransfer(payload: TTransactionPayload) {
 			data: {
 				ownerId: data.ownerId,
 				account: {
+					guid: data.account.guid,
 					balance: {
 						amount: updatedSenderBalance.amount,
 						timestamp: updatedSenderBalance.createdAt
@@ -67,6 +68,7 @@ export default async function handleTransfer(payload: TTransactionPayload) {
 					}
 				},
 				receiver: {
+					guid: data.receiver!.guid,
 					balance: {
 						amount: updatedReceiverBalance.amount,
 						timestamp: updatedReceiverBalance.createdAt
