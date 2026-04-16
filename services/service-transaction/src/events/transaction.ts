@@ -1,14 +1,6 @@
-export type TMessagePayload = {
-	message: string;
-};
+import type { TMetadata } from "./other";
 
-export type TMetadata = {
-	messageType: string;
-	messageTimestamp: string;
-	messageId: string;
-};
-
-export type TData = {
+export type TTransactionData = {
 	ownerId: string;
 	account: { guid: string; name: string; type: string };
 	receiver?: { guid: string; name: string; type: string };
@@ -20,7 +12,7 @@ export type TData = {
 
 export type TTransactionPayload = {
 	message: {
-		data: TData;
+		data: TTransactionData;
 		metadata: TMetadata;
 	};
 };
