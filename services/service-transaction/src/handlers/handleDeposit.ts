@@ -2,7 +2,7 @@ import { prisma } from "../../prisma/prisma";
 import type { TSynchronizeTransactionPayload, TTransactionPayload } from "../events/transaction";
 import { produceSynchronization } from "../producer";
 import { createAudit, getLatestBalance, updateBalance } from "../repository";
-import { isAlreadyProcessed, isOlderEvent } from "../utils/helper";
+import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
 
 export default async function handleDeposit(payload: TTransactionPayload) {
 	console.log("Handling deposit:", payload);
@@ -17,7 +17,7 @@ export default async function handleDeposit(payload: TTransactionPayload) {
 		}
 
 		// Idempotency
-		if (await isAlreadyProcessed(metadata.messageId)) {
+		if (await isTransactionAlreadyProcessed(metadata.messageId)) {
 			return;
 		}
 
@@ -57,6 +57,6 @@ export default async function handleDeposit(payload: TTransactionPayload) {
 
 	// Publish to synchronizer after transaction succeeds
 	if (message) {
-		await produceSynchronization(message)
+		await produceSynchronization(message);
 	}
 }

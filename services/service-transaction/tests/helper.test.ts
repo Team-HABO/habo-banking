@@ -12,7 +12,7 @@ vi.mock("../prisma/prisma", () => ({
 	}
 }));
 
-import { isAlreadyProcessed, isOlderEvent } from "../src/utils/helper";
+import { isTransactionAlreadyProcessed, isOlderEvent } from "../src/utils/helper";
 
 describe("utils/helper", () => {
 	beforeEach(() => {
@@ -46,7 +46,7 @@ describe("utils/helper", () => {
 		it("returns true when an audit exists", async () => {
 			findUniqueMock.mockResolvedValue({ id: 1, transactionId: "msg-1" });
 
-			const result = await isAlreadyProcessed("msg-1");
+			const result = await isTransactionAlreadyProcessed("msg-1");
 
 			expect(findUniqueMock).toHaveBeenCalledWith({ where: { transactionId: "msg-1" } });
 			expect(result).toBe(true);
@@ -55,7 +55,7 @@ describe("utils/helper", () => {
 		it("returns false when no audit exists", async () => {
 			findUniqueMock.mockResolvedValue(null);
 
-			const result = await isAlreadyProcessed("msg-2");
+			const result = await isTransactionAlreadyProcessed("msg-2");
 
 			expect(findUniqueMock).toHaveBeenCalledWith({ where: { transactionId: "msg-2" } });
 			expect(result).toBe(false);

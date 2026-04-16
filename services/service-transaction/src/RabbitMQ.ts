@@ -44,15 +44,28 @@ export class RabbitMQ<T> {
 		exchange: string,
 		exchangeType: string,
 		callback: (data: T, ack: () => void, nack: (requeue?: boolean) => void) => void,
-		bindingKey = ""
+		bindingKey = "",
+		maxRetries = 3
 	) {
 		try {
 			if (!this.channel) {
 				throw new Error("RabbitMQ is not initialized. Call connect() first.");
 			}
 
+			const dlxExchange = `${exchange}.dlx`;
+			const dlqName = `${queue}.dlq`;
+
 			await this.channel.assertExchange(exchange, exchangeType, { durable: true });
-			await this.channel.assertQueue(queue, { durable: true });
+			await this.channel.assertExchange(dlxExchange, "direct", { durable: true });
+			await this.channel.assertQueue(dlqName, { durable: true });
+			await this.channel.bindQueue(dlqName, dlxExchange, queue);
+			await this.channel.assertQueue(queue, {
+				durable: true,
+				arguments: {
+					"x-dead-letter-exchange": dlxExchange,
+					"x-dead-letter-routing-key": queue
+				}
+			});
 			await this.channel.bindQueue(queue, exchange, bindingKey);
 
 			console.log(`[*] Waiting for messages in ${queue} via exchange ${exchange}. To exit press CTRL+C`);
@@ -66,8 +79,28 @@ export class RabbitMQ<T> {
 					try {
 						const data = JSON.parse(msg.content.toString()) as T;
 						console.log(" [x] Received: ", data);
+
+						const retryCount = (msg.properties.headers?.["x-retry-count"] as number) ?? 0;
+
 						const ack = () => this.channel!.ack(msg);
-						const nack = (requeue = true) => this.channel!.nack(msg, false, requeue);
+						const nack = (requeue = true) => {
+							if (!requeue) {
+								this.channel!.nack(msg, false, false);
+								return;
+							}
+							if (retryCount >= maxRetries) {
+								console.error(`[!] Max retries (${maxRetries}) reached for queue "${queue}". Dead-lettering message.`);
+								this.channel!.nack(msg, false, false);
+							} else {
+								console.warn(`[~] Retrying message (attempt ${retryCount + 1}/${maxRetries}) for queue "${queue}".`);
+								this.channel!.publish(exchange, bindingKey, msg.content, {
+									persistent: true,
+									headers: { ...msg.properties.headers, "x-retry-count": retryCount + 1 }
+								});
+								this.channel!.ack(msg);
+							}
+						};
+
 						callback(data, ack, nack);
 					} catch (error) {
 						console.error("Error parsing message content: " + msg.content + ", Error: " + error);

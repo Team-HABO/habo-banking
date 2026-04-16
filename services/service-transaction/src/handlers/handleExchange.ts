@@ -2,7 +2,7 @@ import { prisma } from "../../prisma/prisma";
 import type { TSynchronizeTransactionPayload, TTransactionPayload } from "../events/transaction";
 import { produceNotification, produceSynchronization } from "../producer";
 import { createAudit, getLatestBalance, updateBalance } from "../repository";
-import { isAlreadyProcessed, isOlderEvent } from "../utils/helper";
+import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
 
 export default async function handleExchange(payload: TTransactionPayload) {
 	console.log("Handling exchange request from currency service:", payload);
@@ -25,7 +25,7 @@ export default async function handleExchange(payload: TTransactionPayload) {
 		}
 
 		// Idempotency
-		if (await isAlreadyProcessed(metadata.messageId)) {
+		if (await isTransactionAlreadyProcessed(metadata.messageId)) {
 			return;
 		}
 
