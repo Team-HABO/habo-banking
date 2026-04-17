@@ -187,7 +187,7 @@ namespace service_synchronize.tests.UnitTests
             }
         };
 
-        private static TransactionCreated CreateTransferMessage(string amount, string senderName, string receiverName) => new()
+        public static TransactionCreated CreateTransferMessage(string amount, string senderName, string receiverName) => new()
         {
             Metadata = new() { MessageType = "TRANSACTION_TRANSFER", MessageId = "msg123", MessageTimestamp = "2026-04-06T09:21:00Z" },
             Data = new()

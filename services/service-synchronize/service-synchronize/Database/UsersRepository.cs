@@ -103,14 +103,16 @@ namespace service_synchronize.Database
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
                 Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid));
-            Console.WriteLine(audit.SenderAccountName);
-            Console.WriteLine(audit.ReceiverAccountName);
             UpdateDefinition<User> update = Builders<User>.Update
                 .Push("accounts.$.audits", audit)
                 .Inc("accounts.$.balance.amount", amount);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(session, filter, update);
-            if (result.MatchedCount == 0) throw new InvalidOperationException("Account not found");
+            if (result.MatchedCount == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Account not found for userId '{userId}' and accountGuid '{accountGuid}' during session update.");
+            }
         }
     }
 }

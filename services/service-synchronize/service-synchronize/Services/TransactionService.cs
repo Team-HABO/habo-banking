@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using DnsClient.Internal;
 using Microsoft.Extensions.Logging;
 using service_synchronize.Database;
 using service_synchronize.Messages;
@@ -23,7 +22,7 @@ namespace service_synchronize.Services
         }
         private async Task ProcessTransfer(string ownerId, string ownerAccountGuid, decimal amount, Audit senderAudit, string receiverAccountGuid, Audit receiverAudit)
         {
-            string? receiverUserId = await usersRepository.GetUserIdByAccountGuidAsync(receiverAccountGuid) ?? throw new InvalidDataException($"Invalid user with account GUID ${receiverAccountGuid} could not be found");
+            string? receiverUserId = await usersRepository.GetUserIdByAccountGuidAsync(receiverAccountGuid) ?? throw new InvalidDataException($"Invalid user with account GUID {receiverAccountGuid} could not be found");
             await usersRepository.ExecuteTransferAsync(ownerId, ownerAccountGuid, amount, senderAudit, receiverUserId, receiverAccountGuid, receiverAudit);
         }
 
@@ -82,6 +81,5 @@ namespace service_synchronize.Services
                     Timestamp = dto.Timestamp
                 };
         }
-
     }
 }

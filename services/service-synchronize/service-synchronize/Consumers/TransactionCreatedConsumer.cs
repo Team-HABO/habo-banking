@@ -10,7 +10,20 @@ namespace service_synchronize.Consumers
         {
             TransactionCreated message = context.Message;
 
-            await transactionService.ProcessTransaction(message);
+            try
+            {
+                await transactionService.ProcessTransaction(message);
+            }
+            catch (InvalidDataException ex)
+            {
+                LogContext.Warning?.Log(ex, "Discarding invalid TransactionCreated message with TransactionId {TransactionId}", message.Metadata.MessageId);
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                LogContext.Warning?.Log(ex, "Discarding malformed TransactionCreated message with TransactionId {TransactionId}", message.Metadata.MessageId);
+                return;
+            }
         }
     }
 }

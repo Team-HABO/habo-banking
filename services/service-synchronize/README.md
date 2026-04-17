@@ -5,7 +5,7 @@ It consumes events from RabbitMQ and writes denormalized user/account/transactio
 
 ## Responsibilities
 
-- Consume `account.created` and `transaction.created` events from exchange `synchronize-events`.
+- Consume `synchronize-transaction` and `synchronize-account` events from exchange `synchronize-events`.
 - Validate incoming message structure and message types.
 - Apply idempotency checks for transactions using `metadata.messageId`.
 - Persist account and transaction changes in MongoDB.
@@ -81,8 +81,8 @@ dotnet run
 ## Queue and Routing Setup
 
 - Exchange: `synchronize-events` (type: `direct`)
-- Queue: `synchronize-account-queue` bound with routing key `account.created`
-- Queue: `synchronize-transaction-queue` bound with routing key `transaction.created`
+- Queue: `synchronize-account-queue` bound with routing key `synchronize-account`
+- Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction`
 
 ## Message Contracts
 

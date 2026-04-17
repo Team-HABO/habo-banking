@@ -90,7 +90,6 @@ namespace service_synchronize.tests.UnitTests
                 IsFrozen = false,
                 Timestamp = timestamp
             };
-            string u = dto.Balance.Amount;
             await _service.ProcessAccountCreationAsync(userId, dto);
 
             _repositoryMock.Verify(r => r.UpsertAccountAsync(
@@ -104,6 +103,28 @@ namespace service_synchronize.tests.UnitTests
                     a.Balance.Amount == 0M
                 )
             ), Times.Once);
+        }
+        [Fact]
+        public async Task ProcessAccountCreationAsync_WhenBalanceIsNull_ShouldThrowException_AndNotCallRepository()
+        {
+            string userId = "user-1";
+            AccountCreatedAccountDto dto = new()
+            {
+                AccountGuid = "guid-123",
+                Name = "My savings",
+                Type = "SAVINGS",
+                Balance = null!, 
+                IsFrozen = false,
+                Timestamp = DateTime.UtcNow.ToString()
+            };
+
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                _service.ProcessAccountCreationAsync(userId, dto));
+
+            _repositoryMock.Verify(r => r.UpsertAccountAsync(
+                It.IsAny<string>(),
+                It.IsAny<Account>()
+            ), Times.Never);
         }
     }
 }
