@@ -156,7 +156,7 @@ dotnet run
 }
 ```
 
-### Transaction Transfer (`synchronize-transaction`) 
+### Transaction Transfer (`synchronize-transaction`)
 remember to create another user
 
 ```json
@@ -209,10 +209,10 @@ Note: integration tests depend on Docker/Testcontainers availability.
 ## Troubleshooting
 
 - Mongo connection refused on `localhost:27017`:
-    - Ensure Mongo container is running and replica set is initialized.
+  - Ensure Mongo container is running and replica set is initialized.
 - Messages not consumed:
-    - Check RabbitMQ bindings for exchange `synchronize-events` and routing keys.
+  - Check RabbitMQ bindings for exchange `synchronize-events` and routing keys.
 - Duplicate transaction message:
-    - The service skips already-processed messages when `metadata.messageId` already exists in audits.
+  - The service skips already-processed messages when `metadata.messageId` already exists in audits.
 - VS/OmniSharp package errors after container watch run:
-    - Keep `bin`, `obj`, and NuGet cache on container-only volumes (already configured in `docker-compose.yml`).
+  - Keep `bin`, `obj`, and NuGet cache on container-only volumes (already configured in `docker-compose.yml`).
