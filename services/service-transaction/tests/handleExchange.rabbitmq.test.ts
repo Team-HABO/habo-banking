@@ -120,7 +120,7 @@ describe("handleExchange via RabbitMQ exchange", () => {
 
 		const ch = producer.getChannel();
 		const payload1 = makeExchangePayload("20", 1000);
-		const payload2 = makeExchangePayload("10", 2000);
+		const payload2 = makeExchangePayload("10", 10000);
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload1)), { persistent: true });
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload2)), { persistent: true });
 		await allProcessed;

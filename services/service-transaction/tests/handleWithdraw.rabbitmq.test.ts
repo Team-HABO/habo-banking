@@ -113,7 +113,7 @@ describe("handleWithdraw via RabbitMQ exchange", () => {
 
 		const ch = producer.getChannel();
 		const payload1 = makePayload("50", ACCOUNT_GUID, 1000, "WITHDRAW");
-		const payload2 = makePayload("25", ACCOUNT_GUID, 2000, "WITHDRAW");
+		const payload2 = makePayload("25", ACCOUNT_GUID, 10000, "WITHDRAW");
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload1)), { persistent: true });
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload2)), { persistent: true });
 		await allProcessed;

@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client/extension";
 import type { ITXClientDenyList } from "@prisma/client/runtime/client";
-import type { BalanceDetail } from "../generated/prisma/client";
+import type { Balance, BalanceDetail } from "../generated/prisma/client";
 import { prisma } from "../prisma/prisma";
 
 type TxClient = Omit<PrismaClient, ITXClientDenyList>;
@@ -45,9 +45,23 @@ export async function deleteBalance(accountGuid: string) {
 	});
 }
 
-// export async function createBalance(tx: TxClient) {
+export async function createBalance(tx: TxClient, accountGuid: string, ownerId: string) {
+	const balance: Balance = await tx.balance.create({
+		data: {
+			ownerId,
+			accountGuid
+		}
+	});
 
-// }
+	const detail: BalanceDetail = await tx.balanceDetail.create({
+		data: {
+			balanceId: balance.id,
+			amount: "0"
+		}
+	});
+
+	return detail;
+}
 
 export async function createAudit(
 	tx: TxClient,

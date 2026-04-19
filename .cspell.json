@@ -69,6 +69,7 @@
     "unstub",
     "mongosh",
     "mypy",
-    "healthcheck"
+    "healthcheck",
+    "idempotently"
   ]
 }

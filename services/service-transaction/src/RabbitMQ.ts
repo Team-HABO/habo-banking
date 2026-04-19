@@ -68,7 +68,7 @@ export class RabbitMQ<T> {
 			});
 			await this.channel.bindQueue(queue, exchange, bindingKey);
 
-			console.log(`[*] Waiting for messages in ${queue} via exchange ${exchange}. To exit press CTRL+C`);
+			console.log(`[*] Waiting for messages in QUEUE: "${queue}" via EXCHANGE "${exchange}". Binding key: "${bindingKey}". To exit press CTRL+C`);
 			this.channel.consume(
 				queue,
 				(msg) => {

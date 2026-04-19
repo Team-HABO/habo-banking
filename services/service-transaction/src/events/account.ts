@@ -16,25 +16,31 @@ export type TAccountPayload = {
 	};
 };
 
-// export type TSynchronizeTransactionPayload = {
-//     data: {
-//         ownerId: string;
-//         account: TSynchronizeData;
-//         receiver?: TSynchronizeData;
-//     };
-//     metadata: TMetadata;
-// };
+export type TSynchronizeAccountDeletePayload = {
+	data: {
+		ownerId: string;
+		account: {
+			accountGuid: string;
+			timestamp: string;
+		};
+	};
+	metadata: TMetadata;
+};
 
-// type TSynchronizeData = {
-//     guid: string;
-//     balance: {
-//         amount: string;
-//         timestamp: Date;
-//     };
-//     audits: {
-//         receiver: string;
-//         amount: string;
-//         type: string;
-//         timestamp: Date;
-//     };
-// };
+export type TSynchronizeAccountCreatePayload = {
+	data: {
+		ownerId: string;
+		account: {
+			accountGuid: string;
+			type?: string | null;
+			name?: string | null;
+			isFrozen?: boolean | null;
+			timestamp: string;
+			balance: {
+				amount: string;
+				timestamp: Date;
+			};
+		};
+	};
+	metadata: TMetadata;
+};

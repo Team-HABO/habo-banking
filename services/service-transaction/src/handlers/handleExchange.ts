@@ -83,6 +83,6 @@ export default async function handleExchange(payload: TTransactionPayload) {
 
 	// Publish to synchronizer after transaction succeeds
 	if (message) {
-		await produceSynchronization(message);
+		await produceSynchronization<TSynchronizeTransactionPayload>(message, "synchronize-transaction-queue");
 	}
 }
