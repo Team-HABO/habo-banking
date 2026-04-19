@@ -1,6 +1,6 @@
 import type { TAccountPayload, TSynchronizeAccountCreatePayload } from "../events/account";
 import { prisma } from "../../prisma/prisma";
-import { createBalance, getLatestBalance } from "../repository";
+import { createBalance } from "../repository";
 import { produceSynchronization } from "../producer";
 
 export default async function handleCreate(payload: TAccountPayload) {
@@ -8,8 +8,7 @@ export default async function handleCreate(payload: TAccountPayload) {
 	const { data, metadata } = payload.message;
 
 	const message = await prisma.$transaction(async (tx) => {
-		const latestBalance = await getLatestBalance(tx, data.accountGuid);
-
+		const latestBalance = await tx.balance.findUnique({ where: { accountGuid: data.accountGuid } });
 		// Idempotency
 		if (latestBalance) {
 			return;

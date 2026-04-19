@@ -70,6 +70,7 @@
     "mongosh",
     "mypy",
     "healthcheck",
-    "idempotently"
+    "idempotently",
+    "deletetable"
   ]
 }
