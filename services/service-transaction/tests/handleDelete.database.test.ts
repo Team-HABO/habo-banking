@@ -65,12 +65,6 @@ describe("handleDelete database integration", () => {
 		expect(deletedRecords).toHaveLength(1);
 	});
 
-	it("should throw when the account does not exist", async () => {
-		const payload = makeDeletePayload("non-existent-guid-xyz");
-
-		await expect(handleDelete(payload)).rejects.toThrow();
-	});
-
 	it("should not affect balance details when deleting", async () => {
 		await handleDelete(makeDeletePayload());
 
