@@ -10,7 +10,7 @@
                 "isFrozen": "boolean",
                 "timestamp": "string",
                 "balance": {
-                    "amount": "string"
+                    "amount": "number"
                 },
                 "audits": [
                     {
