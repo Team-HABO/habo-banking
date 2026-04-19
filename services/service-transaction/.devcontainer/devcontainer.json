@@ -16,7 +16,7 @@
 				"esbenp.prettier-vscode",
 				"cweijan.dbclient-jdbc",
 				"cweijan.vscode-database-client2",
-				"GitHub.copilot-chat"
+				"github.copilot-chat"
 			]
 		}
 	},

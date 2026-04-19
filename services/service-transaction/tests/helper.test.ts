@@ -27,11 +27,11 @@ describe("utils/helper", () => {
 			expect(isOlderEvent(savedDate, payloadDate)).toBe(true);
 		});
 
-		it("returns true when saved date equals payload date", () => {
+		it("returns false when saved date equals payload date", () => {
 			const savedDate = new Date("2026-04-01T10:00:00.000Z");
 			const payloadDate = new Date("2026-04-01T10:00:00.000Z");
 
-			expect(isOlderEvent(savedDate, payloadDate)).toBe(true);
+			expect(isOlderEvent(savedDate, payloadDate)).toBe(false);
 		});
 
 		it("returns false when saved date is older than payload date", () => {

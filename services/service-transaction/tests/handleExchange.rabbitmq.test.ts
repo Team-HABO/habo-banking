@@ -18,10 +18,21 @@ describe("handleExchange via RabbitMQ exchange", () => {
 		consumer = new RabbitMQ<TTransactionPayload>();
 		await consumer.connect();
 
-		// Set up exchange and queue binding, then purge leftover messages
+		// Set up exchange, DLX, and queue binding, then purge leftover messages
 		const ch = consumer.getChannel();
+		const dlxExchange = `${EXCHANGE}.dlx`;
+		const dlqName = `${QUEUE}.dlq`;
 		await ch.assertExchange(EXCHANGE, "fanout", { durable: true });
-		await ch.assertQueue(QUEUE, { durable: true });
+		await ch.assertExchange(dlxExchange, "direct", { durable: true });
+		await ch.assertQueue(dlqName, { durable: true });
+		await ch.bindQueue(dlqName, dlxExchange, QUEUE);
+		await ch.assertQueue(QUEUE, {
+			durable: true,
+			arguments: {
+				"x-dead-letter-exchange": dlxExchange,
+				"x-dead-letter-routing-key": QUEUE
+			}
+		});
 		await ch.bindQueue(QUEUE, EXCHANGE, "");
 		await ch.purgeQueue(QUEUE);
 
@@ -39,7 +50,10 @@ describe("handleExchange via RabbitMQ exchange", () => {
 
 	afterEach(async () => {
 		const ch = consumer.getChannel();
+		await ch.deleteQueue(QUEUE);
+		await ch.deleteQueue(`${QUEUE}.dlq`);
 		await ch.deleteExchange(EXCHANGE);
+		await ch.deleteExchange(`${EXCHANGE}.dlx`);
 		await producer.closeConnection();
 		await consumer.closeConnection();
 		await cleanupBalance(ACCOUNT_GUID);

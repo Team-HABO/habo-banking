@@ -1,7 +1,7 @@
 import { prisma } from "../../prisma/prisma";
 
 export function isOlderEvent(savedDate: Date, payloadDate: Date) {
-	return savedDate >= payloadDate;
+	return savedDate > payloadDate;
 }
 
 export async function isTransactionAlreadyProcessed(messageId: string) {
