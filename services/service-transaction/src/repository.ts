@@ -31,17 +31,16 @@ export async function updateBalance(tx: TxClient, amount: number, balanceId: num
 	});
 }
 
-export async function deleteBalance(accountGuid: string) {
-	const balance = await prisma.balance.findFirst({
+export async function deleteBalance(tx: TxClient, accountGuid: string) {
+	const balance = await tx.balance.findFirst({
 		where: { accountGuid }
 	});
 	if (!balance) throw new Error(`Could not find balance by accountGuid: ${accountGuid}`);
 
-	const existing = await prisma.deletedBalance.findFirst({ where: { balanceId: balance.id } });
-	if (existing) return existing;
-
-	return await prisma.deletedBalance.create({
-		data: { balanceId: balance.id }
+	return await prisma.deletedBalance.upsert({
+		where: { balanceId: balance.id },
+		create: { balanceId: balance.id },
+		update: {}
 	});
 }
 

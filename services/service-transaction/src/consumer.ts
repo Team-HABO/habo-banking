@@ -56,7 +56,7 @@ await transactionRabbit.consumeFromExchange(
 			await handleExchange(data);
 			ack();
 		} catch (error) {
-			console.error(`Handler failed for event ${data}. Error: `, error);
+			console.error(`Handler failed for event ${JSON.stringify(data)}. Error: `, error);
 			nack(true);
 		}
 	},
@@ -77,7 +77,7 @@ await accountRabbit.consumeFromExchange("account-queue", "account-exchange-event
 		await handler(data);
 		ack();
 	} catch (error) {
-		console.error(`Handler failed for event ${data}. Error: `, error);
+		console.error(`Handler failed for event ${JSON.stringify(data)}. Error: `, error);
 		nack(true);
 	}
 });
