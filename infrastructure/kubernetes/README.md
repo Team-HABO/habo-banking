@@ -74,10 +74,10 @@ infrastructure/kubernetes/
 │   ├── deployment.yaml
 │   ├── service.yaml                  ← NodePort 30008 for management UI
 │   └── pvc.yaml                      ← 1Gi persistent storage
-├── postgresql/
+├── postgresql-transaction/
 │   ├── deployment.yaml
 │   ├── service.yaml                  ← ClusterIP (internal only)
-│   └── pvc.yaml                      ← 2Gi persistent storage
+│   └── pvc.yaml                      ← 2Gi persistent storage (service-transaction only)
 ├── service-currency-exchange/
 │   └── deployment.yaml
 ├── service-ai/
@@ -316,7 +316,7 @@ kubectl exec -it <pod-name> -n habo-banking -- nc -zv rabbitmq 5672
 kubectl port-forward svc/rabbitmq 15672:15672 -n habo-banking
 
 # PostgreSQL → localhost:5432 (useful with a DB GUI like TablePlus)
-kubectl port-forward svc/postgresql 5432:5432 -n habo-banking
+kubectl port-forward svc/postgresql-transaction 5432:5432 -n habo-banking
 ```
 
 ### Manual scaling (bypasses KEDA)

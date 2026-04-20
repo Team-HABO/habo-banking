@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: postgresql
+    name: postgresql-transaction
     namespace: habo-banking
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: postgresql
+            app: postgresql-transaction
     strategy:
         type: Recreate # Required for stateful workloads with PVCs
     template:
         metadata:
             labels:
-                app: postgresql
+                app: postgresql-transaction
         spec:
             containers:
-                - name: postgresql
+                - name: postgresql-transaction
                   image: postgres:15-alpine
                   ports:
                       - containerPort: 5432
@@ -50,9 +50,9 @@ spec:
                           cpu: '500m'
                           memory: '512Mi'
                   volumeMounts:
-                      - name: postgresql-data
+                      - name: postgresql-transaction-data
                         mountPath: /var/lib/postgresql/data
             volumes:
-                - name: postgresql-data
+                - name: postgresql-transaction-data
                   persistentVolumeClaim:
-                      claimName: postgresql-pvc
+                      claimName: postgresql-transaction-pvc

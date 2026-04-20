@@ -22,7 +22,7 @@ deploy: ## Deploy the full stack — run apply-secrets first
 	kubectl apply -f $(DIR)/namespace.yaml
 	kubectl apply -f $(DIR)/configmaps/
 	kubectl apply -f $(DIR)/rabbitmq/
-	kubectl apply -f $(DIR)/postgresql/
+	kubectl apply -f $(DIR)/postgresql-transaction/
 	kubectl apply -f $(DIR)/service-currency-exchange/
 	kubectl apply -f $(DIR)/service-ai/
 	kubectl apply -f $(DIR)/service-notification/

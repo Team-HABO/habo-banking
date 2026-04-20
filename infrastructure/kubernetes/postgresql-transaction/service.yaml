@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: postgresql
+    name: postgresql-transaction
     namespace: habo-banking
 spec:
     selector:
-        app: postgresql
+        app: postgresql-transaction
     type: ClusterIP # Internal only — no need to expose PostgreSQL outside the cluster
     ports:
         - port: 5432
