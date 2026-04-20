@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: service-currency-exchange
+    namespace: habo-banking
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: service-currency-exchange
+    template:
+        metadata:
+            labels:
+                app: service-currency-exchange
+        spec:
+            initContainers:
+                # Wait for RabbitMQ to accept connections before starting the service.
+                # Avoids MassTransit startup errors when the broker isn't ready yet.
+                - name: wait-for-rabbitmq
+                  image: busybox:1.37
+                  command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
+            containers:
+                - name: service-currency-exchange
+                  image: forkeh/habo-bank-service-currency-exchange:latest
+                  imagePullPolicy: Always
+                  env:
+                      - name: RABBITMQ_HOST
+                        valueFrom:
+                            configMapKeyRef:
+                                name: app-config
+                                key: RABBITMQ_HOST
+                      - name: RABBITMQ_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: rabbitmq-secret
+                                key: RABBITMQ_USERNAME
+                      - name: RABBITMQ_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: rabbitmq-secret
+                                key: RABBITMQ_PASSWORD
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '256Mi'

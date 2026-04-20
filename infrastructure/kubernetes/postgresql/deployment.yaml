@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgresql
+    namespace: habo-banking
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: postgresql
+    strategy:
+        type: Recreate # Required for stateful workloads with PVCs
+    template:
+        metadata:
+            labels:
+                app: postgresql
+        spec:
+            containers:
+                - name: postgresql
+                  image: postgres:15-alpine
+                  ports:
+                      - containerPort: 5432
+                  env:
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_USER
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_PASSWORD
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB
+                  readinessProbe:
+                      exec:
+                          command: ['pg_isready', '-h', 'localhost']
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      failureThreshold: 6
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '256Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '512Mi'
+                  volumeMounts:
+                      - name: postgresql-data
+                        mountPath: /var/lib/postgresql/data
+            volumes:
+                - name: postgresql-data
+                  persistentVolumeClaim:
+                      claimName: postgresql-pvc

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: service-transaction
+    namespace: habo-banking
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: service-transaction
+    template:
+        metadata:
+            labels:
+                app: service-transaction
+        spec:
+            initContainers:
+                # Both dependencies must be ready before the service starts.
+                # The service Dockerfile runs `prisma migrate deploy` on startup,
+                # so PostgreSQL must be accepting connections first.
+                - name: wait-for-rabbitmq
+                  image: busybox:1.37
+                  command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
+                - name: wait-for-postgresql
+                  image: busybox:1.37
+                  command:
+                      ['sh', '-c', "until nc -z postgresql 5432; do echo 'waiting for postgresql...'; sleep 2; done"]
+            containers:
+                - name: service-transaction
+                  image: alihmohammad/habo-bank-service-transaction:latest
+                  imagePullPolicy: Always
+                  env:
+                      - name: RABBITMQ_HOST
+                        valueFrom:
+                            configMapKeyRef:
+                                name: app-config
+                                key: RABBITMQ_HOST
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: DATABASE_URL
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '512Mi'
