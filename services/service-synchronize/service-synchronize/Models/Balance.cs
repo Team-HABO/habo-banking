@@ -1,9 +1,12 @@
-﻿
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace service_synchronize.Models
 {
     public class Balance
     {
-        public required string Amount { get; set; }
-        public required string Timestamp { get; set; }
+        [BsonElement("amount")]
+        [BsonRepresentation(BsonType.Decimal128)]
+        public required decimal Amount { get; set; }
     }
 }

@@ -10,11 +10,11 @@ namespace service_synchronize.tests.UnitTests
 {
     public class AccountCreatedConsumerTests
     {
-        private readonly AccountDto firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
         private readonly string userId = "user-1";
         
 
-        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = DateTime.Now, MessageType = "ACCOUNT_CREATE" };
+        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_CREATE" };
         [Fact]
         public async Task Consume_ValidMessageType_ShouldCallService()
         {
@@ -32,7 +32,7 @@ namespace service_synchronize.tests.UnitTests
 
             Assert.True(await harness.Consumed.Any<AccountCreated>());
             accountServiceMock.Verify(
-                s => s.ProcessAccountCreationAsync(userId, It.IsAny<AccountDto>()),
+                s => s.ProcessAccountCreationAsync(userId, It.IsAny<AccountCreatedAccountDto>()),
                 Times.Once
             );
         }
@@ -48,14 +48,14 @@ namespace service_synchronize.tests.UnitTests
             await harness.Bus.Publish(new AccountCreated
             {
                 Data = new() { Account = firstAccount, OwnerId = userId },
-                Metadata = new() { MessageType = "invalid_type", MessageTimestamp = DateTime.Now }
+                Metadata = new() { MessageType = "invalid_type", MessageTimestamp = "2026-04-06T09:22:00Z" }
             });
 
             Assert.True(await harness.GetConsumerHarness<AccountCreatedConsumer>().Consumed.Any<AccountCreated>());
 
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(
                 It.IsAny<string>(),
-                It.IsAny<AccountDto>()),
+                It.IsAny<AccountCreatedAccountDto>()),
                 Times.Never);
         }
         [Fact]
@@ -80,7 +80,7 @@ namespace service_synchronize.tests.UnitTests
 
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(
                 It.IsAny<string>(),
-                It.IsAny<AccountDto>()),
+                It.IsAny<AccountCreatedAccountDto>()),
                 Times.Never);
         }
         //Helper to create the service provider for the tests

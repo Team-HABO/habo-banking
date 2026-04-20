@@ -13,37 +13,53 @@ Env.NoClobber().TraversePath().Load();
 
 
 string mongoConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
-    ?? "mongodb://localhost:27018";
+    ?? "mongodb://localhost:27017";
 string rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST")
     ?? "localhost";
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
-builder.Services.AddMassTransit(x =>
-{
+builder.Services.AddMassTransit(x => {
     x.AddConsumer<AccountCreatedConsumer>();
+    x.AddConsumer<TransactionCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost);
 
+        cfg.ClearSerialization(); 
+        cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
         cfg.ReceiveEndpoint("synchronize-account-queue", e =>
         {
-            e.UseMessageRetry(r =>
-            {
+            e.UseMessageRetry(r => {
                 r.Interval(3, TimeSpan.FromSeconds(5));
-                // Do not retry this specific exception
                 r.Ignore<InvalidDataException>();
             });
-            e.UseRawJsonDeserializer();
+            
             e.ConfigureConsumer<AccountCreatedConsumer>(context);
 
-            e.Bind("synchronize-events", s =>
-            {
+            e.Bind("synchronize-events", s => {
                 s.ExchangeType = "direct"; 
-                s.RoutingKey = "account.created"; // Key for direct exchange, might change
+                s.RoutingKey = "synchronize-account";
+            });
+        });
+
+        cfg.ReceiveEndpoint("synchronize-transaction-queue", e =>
+        {
+            e.UseMessageRetry(r => {
+                r.Interval(3, TimeSpan.FromSeconds(5));
+                r.Ignore<InvalidDataException>();
+            });
+
+            e.ConfigureConsumer<TransactionCreatedConsumer>(context);
+
+            e.Bind("synchronize-events", s => {
+                s.ExchangeType = "direct";
+                s.RoutingKey = "synchronize-transaction";
             });
         });
     });

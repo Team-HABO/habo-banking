@@ -7,5 +7,11 @@ namespace service_synchronize.Database
         Task<User?> GetUserByIdAsync(string userId);
 
         Task UpsertAccountAsync(string userId, Account account);
+        Task<bool> AuditExistsAsync(string userId, string auditId);
+        Task UpdateUserWithNewTransaction(string userId, string accountGuid, decimal amount, Audit newAudit);
+        Task<string?> GetUserIdByAccountGuidAsync(string accountGuid);
+        Task ExecuteTransferAsync(
+            string senderId, string senderAccountGuid, decimal amount, Audit senderAudit,
+            string receiverId, string receiverAccountGuid, Audit receiverAudit);
     }
 }

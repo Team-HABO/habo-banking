@@ -14,19 +14,19 @@ namespace service_synchronize.tests
                 IsFrozen = false,
                 Timestamp = DateTime.UtcNow.ToString("O"),
                 Type = Account.AccountType.Savings,
-                Balances =[ ]
+                Balance = new() { Amount = 0M }
             };
         }
-        public static AccountDto CreateAccountDto(string? guid = null, string name = "Default Account")
+        public static AccountCreatedAccountDto CreateAccountDto(string? guid = null, string name = "Default Account")
         {
-            return new AccountDto
+            return new AccountCreatedAccountDto
             {
                 AccountGuid = guid ?? Guid.NewGuid().ToString(),
                 Name = name,
                 IsFrozen = false,
                 Timestamp = DateTime.UtcNow.ToString("O"),
                 Type = "Savings",
-                Balance = new BalanceDto { Amount="0", Timestamp="time"}
+                Balance = new BalanceDto { Amount="0"}
             };
         }
     }
