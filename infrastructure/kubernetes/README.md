@@ -8,40 +8,6 @@ General Kubernetes notes and deployment guide for the habo-banking microservices
 
 All four services are **background workers** — they have no HTTP endpoints and communicate exclusively through RabbitMQ message queues.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Kubernetes Cluster                          │
-│                   namespace: habo-banking                       │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                      RabbitMQ                            │  │
-│  │  Queues:                                                  │  │
-│  │  • currency-exchange-requests-queue                       │  │
-│  │  • currency-exchange-response-queue (→ transaction)       │  │
-│  │  • ai-transaction-queue                                   │  │
-│  │  • check-fraud (→ transaction)                            │  │
-│  │  • notification-queue                                     │  │
-│  └──────────┬──────────┬──────────┬──────────┬───────────┘  │
-│             │          │          │          │               │
-│             ▼          ▼          ▼          ▼               │
-│  ┌──────────────┐ ┌────────┐ ┌──────────┐ ┌─────────────┐  │
-│  │  currency-   │ │  ai    │ │notification│ │transaction  │  │
-│  │  exchange    │ │        │ │            │ │             │  │
-│  │  (.NET)      │ │ (.NET) │ │  (.NET)    │ │  (Node.js)  │  │
-│  └──────────────┘ └────────┘ └──────────┘ └──────┬──────┘  │
-│                                                    │         │
-│                                                    ▼         │
-│                                             ┌────────────┐   │
-│                                             │ PostgreSQL │   │
-│                                             └────────────┘   │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │  KEDA  — scales each service based on queue depth       │  │
-│  │  (polls RabbitMQ management API every 15 seconds)       │  │
-│  └────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 ### Message flow
 
 | Event                     | Published by              | Consumed by               | Queue                              |
@@ -67,7 +33,7 @@ infrastructure/kubernetes/
 ├── secrets/
 │   ├── .gitignore                    ← Ignores *-secret.yaml (actual secrets)
 │   ├── rabbitmq-secret.example.yaml  ← Template — copy and fill in
-│   ├── postgres-secret.example.yaml
+│   ├── postgresql-transaction-secret.example.yaml
 │   ├── ai-secret.example.yaml
 │   └── smtp-secret.example.yaml
 ├── rabbitmq/
@@ -108,36 +74,43 @@ infrastructure/kubernetes/
 
 ## First-time setup
 
-### 1. Install KEDA
+### 1. Install Helm
+
+KEDA is installed via Helm, so Helm must be on your PATH first.
+
+**Windows (winget):**
+
+```powershell
+winget install Helm.Helm
+```
+
+**Windows (Chocolatey):**
+
+```powershell
+choco install kubernetes-helm
+```
+
+**macOS:**
+
+```bash
+brew install helm
+```
+
+**Linux:**
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+Restart your terminal after installing so `helm` is available on the PATH.
+
+### 2. Install KEDA
 
 ```bash
 make install-keda
 ```
 
-Installs KEDA into its own `keda` namespace via Helm.
-
-### 2. Replace DockerHub image placeholders
-
-The deployment files contain placeholder image names. Replace them with the real DockerHub usernames:
-
-```bash
-# On Linux/macOS:
-BRIAN=your_brian_username
-ALI=your_ali_username
-
-sed -i "s/BRIAN_DOCKERHUB_USERNAME/$BRIAN/g" \
-  service-currency-exchange/deployment.yaml \
-  service-ai/deployment.yaml \
-  service-notification/deployment.yaml
-
-sed -i "s/ALI_DOCKERHUB_USERNAME/$ALI/g" \
-  service-transaction/deployment.yaml
-
-# On Windows (PowerShell):
-# (Get-Content service-ai\deployment.yaml) -replace 'BRIAN_DOCKERHUB_USERNAME','actual_username' | Set-Content service-ai\deployment.yaml
-```
-
-The image name pattern (from GitHub Actions) is: `<DOCKERHUB_USERNAME>/habo-bank-<service-name>:latest`
+Installs KEDA into its own `keda` namespace via Helm. This registers the `ScaledObject` and `TriggerAuthentication` CRDs that the `keda/` manifests depend on.
 
 ### 3. Create secret files
 
@@ -147,7 +120,7 @@ Each `secrets/*.example.yaml` is a template. Copy it, remove `.example` from the
 cd secrets/
 
 cp rabbitmq-secret.example.yaml  rabbitmq-secret.yaml
-cp postgres-secret.example.yaml  postgres-secret.yaml
+cp postgresql-transaction-secret.example.yaml  postgresql-transaction-secret.yaml
 cp ai-secret.example.yaml        ai-secret.yaml
 cp smtp-secret.example.yaml      smtp-secret.yaml
 
