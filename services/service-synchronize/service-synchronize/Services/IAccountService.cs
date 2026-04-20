@@ -4,6 +4,6 @@ namespace service_synchronize.Services
 {
     public interface IAccountService
     {
-        Task ProcessAccountCreationAsync(string userId, AccountDto newAccount);
+        Task ProcessAccountCreationAsync(string userId, AccountCreatedAccountDto newAccount);
     }
 }
