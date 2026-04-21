@@ -35,9 +35,9 @@ spec:
                                 name: rabbitmq-secret
                                 key: RABBITMQ_PASSWORD
                   readinessProbe:
-                      exec:
-                          command: ['rabbitmq-diagnostics', '-q', 'ping']
-                      initialDelaySeconds: 20
+                      tcpSocket:
+                          port: 5672
+                      initialDelaySeconds: 60
                       periodSeconds: 10
                       failureThreshold: 6
                   resources:

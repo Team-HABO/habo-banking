@@ -129,7 +129,23 @@ cp smtp-secret.example.yaml      smtp-secret.yaml
 
 > **The `*-secret.yaml` files are gitignored** — they will never be committed. Only the `.example.yaml` templates are version controlled.
 
-### 4. Apply secrets and deploy
+### 4. Pull Docker images locally
+
+If your cluster node cannot reach Docker Hub at pull time (e.g. network restrictions or EOF errors), pull all images manually first so they are cached in the local Docker daemon:
+
+```bash
+docker pull rabbitmq:3-management
+docker pull postgres:15-alpine
+docker pull busybox:1.37
+docker pull forkeh/habo-bank-service-transaction:latest
+docker pull forkeh/habo-bank-service-currency-exchange:latest
+docker pull forkeh/habo-bank-service-notification:latest
+docker pull forkeh/habo-bank-service-ai:latest
+```
+
+On Docker Desktop, the cluster shares the host's Docker image cache, so images pulled this way are available to Kubernetes without a registry pull.
+
+### 5. Apply secrets and deploy
 
 ```bash
 # Apply the namespace first, then secrets
@@ -138,6 +154,67 @@ make apply-secrets
 
 # Deploy everything else
 make deploy
+```
+
+---
+
+## Accessing services
+
+### RabbitMQ management UI
+
+RabbitMQ exposes a management UI on port 15672. The easiest way is the Makefile shortcut:
+
+```bash
+make rabbitmq-ui
+```
+
+Or directly with kubectl:
+
+```bash
+kubectl port-forward svc/rabbitmq 15672:15672 -n habo-banking
+```
+
+Then open [http://localhost:15672](http://localhost:15672) in your browser. Log in with the credentials from `secrets/rabbitmq-secret.yaml`.
+
+From the UI you can:
+
+- **Queues** tab — see message counts, consumers, and publish/deliver rates for each queue
+- **Exchanges** tab — inspect the declared exchanges and their bindings
+- **Publish message** — manually push a message to any exchange to trigger a service
+
+### Exec into a service pod
+
+To open a shell inside a running service pod:
+
+```bash
+# Find the pod name
+kubectl get pods -n habo-banking
+
+# Open a shell (use /bin/sh for .NET images, bash may not be available)
+kubectl exec -it <pod-name> -n habo-banking -- /bin/sh
+```
+
+Useful things to do from inside a pod:
+
+```sh
+# Check environment variables (confirms secrets/configmap are mounted correctly)
+env | grep RABBITMQ
+
+# Test connectivity to RabbitMQ
+nc -zv rabbitmq 5672
+
+# Check the app log files (path varies per service)
+cat logs/service-currency-exchange-$(date +%Y%m%d).log
+```
+
+To tail live logs without exec-ing in:
+
+```bash
+# Single pod
+kubectl logs -f <pod-name> -n habo-banking
+
+# All pods for a service (useful when KEDA has scaled to >1)
+kubectl logs -f -l app=service-ai -n habo-banking --tail=100
 ```
 
 ---

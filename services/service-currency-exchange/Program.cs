@@ -54,6 +54,8 @@ builder.Services.AddMassTransit(config =>
         // Consume ExchangeRequested from currency-exchange-events DIRECT, queue currency-exchange-requests-queue
         cfg.ReceiveEndpoint("currency-exchange-requests-queue", ep =>
         {
+            ep.ConfigureConsumeTopology = false;
+
             ep.Bind("currency-exchange-events", x =>
             {
                 x.ExchangeType = "direct";

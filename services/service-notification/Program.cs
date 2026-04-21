@@ -80,6 +80,8 @@ builder.Services.AddMassTransit(config =>
         // Consume from notification-events DIRECT, queue notification-queue
         cfg.ReceiveEndpoint("notification-queue", ep =>
         {
+            ep.ConfigureConsumeTopology = false;
+
             ep.Bind("notification-events", x =>
             {
                 x.ExchangeType = "direct";
