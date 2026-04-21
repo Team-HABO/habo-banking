@@ -5,7 +5,16 @@ SECRETS_DIR := secrets
 .PHONY: help install-keda apply-secrets deploy teardown status logs rabbitmq-ui keda-status
 
 help: ## Show available commands
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	$(info Available commands:)
+	$(info   install-keda        Install KEDA into the cluster via Helm)
+	$(info   apply-secrets       Apply secrets (copy *.example.yaml -> *.yaml and fill in values first))
+	$(info   deploy              Deploy the full stack -- run apply-secrets first)
+	$(info   teardown            Delete the habo-banking namespace and all its resources)
+	$(info   status              Show pod status across the namespace)
+	$(info   logs                Tail logs for a service -- usage: make logs service=service-ai)
+	$(info   rabbitmq-ui         Port-forward RabbitMQ management UI -> http://localhost:15672)
+	$(info   keda-status         Show KEDA ScaledObjects and their current replica counts)
+	@echo ""
 
 install-keda: ## Install KEDA into the cluster via Helm
 	helm repo add kedacore https://kedacore.github.io/charts
