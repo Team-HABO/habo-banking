@@ -19,8 +19,6 @@ spec:
                   command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
             containers:
                 - name: service-ai
-                  # Replace BRIAN_DOCKERHUB_USERNAME with the actual DockerHub username
-                  # (stored in GitHub secret BRIAN_DOCKER_USERNAME)
                   image: forkeh/habo-bank-service-ai:latest
                   imagePullPolicy: Always
                   env:
