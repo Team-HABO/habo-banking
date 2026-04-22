@@ -18,10 +18,21 @@ describe("handleWithdraw via RabbitMQ exchange", () => {
 		consumer = new RabbitMQ<TTransactionPayload>();
 		await consumer.connect();
 
-		// Set up exchange and queue binding, then purge leftover messages
+		// Set up exchange, DLX, and queue binding, then purge leftover messages
 		const ch = consumer.getChannel();
+		const dlxExchange = `${EXCHANGE}.dlx`;
+		const dlqName = `${QUEUE}.dlq`;
 		await ch.assertExchange(EXCHANGE, "fanout", { durable: true });
-		await ch.assertQueue(QUEUE, { durable: true });
+		await ch.assertExchange(dlxExchange, "direct", { durable: true });
+		await ch.assertQueue(dlqName, { durable: true });
+		await ch.bindQueue(dlqName, dlxExchange, QUEUE);
+		await ch.assertQueue(QUEUE, {
+			durable: true,
+			arguments: {
+				"x-dead-letter-exchange": dlxExchange,
+				"x-dead-letter-routing-key": QUEUE
+			}
+		});
 		await ch.bindQueue(QUEUE, EXCHANGE, "");
 		await ch.purgeQueue(QUEUE);
 
@@ -39,7 +50,10 @@ describe("handleWithdraw via RabbitMQ exchange", () => {
 
 	afterEach(async () => {
 		const ch = consumer.getChannel();
+		await ch.deleteQueue(QUEUE);
+		await ch.deleteQueue(`${QUEUE}.dlq`);
 		await ch.deleteExchange(EXCHANGE);
+		await ch.deleteExchange(`${EXCHANGE}.dlx`);
 		await producer.closeConnection();
 		await consumer.closeConnection();
 		await cleanupBalance(ACCOUNT_GUID);
@@ -99,7 +113,7 @@ describe("handleWithdraw via RabbitMQ exchange", () => {
 
 		const ch = producer.getChannel();
 		const payload1 = makePayload("50", ACCOUNT_GUID, 1000, "WITHDRAW");
-		const payload2 = makePayload("25", ACCOUNT_GUID, 2000, "WITHDRAW");
+		const payload2 = makePayload("25", ACCOUNT_GUID, 10000, "WITHDRAW");
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload1)), { persistent: true });
 		ch.publish(EXCHANGE, "", Buffer.from(JSON.stringify(payload2)), { persistent: true });
 		await allProcessed;

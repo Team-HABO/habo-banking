@@ -15,7 +15,8 @@
 				"prisma.prisma",
 				"esbenp.prettier-vscode",
 				"cweijan.dbclient-jdbc",
-				"cweijan.vscode-database-client2"
+				"cweijan.vscode-database-client2",
+				"github.copilot-chat"
 			]
 		}
 	},

@@ -1,4 +1,4 @@
-import type { TSynchronizeTransactionPayload, TTransactionPayload } from "./events/transaction";
+import type { TTransactionPayload } from "./events/transaction";
 import { RabbitMQ } from "./RabbitMQ";
 
 export async function produceNotification(payload: object) {
@@ -12,11 +12,11 @@ export async function produceNotification(payload: object) {
 	}
 }
 
-export async function produceSynchronization(payload: TSynchronizeTransactionPayload) {
-	const rabbit = new RabbitMQ<TSynchronizeTransactionPayload>();
+export async function produceSynchronization<T>(payload: T, routingKey: string) {
+	const rabbit = new RabbitMQ<T>();
 	try {
 		await rabbit.connect();
-		await rabbit.sendToExchange("synchronize-events", "direct", payload, "synchronize-transaction-queue");
+		await rabbit.sendToExchange("synchronize-events", "direct", payload, routingKey);
 	} finally {
 		await rabbit.closeConnection();
 	}
