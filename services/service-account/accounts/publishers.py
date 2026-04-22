@@ -1,11 +1,6 @@
 """RabbitMQ message publishers for the account service.
 
-Each public function maps to a contract step that produces messages
-to other microservices (Transaction-Service, Synchronize-Service,
-Fraud-Service, Currency-Service).
-
-Connection parameters are read from environment variables so they
-can be overridden per deployment environment.
+Implements contract-specific exchange names and exchange types.
 """
 
 import json
@@ -21,7 +16,20 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
 RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
-EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE", "habo_exchange")
+
+EXCHANGE_ACCOUNT_EVENTS = os.getenv(
+    "EXCHANGE_ACCOUNT_EVENTS", "account-exchange-events"
+)
+EXCHANGE_SYNCHRONIZE_EVENTS = os.getenv(
+    "EXCHANGE_SYNCHRONIZE_EVENTS", "synchronize-events"
+)
+EXCHANGE_AI_TRANSACTION = os.getenv(
+    "EXCHANGE_AI_TRANSACTION", "ai-service-transaction"
+)
+
+ROUTING_KEY_SYNCHRONIZE_ACCOUNT = os.getenv(
+    "ROUTING_KEY_SYNCHRONIZE_ACCOUNT", "synchronize-account-queue"
+)
 
 # Internal helpers
 
@@ -37,18 +45,23 @@ def _get_connection():
     )
 
 
-def _publish(routing_key: str, message: dict) -> None:
-    """Publish a JSON message to the topic exchange."""
+def _publish(
+    exchange_name: str,
+    exchange_type: str,
+    routing_key: str,
+    message: dict,
+) -> None:
+    """Publish a JSON message to an exchange with routing key."""
     connection = _get_connection()
     try:
         channel = connection.channel()
         channel.exchange_declare(
-            exchange=EXCHANGE_NAME,
-            exchange_type="topic",
+            exchange=exchange_name,
+            exchange_type=exchange_type,
             durable=True,
         )
         channel.basic_publish(
-            exchange=EXCHANGE_NAME,
+            exchange=exchange_name,
             routing_key=routing_key,
             body=json.dumps(message),
             properties=pika.BasicProperties(
@@ -81,7 +94,11 @@ def _build_metadata(message_type: str, message_id: str | None = None) -> dict:
 def publish_account_created(account_data: dict) -> None:
     """Publish ACCOUNT_CREATE to Transaction-Service and Synchronize-Service."""
     # Step 2 → Transaction-Service
-    _publish("account.created.transaction", {
+    _publish(
+        EXCHANGE_ACCOUNT_EVENTS,
+        "fanout",
+        "",
+        {
         "data": {
             "accountGuid": str(account_data["account_guid"]),
             "ownerId": account_data["owner_id"],
@@ -91,11 +108,17 @@ def publish_account_created(account_data: dict) -> None:
             "timestamp": account_data["timestamp"],
         },
         "metadata": _build_metadata("ACCOUNT_CREATE"),
-    })
+        },
+    )
 
     # Step 3 → Synchronize-Service
-    _publish("account.created.sync", {
+    _publish(
+        EXCHANGE_SYNCHRONIZE_EVENTS,
+        "direct",
+        ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
+        {
         "data": {
+            "ownerId": account_data["owner_id"],
             "account": {
                 "accountGuid": str(account_data["account_guid"]),
                 "type": account_data["type"],
@@ -109,14 +132,25 @@ def publish_account_created(account_data: dict) -> None:
             },
         },
         "metadata": _build_metadata("ACCOUNT_CREATE"),
-    })
+        },
+    )
 
 # Contract 2 – Account Frozen / Unfrozen
 
-def publish_account_frozen(account_guid, is_frozen: bool, timestamp: str) -> None:
+def publish_account_frozen(
+    owner_id: str,
+    account_guid,
+    is_frozen: bool,
+    timestamp: str,
+) -> None:
     """Publish ACCOUNT_STATUS to Synchronize-Service."""
-    _publish("account.status.sync", {
+    _publish(
+        EXCHANGE_SYNCHRONIZE_EVENTS,
+        "direct",
+        ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
+        {
         "data": {
+            "ownerId": owner_id,
             "account": {
                 "accountGuid": str(account_guid),
                 "isFrozen": is_frozen,
@@ -124,17 +158,27 @@ def publish_account_frozen(account_guid, is_frozen: bool, timestamp: str) -> Non
             },
         },
         "metadata": _build_metadata("ACCOUNT_STATUS"),
-    })
+        },
+    )
 
 
 # Contract 3 – Account Updated (rename / type change)
 
 def publish_account_updated(
-    account_guid, name: str, account_type: str, timestamp: str,
+    owner_id: str,
+    account_guid,
+    name: str,
+    account_type: str,
+    timestamp: str,
 ) -> None:
     """Publish ACCOUNT_UPDATE to Synchronize-Service."""
-    _publish("account.updated.sync", {
+    _publish(
+        EXCHANGE_SYNCHRONIZE_EVENTS,
+        "direct",
+        ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
+        {
         "data": {
+            "ownerId": owner_id,
             "account": {
                 "accountGuid": str(account_guid),
                 "name": name,
@@ -143,7 +187,8 @@ def publish_account_updated(
             },
         },
         "metadata": _build_metadata("ACCOUNT_UPDATE"),
-    })
+        },
+    )
 
 
 # Contract 4 – Account Deleted (soft)
@@ -153,29 +198,41 @@ def publish_account_deleted(
 ) -> None:
     """Publish ACCOUNT_DELETE to Transaction-Service and Synchronize-Service."""
     # Step 2 → Transaction-Service
-    _publish("account.deleted.transaction", {
+    _publish(
+        EXCHANGE_ACCOUNT_EVENTS,
+        "fanout",
+        "",
+        {
         "data": {
             "accountGuid": str(account_guid),
             "ownerId": owner_id,
             "timestamp": timestamp,
         },
         "metadata": _build_metadata("ACCOUNT_DELETE"),
-    })
+        },
+    )
 
     # Step 3 → Synchronize-Service
-    _publish("account.deleted.sync", {
+    _publish(
+        EXCHANGE_SYNCHRONIZE_EVENTS,
+        "direct",
+        ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
+        {
         "data": {
+            "ownerId": owner_id,
             "account": {
                 "accountGuid": str(account_guid),
                 "timestamp": timestamp,
             },
         },
         "metadata": _build_metadata("ACCOUNT_DELETE"),
-    })
+        },
+    )
 
 # Contract 5 – Bank Transaction
 
 def publish_transaction(
+    owner_id: str,
     account_data: dict,
     receiver_data: dict | None,
     amount: str,
@@ -185,6 +242,7 @@ def publish_transaction(
 ) -> None:
     """Publish fraud-check request to Fraud-Service (Contract 5, Step 2)."""
     data: dict = {
+        "ownerId": owner_id,
         "account": {
             "guid": str(account_data["guid"]),
             "name": account_data["name"],
@@ -201,12 +259,48 @@ def publish_transaction(
             "type": receiver_data["type"],
         }
 
-    _publish("transaction.fraud.check", {
+    _publish(
+        EXCHANGE_AI_TRANSACTION,
+        "fanout",
+        "",
+        {
         "data": data,
         "metadata": _build_metadata(
             f"TRANSACTION_{transaction_type}", message_id,
         ),
-    })
+        },
+    )
+
+
+def publish_exchange_request(
+    owner_id: str,
+    account_data: dict,
+    amount: str,
+    currency: str,
+    message_id: str,
+    origin_ip: str,
+) -> None:
+    """Publish exchange fraud-check request (Contract 6, Step 2)."""
+    _publish(
+        EXCHANGE_AI_TRANSACTION,
+        "fanout",
+        "",
+        {
+            "data": {
+                "ownerId": owner_id,
+                "account": {
+                    "guid": str(account_data["guid"]),
+                    "name": account_data["name"],
+                    "type": account_data["type"],
+                },
+                "amount": amount,
+                "currency": currency,
+                "transactionType": "EXCHANGE",
+                "originIpAddress": origin_ip,
+            },
+            "metadata": _build_metadata("TRANSACTION_EXCHANGE", message_id),
+        },
+    )
 
 
 

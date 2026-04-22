@@ -16,6 +16,7 @@ from accounts.models import Account
 from accounts.serializers import (
     AccountResponseSerializer,
     CreateAccountSerializer,
+    ExchangeSerializer,
     FreezeAccountSerializer,
     TransactionSerializer,
     UpdateAccountSerializer,
@@ -152,6 +153,7 @@ def account_transactions(request, guid):
     vd = serializer.validated_data
     services.initiate_transaction(
         account=account,
+        owner_id=account.owner_id,
         receiver_guid=vd.get("receiverAccountGuid"),
         amount=vd["amount"],
         transaction_type=vd["transactionType"],
@@ -160,3 +162,35 @@ def account_transactions(request, guid):
     )
 
     return JsonResponse({"message": "Transaction initiated."}, status=202)
+
+
+# /accounts/<guid>/exchanges  (POST)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def account_exchanges(request, guid):
+    """Initiate a currency exchange request (Contract 6)."""
+    try:
+        account = services.get_account_by_guid(guid)
+    except Account.DoesNotExist:
+        return JsonResponse({"error": "Account not found."}, status=404)
+
+    body = _parse_json(request)
+    if body is None:
+        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+
+    serializer = ExchangeSerializer(data=body)
+    if not serializer.is_valid():
+        return JsonResponse({"errors": serializer.errors}, status=400)
+
+    vd = serializer.validated_data
+    services.initiate_exchange(
+        account=account,
+        owner_id=account.owner_id,
+        amount=vd["amount"],
+        currency=vd["currency"],
+        message_id=str(vd["messageId"]),
+        origin_ip=_get_client_ip(request),
+    )
+
+    return JsonResponse({"message": "Exchange initiated."}, status=202)

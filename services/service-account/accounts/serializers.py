@@ -67,6 +67,14 @@ class TransactionSerializer(serializers.Serializer):
         return attrs
 
 
+class ExchangeSerializer(serializers.Serializer):
+    """POST /accounts/{guid}/exchanges."""
+
+    amount = serializers.CharField(max_length=50)
+    currency = serializers.CharField(max_length=10)
+    messageId = serializers.UUIDField()
+
+
 # Response serializer
 
 class AccountResponseSerializer(serializers.ModelSerializer):

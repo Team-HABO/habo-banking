@@ -65,7 +65,10 @@ def freeze_account(account: Account, freeze: bool) -> Account:
     )
 
     publishers.publish_account_frozen(
-        account.account_guid, freeze, detail.timestamp.isoformat(),
+        account.owner_id,
+        account.account_guid,
+        freeze,
+        detail.timestamp.isoformat(),
     )
     return account
 
@@ -86,6 +89,7 @@ def update_account(
     )
 
     publishers.publish_account_updated(
+        account.owner_id,
         account.account_guid,
         name,
         account_type_name,
@@ -110,6 +114,7 @@ def soft_delete_account(account: Account) -> DeletedAccount:
 
 def initiate_transaction(
     account: Account,
+    owner_id: str,
     receiver_guid: str | None,
     amount: str,
     transaction_type: str,
@@ -135,5 +140,39 @@ def initiate_transaction(
         }
 
     publishers.publish_transaction(
-        account_data, receiver_data, amount, transaction_type, message_id, origin_ip,
+        owner_id,
+        account_data,
+        receiver_data,
+        amount,
+        transaction_type,
+        message_id,
+        origin_ip,
+    )
+
+
+# Contract 6 - Initiate Currency Exchange
+
+def initiate_exchange(
+    account: Account,
+    owner_id: str,
+    amount: str,
+    currency: str,
+    message_id: str,
+    origin_ip: str,
+) -> None:
+    """Publish exchange request to Fraud-Service (Contract 6 Step 2)."""
+    latest = account.details.order_by("-timestamp").first()
+    account_data = {
+        "guid": account.account_guid,
+        "name": latest.name if latest else "",
+        "type": latest.account_type.name if latest else "",
+    }
+
+    publishers.publish_exchange_request(
+        owner_id=owner_id,
+        account_data=account_data,
+        amount=amount,
+        currency=currency,
+        message_id=message_id,
+        origin_ip=origin_ip,
     )
