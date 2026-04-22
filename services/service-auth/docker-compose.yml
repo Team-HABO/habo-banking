@@ -2,7 +2,7 @@ services:
   service-auth:
     image: service-auth
     build:
-      context: ./service-auth
+      context: .
       dockerfile: Dockerfile
     env_file:
       - .env

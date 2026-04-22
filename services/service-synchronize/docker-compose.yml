@@ -42,7 +42,7 @@ services:
   service-synchronize:
     image: service-synchronize
     build:
-      context: ./service-synchronize
+      context: .
       dockerfile: Dockerfile
       target: build
     working_dir: /src
