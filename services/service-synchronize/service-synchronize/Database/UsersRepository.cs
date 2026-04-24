@@ -53,7 +53,14 @@ namespace service_synchronize.Database
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid));
+                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid),
+                Builders<User>.Filter.Not(
+                    Builders<User>.Filter.ElemMatch(
+                        "accounts.audits",
+                        Builders<BsonDocument>.Filter.Eq("auditId", newAudit.AuditId)
+                    )
+                )
+            );
 
             UpdateDefinition<User> update = Builders<User>.Update
                 .Push("accounts.$.audits", newAudit)
@@ -62,8 +69,15 @@ namespace service_synchronize.Database
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 
             if (result.MatchedCount == 0)
+            {
+                if (await AuditExistsAsync(userId, newAudit.AuditId))
+                {
+                    return; 
+                }
                 throw new InvalidOperationException($"No account found for userId '{userId}' and accountGuid '{accountGuid}'.");
+            }
         }
+
         public async Task<string?> GetUserIdByAccountGuidAsync(string accountGuid)
         {
             FilterDefinition<User> filter = Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid);
@@ -102,7 +116,15 @@ namespace service_synchronize.Database
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid));
+                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid),
+                Builders<User>.Filter.Not(
+                    Builders<User>.Filter.ElemMatch(
+                        "accounts.audits",
+                        Builders<BsonDocument>.Filter.Eq("auditId", audit.AuditId)
+                    )
+                )
+            );
+
             UpdateDefinition<User> update = Builders<User>.Update
                 .Push("accounts.$.audits", audit)
                 .Inc("accounts.$.balance.amount", amount);
@@ -110,8 +132,13 @@ namespace service_synchronize.Database
             UpdateResult result = await _usersCollection.UpdateOneAsync(session, filter, update);
             if (result.MatchedCount == 0)
             {
-                throw new InvalidOperationException(
-                    $"Account not found for userId '{userId}' and accountGuid '{accountGuid}' during session update.");
+                {
+                    if (await AuditExistsAsync(userId, audit.AuditId))
+                    {
+                        return;
+                    }
+                    throw new InvalidOperationException($"No account found for userId '{userId}' and accountGuid '{accountGuid}'.");
+                }
             }
         }
     }

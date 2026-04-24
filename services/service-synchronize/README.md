@@ -5,7 +5,7 @@ It consumes events from RabbitMQ and writes denormalized user/account/transactio
 
 ## Responsibilities
 
-- Consume `synchronize-transaction` and `synchronize-account` events from exchange `synchronize-events`.
+- Consume `synchronize-transaction-queue` and `synchronize-account` events from exchange `synchronize-events`.
 - Validate incoming message structure and message types.
 - Apply idempotency checks for transactions using `metadata.messageId`.
 - Persist account and transaction changes in MongoDB.
@@ -82,7 +82,7 @@ dotnet run
 
 - Exchange: `synchronize-events` (type: `direct`)
 - Queue: `synchronize-account-queue` bound with routing key `synchronize-account`
-- Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction`
+- Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction-queue`
 
 ## Message Contracts
 
@@ -110,7 +110,7 @@ dotnet run
 }
 ```
 
-### Transaction Deposit (`synchronize-transaction`)
+### Transaction Deposit (`synchronize-transaction-queue`)
 
 ```json
 {
@@ -133,7 +133,7 @@ dotnet run
 }
 ```
 
-### Transaction Withdraw (`synchronize-transaction`)
+### Transaction Withdraw (`synchronize-transaction-queue`)
 
 ```json
 {
@@ -151,12 +151,34 @@ dotnet run
     "metadata": {
         "messageType": "WITHDRAW",
         "messageTimestamp": "2026-04-06T09:22:00Z",
+        "messageId": "GUID1"
+    }
+}
+```
+### Transaction Exchange (`synchronize-transaction-queue`)
+
+```json
+{
+    "data": {
+        "ownerId": "user-1",
+        "account": {
+            "guid": "1",
+            "audit": {
+                "amount": "20.50",
+                "type": "EXCHANGE",
+                "timestamp": "2026-04-06T09:22:00Z"
+            }
+        }
+    },
+    "metadata": {
+        "messageType": "TRANSACTION_EXCHANGE",
+        "messageTimestamp": "2026-04-06T09:22:00Z",
         "messageId": "GUID2"
     }
 }
 ```
 
-### Transaction Transfer (`synchronize-transaction`)
+### Transaction Transfer (`synchronize-transaction-queue`)
 remember to create another user
 
 ```json
@@ -185,7 +207,7 @@ remember to create another user
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER",
         "messageTimestamp": "2026-04-06T09:22:00Z",
-        "messageId": "GUID44"
+        "messageId": "GUID3"
     }
 }
 ```

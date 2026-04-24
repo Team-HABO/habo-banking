@@ -7,7 +7,7 @@ namespace service_synchronize.Models
     {
         public enum AuditType
         {
-            Withdraw, Deposit, Transfer
+            Withdraw, Deposit, Transfer, Exchange
         }
         [BsonElement("auditId")]
         public required string AuditId { get; set; }

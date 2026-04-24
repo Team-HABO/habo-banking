@@ -10,7 +10,7 @@ namespace service_synchronize.Services
     {
         public enum TransactionMessageType
         {
-            TRANSACTION_TRANSFER, WITHDRAW, DEPOSIT
+            TRANSACTION_TRANSFER, WITHDRAW, DEPOSIT, TRANSACTION_EXCHANGE, EXCHANGE
         }
         private async Task ProcessDeposit(string ownerId, string accountGuid, decimal amount, Audit newAudit)
         {
@@ -44,12 +44,6 @@ namespace service_synchronize.Services
                 throw new InvalidDataException($"Invalid amount format: {messageData.Account.Audit.Amount}");
             }
 
-            // Check idempotency
-            if (await usersRepository.AuditExistsAsync(ownerId, auditId))
-            {
-                logger.LogInformation("Message {Id} already processed. Skipping.", auditId);
-                return;
-            }
             Audit ownerAudit = MapAudit(messageData.Account.Audit, message.Metadata.MessageId);
             switch (transactionType)
             {
@@ -57,6 +51,7 @@ namespace service_synchronize.Services
                     await ProcessDeposit(ownerId, ownerAccountId, amount, ownerAudit);
                     break;
                 case TransactionMessageType.WITHDRAW:
+                case TransactionMessageType.TRANSACTION_EXCHANGE:
                     await ProcessWithdraw(ownerId, ownerAccountId, amount, ownerAudit);
                     break;
                 case TransactionMessageType.TRANSACTION_TRANSFER:
