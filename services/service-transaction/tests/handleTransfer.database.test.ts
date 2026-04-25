@@ -137,7 +137,7 @@ describe("handleTransfer database integration", () => {
 
 		expect(audits).toHaveLength(1);
 		expect(audits[0]!.amount).toBe("50");
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 		expect(audits[0]!.senderBalanceId).toBe(senderBalanceId);
 		expect(audits[0]!.receiverBalanceId).toBe(receiverBalanceId);
 	});
@@ -153,6 +153,6 @@ describe("handleTransfer database integration", () => {
 		});
 
 		expect(audits).toHaveLength(1);
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 	});
 });

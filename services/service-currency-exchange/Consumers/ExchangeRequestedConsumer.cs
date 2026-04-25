@@ -54,6 +54,7 @@ public class ExchangeRequestedConsumer(
                 {
                     OwnerId = data.OwnerId,
                     AccountGuid = data.AccountGuid,
+                    AccountName = data.AccountName,
                     Amount = data.Amount,
                     Currency = data.Currency,
                     TransactionType = data.TransactionType,

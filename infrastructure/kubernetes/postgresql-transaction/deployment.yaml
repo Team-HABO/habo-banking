@@ -18,6 +18,7 @@ spec:
             containers:
                 - name: postgresql-transaction
                   image: postgres:15-alpine
+                  imagePullPolicy: IfNotPresent
                   ports:
                       - containerPort: 5432
                   env:

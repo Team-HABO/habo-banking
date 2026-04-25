@@ -17,6 +17,7 @@ public record ExchangeRequestedData
 {
     public string OwnerId { get; init; } = string.Empty;
     public string AccountGuid { get; init; } = string.Empty;
+    public string AccountName { get; init; } = string.Empty;
     public string Amount { get; init; } = string.Empty;
 
     /// <summary>Target currency to exchange into (from DKK).</summary>

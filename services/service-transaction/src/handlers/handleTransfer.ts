@@ -6,7 +6,7 @@ import { isAlreadyProcessed, isOlderEvent } from "../utils/helper";
 
 export default async function handleTransfer(payload: TTransactionPayload) {
 	console.log("Handling transfer:", payload);
-	const { data, metadata } = payload.message;
+	const { data, metadata } = payload;
 
 	if (!data.receiver) {
 		throw new Error("data.receiver is undefined");

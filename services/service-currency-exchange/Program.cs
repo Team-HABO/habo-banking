@@ -45,6 +45,9 @@ builder.Services.AddMassTransit(config =>
             host.Password(rabbitMqPassword);
         });
 
+        cfg.ClearSerialization();
+        cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
         // Publish ExchangeProcessed to currency-exchange-events DIRECT
         cfg.Publish<ExchangeProcessed>(x => x.ExchangeType = "direct");
 

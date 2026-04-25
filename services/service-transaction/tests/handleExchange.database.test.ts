@@ -2,7 +2,9 @@ import "dotenv/config";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { prisma } from "../prisma/prisma";
 import handleExchange from "../src/handlers/handleExchange";
-import { ACCOUNT_GUID, cleanupBalance, makePayload, OWNER_ID } from "./helpers";
+import type { TExchangeProcessedPayload } from "../src/events/transaction";
+import { ACCOUNT_GUID, cleanupBalance, OWNER_ID } from "./helpers";
+import { v4 as uuidv4 } from "uuid";
 
 describe("handleExchange database integration", () => {
 	let balanceId: number;
@@ -24,11 +26,23 @@ describe("handleExchange database integration", () => {
 		await cleanupBalance(ACCOUNT_GUID);
 	});
 
-	function makeExchangePayload(amount: string, offsetMs = 0) {
-		const payload = makePayload(amount, ACCOUNT_GUID, offsetMs, "EXCHANGE");
-		payload.message.data.currency = "EUR";
-		payload.message.data.exchangeRate = 0.5;
-		return payload;
+	function makeExchangePayload(amount: string, offsetMs = 0, accountGuid = ACCOUNT_GUID): TExchangeProcessedPayload {
+		return {
+			data: {
+				ownerId: OWNER_ID,
+				accountGuid,
+				accountName: "Test Account",
+				amount,
+				currency: "EUR",
+				transactionType: "EXCHANGE",
+				exchangeRate: 0.5
+			},
+			metadata: {
+				messageType: "TRANSACTION_EXCHANGE",
+				messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
+				messageId: uuidv4()
+			}
+		};
 	}
 
 	it("should create a new balance detail with exchanged subtraction", async () => {
@@ -59,15 +73,13 @@ describe("handleExchange database integration", () => {
 	});
 
 	it("should not throw when the account does not exist", async () => {
-		const payload = makeExchangePayload("50");
-		payload.message.data.account.guid = "non-existent-guid-xyz";
+		const payload = makeExchangePayload("50", 0, "non-existent-guid-xyz");
 
 		await expect(handleExchange(payload)).resolves.toBeUndefined();
 	});
 
 	it("should not create a new balance detail when the account does not exist", async () => {
-		const payload = makeExchangePayload("50");
-		payload.message.data.account.guid = "non-existent-guid-xyz";
+		const payload = makeExchangePayload("50", 0, "non-existent-guid-xyz");
 
 		await handleExchange(payload);
 
@@ -122,7 +134,7 @@ describe("handleExchange database integration", () => {
 
 		expect(audits).toHaveLength(1);
 		expect(audits[0]!.amount).toBe("50");
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 		expect(audits[0]!.senderBalanceId).toBe(balanceId);
 		expect(audits[0]!.receiverBalanceId).toBe(balanceId);
 	});
@@ -138,19 +150,19 @@ describe("handleExchange database integration", () => {
 		});
 
 		expect(audits).toHaveLength(1);
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 	});
 
 	it("should throw when currency is missing", async () => {
 		const payload = makeExchangePayload("50");
-		payload.message.data.currency = null;
+		(payload.data as { currency: string | null }).currency = null as unknown as string;
 
 		await expect(handleExchange(payload)).rejects.toThrow();
 	});
 
 	it("should throw when exchangeRate is missing", async () => {
 		const payload = makeExchangePayload("50");
-		payload.message.data.exchangeRate = null;
+		(payload.data as { exchangeRate: number | null }).exchangeRate = null as unknown as number;
 
 		await expect(handleExchange(payload)).rejects.toThrow();
 	});

@@ -18,11 +18,37 @@ export type TData = {
 	exchangeRate?: number | null;
 };
 
+// Received from AI service (FraudChecked) - raw JSON, no MassTransit envelope
 export type TTransactionPayload = {
-	message: {
-		data: TData;
-		metadata: TMetadata;
+	data: TData;
+	metadata: TMetadata;
+};
+
+// Sent to currency-exchange service (ExchangeRequested)
+export type TExchangeRequestedPayload = {
+	data: {
+		ownerId: string;
+		accountGuid: string;
+		accountName: string;
+		amount: string;
+		currency: string;
+		transactionType: string;
 	};
+	metadata: TMetadata;
+};
+
+// Received from currency-exchange service (ExchangeProcessed)
+export type TExchangeProcessedPayload = {
+	data: {
+		ownerId: string;
+		accountGuid: string;
+		accountName: string;
+		amount: string;
+		currency: string;
+		transactionType: string;
+		exchangeRate: number;
+	};
+	metadata: TMetadata;
 };
 
 export type TSynchronizeTransactionPayload = {

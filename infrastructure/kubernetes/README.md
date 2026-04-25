@@ -137,7 +137,7 @@ If your cluster node cannot reach Docker Hub at pull time (e.g. network restrict
 docker pull rabbitmq:3-management
 docker pull postgres:15-alpine
 docker pull busybox:1.37
-docker pull forkeh/habo-bank-service-transaction:latest
+docker pull alihmohammad/habo-bank-service-transaction:latest
 docker pull forkeh/habo-bank-service-currency-exchange:latest
 docker pull forkeh/habo-bank-service-notification:latest
 docker pull forkeh/habo-bank-service-ai:latest
