@@ -199,7 +199,7 @@ namespace service_synchronize.Database
             _logger.LogInformation("Applied session update for user {UserId} account {AccountGuid}.", userId, accountGuid);
         }
 
-        //the following logic might need to change so no tests has been done
+        // TODO: the following logic might need to change so no tests has been done
         public async Task UpdateAccountAsync(string userId, Account account)
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
@@ -222,7 +222,7 @@ namespace service_synchronize.Database
 
             _logger.LogInformation("Updated account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
         }
-        //the following logic might need to change so no tests has been done
+        // TODO: the following logic might need to change so no tests has been done
         public async Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen)
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(

@@ -33,7 +33,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
 
             services.AddMassTransit(x =>
             {
-                x.AddConsumer<AccountCreatedConsumer>();
+                x.AddConsumer<AccountEventConsumer>();
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -42,12 +42,12 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                     cfg.ReceiveEndpoint("synchronize-account-queue-test", e =>
                     {
                         e.UseRawJsonDeserializer(); 
-                        e.ConfigureConsumer<AccountCreatedConsumer>(context);
+                        e.ConfigureConsumer<AccountEventConsumer>(context);
 
                         e.Bind("synchronize-events", s =>
                         {
                             s.ExchangeType = "direct";
-                            s.RoutingKey = "ROUTING_KEY_SYNCHRONIZE_ACCOUNT";
+                            s.RoutingKey = "synchronize-account-queue";
                         });
                     });
                 });

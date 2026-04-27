@@ -23,7 +23,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddMassTransit(x => {
-    x.AddConsumer<AccountCreatedConsumer>();
+    x.AddConsumer<AccountEventConsumer>();
     x.AddConsumer<TransactionCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
@@ -40,11 +40,15 @@ builder.Services.AddMassTransit(x => {
                 r.Ignore<InvalidDataException>();
             });
             
-            e.ConfigureConsumer<AccountCreatedConsumer>(context);
+            e.ConfigureConsumer<AccountEventConsumer>(context);
 
             e.Bind("synchronize-events", s => {
                 s.ExchangeType = "direct"; 
                 s.RoutingKey = "ROUTING_KEY_SYNCHRONIZE_ACCOUNT";
+            });
+            e.Bind("synchronize-events", s => {
+                s.ExchangeType = "direct";
+                s.RoutingKey = "synchronize-account-queue";
             });
         });
 

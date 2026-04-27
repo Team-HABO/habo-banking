@@ -82,6 +82,7 @@ dotnet run
 
 - Exchange: `synchronize-events` (type: `direct`)
 - Queue: `synchronize-account-queue` bound with routing key `ROUTING_KEY_SYNCHRONIZE_ACCOUNT`
+- Queue: `synchronize-account-queue` bound with routing key `synchronize-account-queue`
 - Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction-queue`
 
 ## Message Contracts

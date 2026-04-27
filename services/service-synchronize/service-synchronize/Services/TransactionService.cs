@@ -10,7 +10,7 @@ namespace service_synchronize.Services
     {
         public enum TransactionMessageType
         {
-            TRANSACTION_TRANSFER, WITHDRAW, DEPOSIT, TRANSACTION_EXCHANGE, EXCHANGE
+            TRANSACTION_TRANSFER, WITHDRAW, DEPOSIT, TRANSACTION_EXCHANGE
         }
         private async Task ProcessDeposit(string ownerId, string accountGuid, decimal amount, Audit newAudit)
         {
