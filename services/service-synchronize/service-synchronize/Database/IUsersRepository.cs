@@ -13,5 +13,8 @@ namespace service_synchronize.Database
         Task ExecuteTransferAsync(
             string senderId, string senderAccountGuid, decimal amount, Audit senderAudit,
             string receiverId, string receiverAccountGuid, Audit receiverAudit);
+        Task UpdateAccountAsync(string userId, Account account);
+        Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen);
+        Task DeleteAccountAsync(string userId, string accountGuid);
     }
 }

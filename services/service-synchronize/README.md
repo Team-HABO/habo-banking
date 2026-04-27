@@ -81,12 +81,12 @@ dotnet run
 ## Queue and Routing Setup
 
 - Exchange: `synchronize-events` (type: `direct`)
-- Queue: `synchronize-account-queue` bound with routing key `synchronize-account`
-- Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction`
+- Queue: `synchronize-account-queue` bound with routing key `ROUTING_KEY_SYNCHRONIZE_ACCOUNT`
+- Queue: `synchronize-transaction-queue` bound with routing key `synchronize-transaction-queue`
 
 ## Message Contracts
 
-### Account Created (`synchronize-account`)
+### Account Created
 
 ```json
 {
@@ -110,7 +110,24 @@ dotnet run
 }
 ```
 
-### Transaction Deposit (`synchronize-transaction`)
+### Account Deleted
+
+```json
+{
+    "data": {
+        "ownerId": "user-12345",
+        "account": {
+            "accountGuid": "1",
+            "timestamp": "2026-04-06T09:21:00Z"
+        }
+    },
+    "metadata": {
+        "messageType": "ACCOUNT_DELETE",
+        "messageTimestamp": "2026-04-06T09:22:00Z"
+    }
+}
+```
+### Transaction Deposit
 
 ```json
 {
@@ -133,7 +150,7 @@ dotnet run
 }
 ```
 
-### Transaction Withdraw (`synchronize-transaction`)
+### Transaction Withdraw  
 
 ```json
 {
@@ -151,12 +168,35 @@ dotnet run
     "metadata": {
         "messageType": "WITHDRAW",
         "messageTimestamp": "2026-04-06T09:22:00Z",
+        "messageId": "GUID1"
+    }
+}
+```
+
+### Transaction Exchange (`synchronize-transaction-queue`)
+
+```json
+{
+    "data": {
+        "ownerId": "user-1",
+        "account": {
+            "guid": "1",
+            "audit": {
+                "amount": "20.50",
+                "type": "EXCHANGE",
+                "timestamp": "2026-04-06T09:22:00Z"
+            }
+        }
+    },
+    "metadata": {
+        "messageType": "TRANSACTION_EXCHANGE",
+        "messageTimestamp": "2026-04-06T09:22:00Z",
         "messageId": "GUID2"
     }
 }
 ```
 
-### Transaction Transfer (`synchronize-transaction`)
+### Transaction Transfer  
 remember to create another user
 
 ```json
@@ -185,7 +225,7 @@ remember to create another user
     "metadata": {
         "messageType": "TRANSACTION_TRANSFER",
         "messageTimestamp": "2026-04-06T09:22:00Z",
-        "messageId": "GUID44"
+        "messageId": "GUID3"
     }
 }
 ```

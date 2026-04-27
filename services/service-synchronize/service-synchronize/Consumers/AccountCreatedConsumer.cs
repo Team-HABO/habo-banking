@@ -1,40 +1,44 @@
-﻿
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using service_synchronize.Messages;
-using service_synchronize.Models;
 using service_synchronize.Services;
 
 namespace service_synchronize.Consumers
 {
-    public class AccountCreatedConsumer(IAccountService accountService, ILogger<AccountCreatedConsumer> logger) : IConsumer<AccountCreated>
+    public class AccountCreatedConsumer(IAccountService accountService, ILogger<AccountCreatedConsumer> logger) : IConsumer<AccountEventEnvelope>
     {
-        public async Task Consume(ConsumeContext<AccountCreated> context)
+        public async Task Consume(ConsumeContext<AccountEventEnvelope> context)
         {
-            AccountCreated message = context.Message;
+            AccountMetadata metadata = context.Message.Metadata;
+            AccountEventData data = context.Message.Data;
 
-            if (message.Metadata.MessageType != "ACCOUNT_CREATE")
+            if (data == null)
             {
-                logger.LogWarning("Discarded message with unexpected type: {Type}", message.Metadata.MessageType);
-                return;
-            }
-            if (!Enum.TryParse<Account.AccountType>(message.Data.Account.Type, true, out _))
-            {
-                logger.LogWarning("Discarded: Account {Guid} has an invalid Type '{Type}'",
-                    message.Data.Account.AccountGuid, message.Data.Account.Type);
+                logger.LogWarning("Discarded account message with type {Type} because the payload was null.", metadata.MessageType);
                 return;
             }
 
-            try
+            switch (metadata.MessageType)
             {
-                await accountService.ProcessAccountCreationAsync(message.Data.OwnerId, message.Data.Account);
-            }
-            catch (InvalidDataException ex)
-            {
-                logger.LogWarning(ex,
-                    "Discarded invalid account message. AccountGuid: {Guid}, OwnerId: {OwnerId}",
-                    message.Data.Account.AccountGuid,
-                    message.Data.OwnerId);
+                case "ACCOUNT_CREATE":
+                    await accountService.ProcessAccountCreationAsync(data.OwnerId, data.Account);
+                    break;
+
+                case "ACCOUNT_DELETE":
+                    await accountService.ProcessAccountDeletionAsync(data.OwnerId, data.Account.AccountGuid);
+                    break;
+
+                case "ACCOUNT_UPDATE":
+                    await accountService.ProcessAccountUpdateAsync(data.OwnerId, data.Account);
+                    break;
+
+                case "ACCOUNT_STATUS":
+                    await accountService.ProcessStatusChangeAsync(data.OwnerId, data.Account.AccountGuid, data.Account.IsFrozen ?? false);
+                    break;
+
+                default:
+                    logger.LogWarning("Unhandled message type: {Type}", metadata.MessageType);
+                    break;
             }
         }
     }

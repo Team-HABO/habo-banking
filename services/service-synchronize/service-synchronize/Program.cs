@@ -44,7 +44,7 @@ builder.Services.AddMassTransit(x => {
 
             e.Bind("synchronize-events", s => {
                 s.ExchangeType = "direct"; 
-                s.RoutingKey = "synchronize-account";
+                s.RoutingKey = "ROUTING_KEY_SYNCHRONIZE_ACCOUNT";
             });
         });
 
@@ -59,7 +59,7 @@ builder.Services.AddMassTransit(x => {
 
             e.Bind("synchronize-events", s => {
                 s.ExchangeType = "direct";
-                s.RoutingKey = "synchronize-transaction";
+                s.RoutingKey = "synchronize-transaction-queue";
             });
         });
     });

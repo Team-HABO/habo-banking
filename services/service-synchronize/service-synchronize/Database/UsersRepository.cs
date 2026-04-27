@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using service_synchronize.Models;
 
@@ -8,19 +9,50 @@ namespace service_synchronize.Database
     {
         private readonly IMongoCollection<User> _usersCollection;
         private readonly IMongoClient _client;
-        public UsersRepository(IMongoClient mongoClient, string dbName = "HABO_DB")
+        private readonly ILogger<UsersRepository> _logger;
+        public UsersRepository(IMongoClient mongoClient, ILogger<UsersRepository> logger, string dbName = "HABO_DB")
         {
             IMongoDatabase database = mongoClient.GetDatabase(dbName);
             _usersCollection = database.GetCollection<User>("users");
             _client = mongoClient;
+            _logger = logger;
         }
+        public async Task DeleteAccountAsync(string userId, string accountGuid)
+        {
+            _logger.LogInformation("Deleting account {AccountGuid} for user {UserId}.", accountGuid, userId);
+
+            FilterDefinition<User> filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+
+            UpdateDefinition<User> update = Builders<User>.Update.PullFilter(
+                u => u.Accounts,
+                a => a.AccountGuid == accountGuid
+            );
+
+            UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
+
+            if (result.ModifiedCount == 0)
+            {
+                _logger.LogWarning("Delete failed: Account {AccountGuid} was not found for user {UserId}.", accountGuid, userId);
+                return;
+            }
+
+            _logger.LogInformation("Deleted account {AccountGuid} for user {UserId}.", accountGuid, userId);
+        }
+
         public async Task UpsertAccountAsync(string userId, Account account)
         {
             //Can not call GetUserByIdAsync before an update because it introduces a Race Condition
+            _logger.LogInformation("Inserting account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
+
             FilterDefinition<User> userFilter = Builders<User>.Filter.Eq(u => u.Id, userId);
             UpdateDefinition<User> userUpdate = Builders<User>.Update.SetOnInsert(u => u.Id, userId);
 
-            await _usersCollection.UpdateOneAsync(userFilter, userUpdate, new UpdateOptions { IsUpsert = true });
+            UpdateResult userResult = await _usersCollection.UpdateOneAsync(userFilter, userUpdate, new UpdateOptions { IsUpsert = true });
+
+            if (userResult.UpsertedId != null)
+            {
+                _logger.LogInformation("Created user {UserId} while inserting account {AccountGuid}.", userId, account.AccountGuid);
+            }
 
             FilterDefinition<User> accountFilter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
@@ -31,7 +63,15 @@ namespace service_synchronize.Database
 
             UpdateDefinition<User> accountUpdate = Builders<User>.Update.Push(u => u.Accounts, account);
 
-            await _usersCollection.UpdateOneAsync(accountFilter, accountUpdate, new UpdateOptions { IsUpsert = false });
+            UpdateResult accountResult = await _usersCollection.UpdateOneAsync(accountFilter, accountUpdate, new UpdateOptions { IsUpsert = false });
+
+            if (accountResult.MatchedCount == 0)
+            {
+                _logger.LogDebug("Account {AccountGuid} already exists for user {UserId}; upsert completed without changes.", account.AccountGuid, userId);
+                return;
+            }
+
+            _logger.LogInformation("Inserted account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
         }
 
         public async Task<User?> GetUserByIdAsync(string userId)
@@ -53,16 +93,32 @@ namespace service_synchronize.Database
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid));
+                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid),
+                Builders<User>.Filter.Not(
+                    Builders<User>.Filter.ElemMatch(
+                        "accounts.audits",
+                        Builders<BsonDocument>.Filter.Eq("auditId", newAudit.AuditId)
+                    )
+                )
+            );
 
-            UpdateDefinition<User> update = Builders<User>.Update
+            UpdateDefinition <User> update = Builders<User>.Update
                 .Push("accounts.$.audits", newAudit)
                 .Inc("accounts.$.balance.amount", amount);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 
             if (result.MatchedCount == 0)
+            {
+                if (await AuditExistsAsync(userId, newAudit.AuditId))
+                {
+                    return;
+                }
+                _logger.LogWarning("Transaction update failed: account {AccountGuid} not found for user {UserId}.", accountGuid, userId);
                 throw new InvalidOperationException($"No account found for userId '{userId}' and accountGuid '{accountGuid}'.");
+            }
+
+            _logger.LogInformation("Applied transaction audit {AuditId} to account {AccountGuid} for user {UserId}.", newAudit.AuditId, accountGuid, userId);
         }
         public async Task<string?> GetUserIdByAccountGuidAsync(string accountGuid)
         {
@@ -81,6 +137,10 @@ namespace service_synchronize.Database
             string senderId, string senderAccountGuid, decimal amount, Audit senderAudit,
             string receiverId, string receiverAccountGuid, Audit receiverAudit)
         {
+            _logger.LogInformation(
+                "Starting transfer from user {SenderId} account {SenderAccountGuid} to user {ReceiverId} account {ReceiverAccountGuid} for amount {Amount}.",
+                senderId, senderAccountGuid, receiverId, receiverAccountGuid, amount);
+
             using IClientSessionHandle session = await _client.StartSessionAsync();
             session.StartTransaction();
 
@@ -90,19 +150,34 @@ namespace service_synchronize.Database
                 await UpdateWithSession(session, receiverId, receiverAccountGuid, amount, receiverAudit);
 
                 await session.CommitTransactionAsync();
+                _logger.LogInformation(
+                    "Completed transfer from user {SenderId} account {SenderAccountGuid} to user {ReceiverId} account {ReceiverAccountGuid} for amount {Amount}.",
+                    senderId, senderAccountGuid, receiverId, receiverAccountGuid, amount);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await session.AbortTransactionAsync();
-                throw; 
+                _logger.LogError(
+                    ex,
+                    "Transfer failed between user {SenderId} account {SenderAccountGuid} and user {ReceiverId} account {ReceiverAccountGuid} for amount {Amount}.",
+                    senderId, senderAccountGuid, receiverId, receiverAccountGuid, amount);
+                throw;
             }
         }
 
         private async Task UpdateWithSession(IClientSessionHandle session, string userId, string accountGuid, decimal amount, Audit audit)
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
-                Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid));
+               Builders<User>.Filter.Eq(u => u.Id, userId),
+               Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid),
+               Builders<User>.Filter.Not(
+                   Builders<User>.Filter.ElemMatch(
+                       "accounts.audits",
+                       Builders<BsonDocument>.Filter.Eq("auditId", audit.AuditId)
+                   )
+               )
+           );
+
             UpdateDefinition<User> update = Builders<User>.Update
                 .Push("accounts.$.audits", audit)
                 .Inc("accounts.$.balance.amount", amount);
@@ -110,9 +185,60 @@ namespace service_synchronize.Database
             UpdateResult result = await _usersCollection.UpdateOneAsync(session, filter, update);
             if (result.MatchedCount == 0)
             {
+                if (await AuditExistsAsync(userId, audit.AuditId))
+                {
+                    return;
+                }
+                _logger.LogWarning(
+                    "Session update failed: account {AccountGuid} not found for user {UserId}.",
+                    accountGuid, userId);
                 throw new InvalidOperationException(
                     $"Account not found for userId '{userId}' and accountGuid '{accountGuid}' during session update.");
             }
+
+            _logger.LogInformation("Applied session update for user {UserId} account {AccountGuid}.", userId, accountGuid);
         }
+
+        //the following logic might need to change so no tests has been done
+        public async Task UpdateAccountAsync(string userId, Account account)
+        {
+            FilterDefinition<User> filter = Builders<User>.Filter.And(
+                Builders<User>.Filter.Eq(u => u.Id, userId),
+                Builders<User>.Filter.Eq("accounts.accountGuid", account.AccountGuid)
+            );
+
+            UpdateDefinition<User> update = Builders<User>.Update
+                .Set("accounts.$.name", account.Name)
+                .Set("accounts.$.type", account.Type.ToString())
+                .Set("accounts.$.timestamp", account.Timestamp);
+
+            UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                _logger.LogWarning("Update failed: Account {AccountGuid} not found for user {UserId}.", account.AccountGuid, userId);
+                return;
+            }
+
+            _logger.LogInformation("Updated account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
+        }
+        //the following logic might need to change so no tests has been done
+        public async Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen)
+        {
+            FilterDefinition<User> filter = Builders<User>.Filter.And(
+                Builders<User>.Filter.Eq(u => u.Id, userId),
+                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid)
+            );
+
+            UpdateDefinition<User> update = Builders<User>.Update.Set("accounts.$.isFrozen", isFrozen);
+
+            UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                _logger.LogWarning("Status update failed: Account {Guid} not found for User {UserId}.", accountGuid, userId);
+            }
+        }
+
     }
 }
