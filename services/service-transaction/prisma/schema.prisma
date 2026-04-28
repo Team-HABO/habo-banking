@@ -39,7 +39,7 @@ model BalanceDetail {
 
 model DeletedBalance {
   id        Int      @id @default(autoincrement())
-  balanceId Int
+  balanceId Int      @unique
   createdAt DateTime @default(now())
 
   balance Balance @relation(fields: [balanceId], references: [id])

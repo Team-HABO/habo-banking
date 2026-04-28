@@ -1,14 +1,6 @@
-export type TMessagePayload = {
-	message: string;
-};
+import type { TMetadata } from "./other";
 
-export type TMetadata = {
-	messageType: string;
-	messageTimestamp: string;
-	messageId: string;
-};
-
-export type TData = {
+export type TTransactionData = {
 	ownerId: string;
 	account: { guid: string; name: string; type: string };
 	receiver?: { guid: string; name: string; type: string };
@@ -18,9 +10,8 @@ export type TData = {
 	exchangeRate?: number | null;
 };
 
-// Received from AI service (FraudChecked) - raw JSON, no MassTransit envelope
 export type TTransactionPayload = {
-	data: TData;
+	data: TTransactionData;
 	metadata: TMetadata;
 };
 
@@ -49,6 +40,10 @@ export type TExchangeProcessedPayload = {
 		exchangeRate: number;
 	};
 	metadata: TMetadata;
+	message: {
+		data: TTransactionData;
+		metadata: TMetadata;
+	};
 };
 
 export type TSynchronizeTransactionPayload = {

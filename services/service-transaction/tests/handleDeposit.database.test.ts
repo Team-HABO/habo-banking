@@ -42,7 +42,7 @@ describe("handleDeposit database integration", () => {
 
 		const details = await prisma.balanceDetail.findMany({
 			where: { balanceId },
-			orderBy: { createdAt: "asc" }
+			orderBy: { id: "asc" }
 		});
 
 		expect(details).toHaveLength(3);
@@ -76,7 +76,7 @@ describe("handleDeposit database integration", () => {
 
 		const details = await prisma.balanceDetail.findMany({
 			where: { balanceId },
-			orderBy: { createdAt: "asc" }
+			orderBy: { id: "asc" }
 		});
 
 		expect(details).toHaveLength(2); // initial + one deposit

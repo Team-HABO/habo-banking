@@ -1,4 +1,4 @@
-name: AuthService CI
+name: AuthService CI/CD
 
 permissions:
   pull-requests: write
@@ -20,4 +20,12 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-auth-tests.yml
-
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/dockerize.yml
+    with:
+      docker-image-name: service-auth
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.OLIVIA_DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.OLIVIA_DOCKER_PASSWORD }}

@@ -4,10 +4,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["service-synchronize.csproj", "./"]
-RUN dotnet restore "./service-synchronize.csproj"
+COPY ["service-synchronize/service-synchronize.csproj", "./service-synchronize/"]
+RUN dotnet restore "./service-synchronize/service-synchronize.csproj"
 COPY . .
-RUN dotnet publish "./service-synchronize.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "service-synchronize/service-synchronize.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

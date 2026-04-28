@@ -4,15 +4,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["service-auth.csproj", "./"]
+COPY ["service-auth/service-auth.csproj", "./"]
 RUN dotnet restore "./service-auth.csproj"
-COPY ["Program.cs", "./"]
-COPY ["AppSettings.cs", "./"]
-COPY ["appsettings.json", "./"]
-COPY ["Controllers/", "./Controllers/"]
-COPY ["Services/", "./Services/"]
-COPY ["Properties/", "./Properties/"]
-RUN dotnet publish "./service-auth.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+COPY . .
+RUN dotnet publish "service-auth/service-auth.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
