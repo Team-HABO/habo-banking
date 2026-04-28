@@ -31,7 +31,7 @@ spec:
             containers:
                 - name: service-transaction
                   image: alihmohammad/habo-bank-service-transaction:latest
-                  imagePullPolicy: IfNotPresent
+                  imagePullPolicy: Always
                   env:
                       - name: RABBITMQ_HOST
                         valueFrom:
