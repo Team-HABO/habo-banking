@@ -45,19 +45,19 @@ infrastructure/kubernetes/
 │   ├── service.yaml                  ← ClusterIP (internal only)
 │   └── pvc.yaml                      ← 2Gi persistent storage (service-transaction only)
 ├── service-currency-exchange/
-│   └── deployment.yaml
+│   ├── deployment.yaml
+│   └── scaledobject.yaml
 ├── service-ai/
-│   └── deployment.yaml
+│   ├── deployment.yaml
+│   └── scaledobject.yaml
 ├── service-notification/
-│   └── deployment.yaml
+│   ├── deployment.yaml
+│   └── scaledobject.yaml
 ├── service-transaction/
-│   └── deployment.yaml
+│   ├── deployment.yaml
+│   └── scaledobject.yaml
 └── keda/
-    ├── rabbitmq-trigger-auth.yaml    ← TriggerAuthentication (management API URL)
-    ├── service-currency-exchange-scaledobject.yaml
-    ├── service-ai-scaledobject.yaml
-    ├── service-notification-scaledobject.yaml
-    └── service-transaction-scaledobject.yaml
+    └── rabbitmq-trigger-auth.yaml    ← TriggerAuthentication (management API URL)
 ```
 
 ---
