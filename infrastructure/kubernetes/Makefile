@@ -32,11 +32,11 @@ deploy: ## Deploy the full stack — run apply-secrets first
 	kubectl apply -f "$(DIR)/configmaps/"
 	kubectl apply -f "$(DIR)/rabbitmq/"
 	kubectl apply -f "$(DIR)/postgresql-transaction/"
+	@kubectl get crd scaledobjects.keda.sh > /dev/null 2>&1 || (echo "KEDA CRDs not found - run 'make install-keda' first" && exit 1)
 	kubectl apply -f "$(DIR)/service-currency-exchange/"
 	kubectl apply -f "$(DIR)/service-ai/"
 	kubectl apply -f "$(DIR)/service-notification/"
 	kubectl apply -f "$(DIR)/service-transaction/"
-	@kubectl get crd scaledobjects.keda.sh > /dev/null 2>&1 || (echo "KEDA CRDs not found - run 'make install-keda' first" && exit 1)
 	kubectl apply -f "$(DIR)/keda/"
 
 teardown: ## Delete the habo-banking namespace and all its resources
