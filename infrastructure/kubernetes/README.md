@@ -11,7 +11,7 @@ All four services are **background workers** — they have no HTTP endpoints and
 ### Message flow
 
 | Event                     | Published by              | Consumed by               | Queue                              |
-| ------------------------- | ------------------------- | ------------------------- | ---------------------------------- |
+|---------------------------|---------------------------|---------------------------|------------------------------------|
 | Currency exchange request | service-transaction       | service-currency-exchange | `currency-exchange-requests-queue` |
 | Exchange result           | service-currency-exchange | service-transaction       | `currency-exchange-response-queue` |
 | Fraud check               | service-transaction       | service-ai                | `ai-transaction-queue`             |
@@ -65,7 +65,7 @@ infrastructure/kubernetes/
 ## Prerequisites
 
 | Tool                  | Purpose                    | Install                                                            |
-| --------------------- | -------------------------- | ------------------------------------------------------------------ |
+|-----------------------|----------------------------|--------------------------------------------------------------------|
 | `kubectl`             | Kubernetes CLI             | [docs.k8s.io/tasks/tools](https://kubernetes.io/docs/tasks/tools/) |
 | Kind / Docker Desktop | Local cluster              | [kind.sigs.k8s.io](https://kind.sigs.k8s.io/)                      |
 | `helm`                | Package manager (for KEDA) | [helm.sh/docs/intro/install](https://helm.sh/docs/intro/install/)  |
@@ -222,7 +222,7 @@ kubectl logs -f -l app=service-ai -n habo-banking --tail=100
 ## Makefile commands
 
 | Command                    | Description                                                     |
-| -------------------------- | --------------------------------------------------------------- |
+|----------------------------|-----------------------------------------------------------------|
 | `make help`                | Show all available commands                                     |
 | `make install-keda`        | Install KEDA into the cluster via Helm                          |
 | `make apply-secrets`       | Apply secret files from `secrets/`                              |
@@ -250,7 +250,7 @@ KEDA extends Kubernetes with event-driven autoscaling. Instead of scaling on CPU
 ### Scaling parameters (per service)
 
 | Parameter         | Value | Meaning                                           |
-| ----------------- | ----- | ------------------------------------------------- |
+|-------------------|-------|---------------------------------------------------|
 | `minReplicaCount` | 1     | Always keep at least 1 pod running                |
 | `maxReplicaCount` | 5     | Never exceed 5 pods                               |
 | `pollingInterval` | 15s   | Check queue depth every 15 seconds                |
@@ -273,7 +273,7 @@ The `microservices-scaling` project uses a `rabbitmq-exporter` sidecar to expose
 ## Kubernetes resource concepts used
 
 | Resource                | Purpose                                                                    |
-| ----------------------- | -------------------------------------------------------------------------- |
+|-------------------------|----------------------------------------------------------------------------|
 | `Namespace`             | Logical isolation — all habo-banking resources live in `habo-banking`      |
 | `Deployment`            | Declares the desired state for a set of pods (image, replicas, env)        |
 | `Service`               | Stable DNS name and load balancer in front of a Deployment                 |
@@ -286,7 +286,7 @@ The `microservices-scaling` project uses a `rabbitmq-exporter` sidecar to expose
 ### Service types
 
 | Type        | Accessible from                         | Use case                                   |
-| ----------- | --------------------------------------- | ------------------------------------------ |
+|-------------|-----------------------------------------|--------------------------------------------|
 | `ClusterIP` | Inside cluster only                     | Default; PostgreSQL, internal services     |
 | `NodePort`  | Host machine via `localhost:<nodePort>` | RabbitMQ management UI for local debugging |
 

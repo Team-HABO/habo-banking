@@ -16,13 +16,13 @@ AI Service / Other Services ──► notification-events (DIRECT, routing key: 
 ### Consumed
 
 | Exchange              | Exchange Type | Queue                | Binding Key          | Message        |
-| --------------------- | ------------- | -------------------- | -------------------- | -------------- |
+|-----------------------|---------------|----------------------|----------------------|----------------|
 | `notification-events` | `direct`      | `notification-queue` | `notification-queue` | `Notification` |
 
 ## Flow
 
 | Trigger                 | Action                                              |
-| ----------------------- | --------------------------------------------------- |
+|-------------------------|-----------------------------------------------------|
 | `Notification` consumed | Sends an HTML alert email via SMTP to the recipient |
 
 ## Messages
@@ -39,7 +39,7 @@ failure). Contains `data.message` with a human-readable description and `metadat
 Set the following environment variables in a `.env` file at the project root (loaded via `DotNetEnv`):
 
 | Variable            | Description                       |
-| ------------------- | --------------------------------- |
+|---------------------|-----------------------------------|
 | `RABBITMQ_USERNAME` | RabbitMQ username                 |
 | `RABBITMQ_PASSWORD` | RabbitMQ password                 |
 | `RABBITMQ_HOST`     | RabbitMQ host (e.g. `localhost`)  |
@@ -65,13 +65,13 @@ dotnet run
 
 ```json
 {
-	"data": {
-		"message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
-	},
-	"metadata": {
-		"messageType": "TRANSACTION_DEPOSIT",
-		"messageTimestamp": "2026-03-10T12:00:00Z"
-	}
+ "data": {
+  "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
+ },
+ "metadata": {
+  "messageType": "TRANSACTION_DEPOSIT",
+  "messageTimestamp": "2026-03-10T12:00:00Z"
+ }
 }
 ```
 
