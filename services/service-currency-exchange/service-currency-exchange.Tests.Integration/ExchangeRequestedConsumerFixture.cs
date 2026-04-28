@@ -68,25 +68,50 @@ public sealed class ExchangeRequestedConsumerFixture : IAsyncLifetime
                     {
                         cfg.Host(_container.GetConnectionString());
 
-                        // Bind ExchangeRequestedConsumer's queue to the exact exchange name
-                        // declared via [EntityName] on ExchangeRequested, so Bus.Publish() reaches it.
+                        cfg.ClearSerialization();
+                        cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
+                        // Mirror production publish topology so exchanges are created as direct.
+                        cfg.Publish<ExchangeRequested>(p => p.ExchangeType = "direct");
+                        cfg.Publish<ExchangeProcessed>(p => p.ExchangeType = "direct");
+                        cfg.Publish<ExchangeNotification>(p => p.ExchangeType = "direct");
+
+                        // Mirror production: consume ExchangeRequested from currency-exchange-events
+                        // DIRECT with routing key currency-exchange-requests-queue.
                         cfg.ReceiveEndpoint("exchange-requested-consumer", e =>
                         {
-                            e.Bind("habo.banking:CurrencyExchangeRequested");
+                            e.ConfigureConsumeTopology = false;
+                            e.Bind("currency-exchange-events", x =>
+                            {
+                                x.ExchangeType = "direct";
+                                x.RoutingKey = "currency-exchange-requests-queue";
+                            });
                             e.ConfigureConsumer<ExchangeRequestedConsumer>(ctx);
                         });
 
-                        // Bind capturing consumers to the exact exchange names declared via
-                        // [EntityName] on ExchangeProcessed and ExchangeNotification respectively.
+                        // Mirror production: ExchangeProcessed is published to currency-exchange-events
+                        // DIRECT with routing key currency-exchange-response-queue.
                         cfg.ReceiveEndpoint("test-capture-exchange-processed", e =>
                         {
-                            e.Bind("habo.banking:CurrencyExchangeProcessed");
+                            e.ConfigureConsumeTopology = false;
+                            e.Bind("currency-exchange-events", x =>
+                            {
+                                x.ExchangeType = "direct";
+                                x.RoutingKey = "currency-exchange-response-queue";
+                            });
                             e.ConfigureConsumer<CapturingConsumer<ExchangeProcessed>>(ctx);
                         });
 
+                        // Mirror production: ExchangeNotification is published to notification-events
+                        // DIRECT with routing key notification-queue.
                         cfg.ReceiveEndpoint("test-capture-exchange-notification", e =>
                         {
-                            e.Bind("habo.banking:Notification");
+                            e.ConfigureConsumeTopology = false;
+                            e.Bind("notification-events", x =>
+                            {
+                                x.ExchangeType = "direct";
+                                x.RoutingKey = "notification-queue";
+                            });
                             e.ConfigureConsumer<CapturingConsumer<ExchangeNotification>>(ctx);
                         });
                     });
