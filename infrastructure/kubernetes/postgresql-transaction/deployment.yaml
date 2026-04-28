@@ -39,7 +39,7 @@ spec:
                                 key: POSTGRES_DB
                   readinessProbe:
                       exec:
-                          command: ['pg_isready', '-h', 'localhost']
+                          command: ['pg_isready', '-h', 'localhost', '-U', 'habouser']
                       initialDelaySeconds: 10
                       periodSeconds: 5
                       failureThreshold: 6

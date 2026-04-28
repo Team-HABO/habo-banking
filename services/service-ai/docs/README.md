@@ -52,7 +52,7 @@ The AI model flags transactions matching these rules:
 
 ### CheckFraud (consumed)
 
-Sent by the Account-Service (contract ID 5, step 2). Contains `data` with `ownerId`, `account` (guid, name, type), optional `receiver` (transfer only), `amount`, `transactionType`, and `originIpAddress`. `metadata.messageType` is one of `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT`.
+Sent by the Account-Service (contract ID 5, step 2). Contains `data` with `ownerId`, `account` (guid, name, type), optional `receiver` (transfer only), `amount`, `transactionType`, and `originIpAddress`. `metadata` contains `messageId` (UUID), `messageType` (one of `TRANSACTION_TRANSFER` / `TRANSACTION_WITHDRAW` / `TRANSACTION_DEPOSIT`), and `messageTimestamp`.
 
 ### FraudChecked (published — step 3)
 
@@ -113,6 +113,7 @@ Reason: Amount is over 10,000 AND the IP originates from Vietnam (1.52.0.0/14).
 		"originIpAddress": "1.52.1.1"
 	},
 	"metadata": {
+		"messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 		"messageType": "TRANSACTION_DEPOSIT",
 		"messageTimestamp": "2026-03-08T12:00:00Z"
 	}
@@ -142,6 +143,7 @@ Reason: Amount is under 10,000 and the IP is not in the high-risk country list.
 		"originIpAddress": "8.8.8.8"
 	},
 	"metadata": {
+		"messageId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
 		"messageType": "TRANSACTION_TRANSFER",
 		"messageTimestamp": "2026-03-08T12:00:00Z"
 	}

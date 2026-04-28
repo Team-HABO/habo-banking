@@ -20,7 +20,7 @@ spec:
             containers:
                 - name: service-notification
                   image: forkeh/habo-bank-service-notification:latest
-                  imagePullPolicy: Always
+                  imagePullPolicy: IfNotPresent
                   env:
                       - name: RABBITMQ_HOST
                         valueFrom:

@@ -22,7 +22,7 @@ spec:
             containers:
                 - name: service-currency-exchange
                   image: forkeh/habo-bank-service-currency-exchange:latest
-                  imagePullPolicy: Always
+                  imagePullPolicy: IfNotPresent
                   env:
                       - name: RABBITMQ_HOST
                         valueFrom:

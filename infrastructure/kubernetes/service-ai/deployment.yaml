@@ -20,7 +20,7 @@ spec:
             containers:
                 - name: service-ai
                   image: forkeh/habo-bank-service-ai:latest
-                  imagePullPolicy: Always
+                  imagePullPolicy: IfNotPresent
                   env:
                       - name: RABBITMQ_HOST
                         valueFrom:
