@@ -40,10 +40,6 @@ export type TExchangeProcessedPayload = {
 		exchangeRate: number;
 	};
 	metadata: TMetadata;
-	message: {
-		data: TTransactionData;
-		metadata: TMetadata;
-	};
 };
 
 export type TSynchronizeTransactionPayload = {

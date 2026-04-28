@@ -61,7 +61,8 @@ public class CheckFraudConsumer(
                         Account = data.Account,
                         Receiver = data.Receiver,
                         Amount = data.Amount,
-                        TransactionType = data.TransactionType
+                        TransactionType = data.TransactionType,
+                        Currency = data.Currency
                     },
                     Metadata = new FraudCheckedMetadata
                     {

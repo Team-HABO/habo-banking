@@ -20,20 +20,20 @@ Transaction Service ──► currency-exchange-events (DIRECT) ──► curren
 ### Consumed
 
 | Exchange                   | Exchange Type | Queue                              | Binding Key                        | Message             |
-|----------------------------|---------------|------------------------------------|------------------------------------|---------------------|
+| -------------------------- | ------------- | ---------------------------------- | ---------------------------------- | ------------------- |
 | `currency-exchange-events` | `direct`      | `currency-exchange-requests-queue` | `currency-exchange-requests-queue` | `ExchangeRequested` |
 
 ### Published
 
 | Exchange                   | Exchange Type | Routing Key                        | Message                | Destination          |
-|----------------------------|---------------|------------------------------------|------------------------|----------------------|
+| -------------------------- | ------------- | ---------------------------------- | ---------------------- | -------------------- |
 | `currency-exchange-events` | `direct`      | `currency-exchange-response-queue` | `ExchangeProcessed`    | Transaction-Service  |
 | `notification-events`      | `direct`      | `notification-queue`               | `ExchangeNotification` | Notification-Service |
 
 ## Flow (Contract ID 6 — Currency Exchange)
 
 | Outcome                            | Published message      | Destination                     |
-|------------------------------------|------------------------|---------------------------------|
+| ---------------------------------- | ---------------------- | ------------------------------- |
 | Rate resolved successfully         | `ExchangeProcessed`    | Transaction-Service (step 4)    |
 | Unsupported currency / API failure | `ExchangeNotification` | Notification-Service (step 4.4) |
 
@@ -56,7 +56,7 @@ Published to the Transaction-Service when the exchange rate is successfully reso
 Set the following environment variables in a `.env` file at the project root (loaded via `DotNetEnv`):
 
 | Variable            | Description                      |
-|---------------------|----------------------------------|
+| ------------------- | -------------------------------- |
 | `RABBITMQ_USERNAME` | RabbitMQ username                |
 | `RABBITMQ_PASSWORD` | RabbitMQ password                |
 | `RABBITMQ_HOST`     | RabbitMQ host (e.g. `localhost`) |
@@ -64,7 +64,7 @@ Set the following environment variables in a `.env` file at the project root (lo
 Frankfurter is a free, open-source API — no API key required. The base URL is configured via `appsettings.json`:
 
 | Key                   | Description              |
-|-----------------------|--------------------------|
+| --------------------- | ------------------------ |
 | `Frankfurter:BaseUrl` | Frankfurter API base URL |
 
 ## Running
@@ -89,21 +89,19 @@ Successful exchange (DKK → USD):
 
 ```json
 {
- "messageType": ["urn:message:currency-exchange-events"],
- "message": {
-  "data": {
-   "ownerId": "user-123",
-   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-   "amount": "1000",
-   "currency": "USD",
-   "transactionType": "exchange"
-  },
-  "metadata": {
-   "messageType": "TRANSACTION_EXCHANGE",
-   "messageTimestamp": "2026-03-12T12:00:00Z",
-   "messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
-  }
- }
+	"data": {
+		"ownerId": "user-123",
+		"accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		"accountName": "My Savings",
+		"amount": "1000",
+		"currency": "USD",
+		"transactionType": "exchange"
+	},
+	"metadata": {
+		"messageType": "TRANSACTION_EXCHANGE",
+		"messageTimestamp": "2026-03-12T12:00:00Z",
+		"messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
+	}
 }
 ```
 
@@ -111,31 +109,29 @@ Unsupported currency (triggers `ExchangeNotification`):
 
 ```json
 {
- "messageType": ["urn:message:currency-exchange-events"],
- "message": {
-  "data": {
-   "ownerId": "user-456",
-   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-   "amount": "500",
-   "currency": "XYZ",
-   "transactionType": "exchange"
-  },
-  "metadata": {
-   "messageType": "TRANSACTION_EXCHANGE",
-   "messageTimestamp": "2026-03-12T12:00:00Z",
-   "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  }
- }
+	"data": {
+		"ownerId": "user-456",
+		"accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		"accountName": "My Savings",
+		"amount": "500",
+		"currency": "XYZ",
+		"transactionType": "exchange"
+	},
+	"metadata": {
+		"messageType": "TRANSACTION_EXCHANGE",
+		"messageTimestamp": "2026-03-12T12:00:00Z",
+		"messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+	}
 }
 ```
 
 ### Test Cases
 
-| # | Scenario                        | Currency | Expected                         |
-|---|---------------------------------|----------|----------------------------------|
-| 1 | Valid target currency           | `USD`    | `ExchangeProcessed` published    |
-| 2 | Unsupported currency            | `XYZ`    | `ExchangeNotification` published |
-| 3 | Service throws unexpected error | `EUR`    | `ExchangeNotification` published |
+| #   | Scenario                        | Currency | Expected                         |
+| --- | ------------------------------- | -------- | -------------------------------- |
+| 1   | Valid target currency           | `USD`    | `ExchangeProcessed` published    |
+| 2   | Unsupported currency            | `XYZ`    | `ExchangeNotification` published |
+| 3   | Service throws unexpected error | `EUR`    | `ExchangeNotification` published |
 
 ## File Structure
 

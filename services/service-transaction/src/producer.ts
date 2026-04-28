@@ -1,4 +1,4 @@
-import type { TSynchronizeTransactionPayload, TExchangeRequestedPayload } from "./events/transaction";
+import type { TExchangeRequestedPayload } from "./events/transaction";
 import { RabbitMQ } from "./RabbitMQ";
 
 export async function produceNotification(payload: object) {
