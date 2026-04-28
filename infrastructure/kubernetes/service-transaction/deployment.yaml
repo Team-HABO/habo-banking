@@ -13,6 +13,7 @@ spec:
             labels:
                 app: service-transaction
         spec:
+            automountServiceAccountToken: false
             initContainers:
                 # Both dependencies must be ready before the service starts.
                 # The service Dockerfile runs `prisma migrate deploy` on startup,
@@ -20,6 +21,15 @@ spec:
                 - name: wait-for-rabbitmq
                   image: busybox:1.37
                   command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '16Mi'
+                          ephemeral-storage: '16Mi'
+                      limits:
+                          cpu: '50m'
+                          memory: '32Mi'
+                          ephemeral-storage: '32Mi'
                 - name: wait-for-postgresql
                   image: busybox:1.37
                   command:
@@ -28,6 +38,15 @@ spec:
                           '-c',
                           "until nc -z postgresql-transaction 5432; do echo 'waiting for postgresql-transaction...'; sleep 2; done",
                       ]
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '16Mi'
+                          ephemeral-storage: '16Mi'
+                      limits:
+                          cpu: '50m'
+                          memory: '32Mi'
+                          ephemeral-storage: '32Mi'
             containers:
                 - name: service-transaction
                   image: alihmohammad/habo-bank-service-transaction:latest
@@ -47,6 +66,8 @@ spec:
                       requests:
                           cpu: '100m'
                           memory: '128Mi'
+                          ephemeral-storage: '256Mi'
                       limits:
                           cpu: '500m'
                           memory: '512Mi'
+                          ephemeral-storage: '512Mi'

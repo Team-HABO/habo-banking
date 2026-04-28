@@ -13,10 +13,20 @@ spec:
             labels:
                 app: service-notification
         spec:
+            automountServiceAccountToken: false
             initContainers:
                 - name: wait-for-rabbitmq
                   image: busybox:1.37
                   command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '16Mi'
+                          ephemeral-storage: '16Mi'
+                      limits:
+                          cpu: '50m'
+                          memory: '32Mi'
+                          ephemeral-storage: '32Mi'
             containers:
                 - name: service-notification
                   image: forkeh/habo-bank-service-notification:latest
@@ -71,6 +81,8 @@ spec:
                       requests:
                           cpu: '50m'
                           memory: '128Mi'
+                          ephemeral-storage: '256Mi'
                       limits:
                           cpu: '250m'
                           memory: '256Mi'
+                          ephemeral-storage: '512Mi'
