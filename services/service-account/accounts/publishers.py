@@ -231,16 +231,16 @@ def publish_account_deleted(
 
 # Contract 5 – Bank Transaction
 
-def publish_transaction(
-    owner_id: str,
-    account_data: dict,
-    receiver_data: dict | None,
-    amount: str,
-    transaction_type: str,
-    message_id: str,
-    origin_ip: str,
-) -> None:
+def publish_transaction(event_data: dict) -> None:
     """Publish fraud-check request to Fraud-Service (Contract 5, Step 2)."""
+    owner_id = event_data["owner_id"]
+    account_data = event_data["account_data"]
+    receiver_data = event_data.get("receiver_data")
+    amount = event_data["amount"]
+    transaction_type = event_data["transaction_type"]
+    message_id = event_data["message_id"]
+    origin_ip = event_data["origin_ip"]
+
     data: dict = {
         "ownerId": owner_id,
         "account": {
@@ -272,15 +272,15 @@ def publish_transaction(
     )
 
 
-def publish_exchange_request(
-    owner_id: str,
-    account_data: dict,
-    amount: str,
-    currency: str,
-    message_id: str,
-    origin_ip: str,
-) -> None:
+def publish_exchange_request(event_data: dict) -> None:
     """Publish exchange fraud-check request (Contract 6, Step 2)."""
+    owner_id = event_data["owner_id"]
+    account_data = event_data["account_data"]
+    amount = event_data["amount"]
+    currency = event_data["currency"]
+    message_id = event_data["message_id"]
+    origin_ip = event_data["origin_ip"]
+
     _publish(
         EXCHANGE_AI_TRANSACTION,
         "fanout",

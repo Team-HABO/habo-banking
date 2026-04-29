@@ -114,14 +114,16 @@ def soft_delete_account(account: Account) -> DeletedAccount:
 
 def initiate_transaction(
     account: Account,
-    owner_id: str,
-    receiver_guid: str | None,
-    amount: str,
-    transaction_type: str,
-    message_id: str,
-    origin_ip: str,
+    payload: dict,
 ) -> None:
     """Look up account details, resolve receiver, publish to Fraud-Service."""
+    owner_id = payload["owner_id"]
+    receiver_guid = payload.get("receiver_guid")
+    amount = payload["amount"]
+    transaction_type = payload["transaction_type"]
+    message_id = payload["message_id"]
+    origin_ip = payload["origin_ip"]
+
     latest = account.details.order_by("-timestamp").first()
     account_data = {
         "guid": account.account_guid,
@@ -139,28 +141,30 @@ def initiate_transaction(
             "type": rl.account_type.name if rl else "",
         }
 
-    publishers.publish_transaction(
-        owner_id,
-        account_data,
-        receiver_data,
-        amount,
-        transaction_type,
-        message_id,
-        origin_ip,
-    )
+    publishers.publish_transaction({
+        "owner_id": owner_id,
+        "account_data": account_data,
+        "receiver_data": receiver_data,
+        "amount": amount,
+        "transaction_type": transaction_type,
+        "message_id": message_id,
+        "origin_ip": origin_ip,
+    })
 
 
 # Contract 6 - Initiate Currency Exchange
 
 def initiate_exchange(
     account: Account,
-    owner_id: str,
-    amount: str,
-    currency: str,
-    message_id: str,
-    origin_ip: str,
+    payload: dict,
 ) -> None:
     """Publish exchange request to Fraud-Service (Contract 6 Step 2)."""
+    owner_id = payload["owner_id"]
+    amount = payload["amount"]
+    currency = payload["currency"]
+    message_id = payload["message_id"]
+    origin_ip = payload["origin_ip"]
+
     latest = account.details.order_by("-timestamp").first()
     account_data = {
         "guid": account.account_guid,
@@ -168,11 +172,11 @@ def initiate_exchange(
         "type": latest.account_type.name if latest else "",
     }
 
-    publishers.publish_exchange_request(
-        owner_id=owner_id,
-        account_data=account_data,
-        amount=amount,
-        currency=currency,
-        message_id=message_id,
-        origin_ip=origin_ip,
-    )
+    publishers.publish_exchange_request({
+        "owner_id": owner_id,
+        "account_data": account_data,
+        "amount": amount,
+        "currency": currency,
+        "message_id": message_id,
+        "origin_ip": origin_ip,
+    })

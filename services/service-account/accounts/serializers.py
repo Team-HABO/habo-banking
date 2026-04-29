@@ -78,7 +78,7 @@ class ExchangeSerializer(serializers.Serializer):
 # Response serializer
 
 class AccountResponseSerializer(serializers.ModelSerializer):
-    """Serialise an Account using its latest immutable AccountDetail."""
+    """Serialize an Account using its latest immutable AccountDetail."""
 
     name = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()

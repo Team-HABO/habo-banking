@@ -9,7 +9,9 @@ import logging
 
 from django.http import JsonResponse  # type: ignore[import-untyped]
 from django.views.decorators.csrf import csrf_exempt  # type: ignore[import-untyped]
-from django.views.decorators.http import require_http_methods  # type: ignore[import-untyped]
+from django.views.decorators.http import (  # type: ignore[import-untyped]
+    require_http_methods,
+)
 
 from accounts import services
 from accounts.models import Account
@@ -56,7 +58,7 @@ def _create_account(request):
     if body is None:
         return JsonResponse({"error": "Invalid JSON body."}, status=400)
 
-    # TODO: extract owner_id from JWT
+    # owner_id currently comes from request body until JWT integration is added.
     owner_id = body.get("owner_id")
     if not owner_id:
         return JsonResponse({"error": "owner_id is required."}, status=400)
@@ -153,12 +155,14 @@ def account_transactions(request, guid):
     vd = serializer.validated_data
     services.initiate_transaction(
         account=account,
-        owner_id=account.owner_id,
-        receiver_guid=vd.get("receiverAccountGuid"),
-        amount=vd["amount"],
-        transaction_type=vd["transactionType"],
-        message_id=str(vd["messageId"]),
-        origin_ip=_get_client_ip(request),
+        payload={
+            "owner_id": account.owner_id,
+            "receiver_guid": vd.get("receiverAccountGuid"),
+            "amount": vd["amount"],
+            "transaction_type": vd["transactionType"],
+            "message_id": str(vd["messageId"]),
+            "origin_ip": _get_client_ip(request),
+        },
     )
 
     return JsonResponse({"message": "Transaction initiated."}, status=202)
@@ -186,11 +190,13 @@ def account_exchanges(request, guid):
     vd = serializer.validated_data
     services.initiate_exchange(
         account=account,
-        owner_id=account.owner_id,
-        amount=vd["amount"],
-        currency=vd["currency"],
-        message_id=str(vd["messageId"]),
-        origin_ip=_get_client_ip(request),
+        payload={
+            "owner_id": account.owner_id,
+            "amount": vd["amount"],
+            "currency": vd["currency"],
+            "message_id": str(vd["messageId"]),
+            "origin_ip": _get_client_ip(request),
+        },
     )
 
     return JsonResponse({"message": "Exchange initiated."}, status=202)
