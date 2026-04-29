@@ -7,12 +7,6 @@ the *services* layer for business logic, and return a JSON response.
 import json
 import logging
 
-from django.http import JsonResponse  # type: ignore[import-untyped]
-from django.views.decorators.csrf import csrf_exempt  # type: ignore[import-untyped]
-from django.views.decorators.http import (  # type: ignore[import-untyped]
-    require_http_methods,
-)
-
 from accounts import services
 from accounts.models import Account
 from accounts.serializers import (
@@ -23,11 +17,17 @@ from accounts.serializers import (
     TransactionSerializer,
     UpdateAccountSerializer,
 )
+from django.http import JsonResponse  # type: ignore[import-untyped]
+from django.views.decorators.csrf import csrf_exempt  # type: ignore[import-untyped]
+from django.views.decorators.http import (  # type: ignore[import-untyped]
+    require_http_methods,
+)
 
 logger = logging.getLogger(__name__)
 
 
 # Utility
+
 
 def _parse_json(request):
     """Return parsed JSON body or None."""
@@ -44,7 +44,9 @@ def _get_client_ip(request):
         return forwarded.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "")
 
+
 # /accounts  (POST create)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -75,7 +77,9 @@ def _create_account(request):
 
     return JsonResponse(AccountResponseSerializer(account).data, status=201)
 
+
 # /accounts/<guid>  (GET, PUT, PATCH, DELETE)
+
 
 @csrf_exempt
 @require_http_methods(["PUT", "PATCH", "DELETE"])
@@ -135,6 +139,7 @@ def _delete_account(account):
 
 # /accounts/<guid>/transactions  (POST)
 
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def account_transactions(request, guid):
@@ -169,6 +174,7 @@ def account_transactions(request, guid):
 
 
 # /accounts/<guid>/exchanges  (POST)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])

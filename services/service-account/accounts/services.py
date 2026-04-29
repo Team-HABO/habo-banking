@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Queries
 
+
 def get_account_by_guid(guid):
     """Return an account by its GUID; raise DoesNotExist if deleted or missing."""
     account = Account.objects.get(account_guid=guid)
@@ -26,7 +27,9 @@ def get_account_by_guid(guid):
         raise Account.DoesNotExist("Account has been deleted.")
     return account
 
+
 # Contract 1 – Create Account
+
 
 def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
     """Create Account + initial AccountDetail, then publish to RabbitMQ."""
@@ -38,18 +41,22 @@ def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
         account_type=account_type,
     )
 
-    publishers.publish_account_created({
-        "account_guid": account.account_guid,
-        "owner_id": owner_id,
-        "type": account_type_name,
-        "name": name,
-        "is_frozen": detail.is_frozen,
-        "timestamp": detail.timestamp.isoformat(),
-    })
+    publishers.publish_account_created(
+        {
+            "account_guid": account.account_guid,
+            "owner_id": owner_id,
+            "type": account_type_name,
+            "name": name,
+            "is_frozen": detail.is_frozen,
+            "timestamp": detail.timestamp.isoformat(),
+        }
+    )
 
     return account
 
+
 # Contract 2 – Freeze / Unfreeze
+
 
 def freeze_account(account: Account, freeze: bool) -> Account:
     """Create a new AccountDetail toggling the frozen flag."""
@@ -72,10 +79,14 @@ def freeze_account(account: Account, freeze: bool) -> Account:
     )
     return account
 
+
 # Contract 3 – Update Account (rename / change type)
 
+
 def update_account(
-    account: Account, name: str, account_type_name: str,
+    account: Account,
+    name: str,
+    account_type_name: str,
 ) -> Account:
     """Create a new AccountDetail with the updated name / type."""
     latest = account.details.order_by("-timestamp").first()
@@ -97,7 +108,9 @@ def update_account(
     )
     return account
 
+
 # Contract 4 – Soft-delete Account
+
 
 def soft_delete_account(account: Account) -> DeletedAccount:
     """Mark an account as deleted (immutable – no rows are removed)."""
@@ -110,7 +123,9 @@ def soft_delete_account(account: Account) -> DeletedAccount:
     )
     return deleted
 
+
 # Contract 5 – Initiate Bank Transaction
+
 
 def initiate_transaction(
     account: Account,
@@ -141,18 +156,21 @@ def initiate_transaction(
             "type": rl.account_type.name if rl else "",
         }
 
-    publishers.publish_transaction({
-        "owner_id": owner_id,
-        "account_data": account_data,
-        "receiver_data": receiver_data,
-        "amount": amount,
-        "transaction_type": transaction_type,
-        "message_id": message_id,
-        "origin_ip": origin_ip,
-    })
+    publishers.publish_transaction(
+        {
+            "owner_id": owner_id,
+            "account_data": account_data,
+            "receiver_data": receiver_data,
+            "amount": amount,
+            "transaction_type": transaction_type,
+            "message_id": message_id,
+            "origin_ip": origin_ip,
+        }
+    )
 
 
 # Contract 6 - Initiate Currency Exchange
+
 
 def initiate_exchange(
     account: Account,
@@ -172,11 +190,13 @@ def initiate_exchange(
         "type": latest.account_type.name if latest else "",
     }
 
-    publishers.publish_exchange_request({
-        "owner_id": owner_id,
-        "account_data": account_data,
-        "amount": amount,
-        "currency": currency,
-        "message_id": message_id,
-        "origin_ip": origin_ip,
-    })
+    publishers.publish_exchange_request(
+        {
+            "owner_id": owner_id,
+            "account_data": account_data,
+            "amount": amount,
+            "currency": currency,
+            "message_id": message_id,
+            "origin_ip": origin_ip,
+        }
+    )

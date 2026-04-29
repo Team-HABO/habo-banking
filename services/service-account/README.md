@@ -20,14 +20,14 @@ Root routing is defined in `account_service/urls.py` and mounts all endpoints un
 
 All endpoints are rooted at `/accounts/`.
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/accounts/` | Create account |
-| PUT | `/accounts/{guid}/` | Rename / change account type |
-| PATCH | `/accounts/{guid}/` | Freeze/unfreeze |
-| DELETE | `/accounts/{guid}/` | Soft delete |
-| POST | `/accounts/{guid}/transactions/` | Initiate transfer/withdraw/deposit |
-| POST | `/accounts/{guid}/exchanges/` | Initiate currency exchange |
+| Method | Endpoint                         | Purpose                            |
+|--------|----------------------------------|------------------------------------|
+| POST   | `/accounts/`                     | Create account                     |
+| PUT    | `/accounts/{guid}/`              | Rename / change account type       |
+| PATCH  | `/accounts/{guid}/`              | Freeze/unfreeze                    |
+| DELETE | `/accounts/{guid}/`              | Soft delete                        |
+| POST   | `/accounts/{guid}/transactions/` | Initiate transfer/withdraw/deposit |
+| POST   | `/accounts/{guid}/exchanges/`    | Initiate currency exchange         |
 
 ## Example request bodies
 

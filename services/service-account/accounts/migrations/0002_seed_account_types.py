@@ -1,6 +1,6 @@
 """Seed default account types."""
 
-from django.db import migrations # type: ignore[import-untyped]
+from django.db import migrations  # type: ignore[import-untyped]
 
 
 def seed_account_types(apps, schema_editor):
@@ -14,9 +14,7 @@ def seed_account_types(apps, schema_editor):
 def reverse_seed(apps, schema_editor):
     """Remove seeded account types."""
     account_type = apps.get_model("accounts", "AccountType")
-    account_type.objects.filter(
-        name__in=["checking", "savings", "pension"]
-    ).delete()
+    account_type.objects.filter(name__in=["checking", "savings", "pension"]).delete()
 
 
 class Migration(migrations.Migration):

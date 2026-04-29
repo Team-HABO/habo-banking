@@ -5,12 +5,11 @@ The response serializer resolves the *latest* immutable
 AccountDetail row to present the current state of an account.
 """
 
+from accounts.models import Account, AccountType
 from rest_framework import serializers  # type: ignore[import-untyped]
 
-from accounts.models import Account, AccountType
-
-
 # Request serializers (validation only – no .create() / .update())
+
 
 class CreateAccountSerializer(serializers.Serializer):
     """POST /accounts – validate name + type."""
@@ -21,9 +20,7 @@ class CreateAccountSerializer(serializers.Serializer):
     def validate_type(self, value):
         """Ensure the referenced account type exists."""
         if not AccountType.objects.filter(name=value).exists():
-            raise serializers.ValidationError(
-                f"Account type '{value}' does not exist."
-            )
+            raise serializers.ValidationError(f"Account type '{value}' does not exist.")
         return value
 
 
@@ -36,9 +33,7 @@ class UpdateAccountSerializer(serializers.Serializer):
     def validate_type(self, value):
         """Ensure the referenced account type exists."""
         if not AccountType.objects.filter(name=value).exists():
-            raise serializers.ValidationError(
-                f"Account type '{value}' does not exist."
-            )
+            raise serializers.ValidationError(f"Account type '{value}' does not exist.")
         return value
 
 
@@ -60,7 +55,9 @@ class TransactionSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         """TRANSFER requires a receiver GUID."""
-        if attrs["transactionType"] == "TRANSFER" and not attrs.get("receiverAccountGuid"):
+        if attrs["transactionType"] == "TRANSFER" and not attrs.get(
+            "receiverAccountGuid"
+        ):
             raise serializers.ValidationError(
                 "receiverAccountGuid is required for TRANSFER."
             )
@@ -76,6 +73,7 @@ class ExchangeSerializer(serializers.Serializer):
 
 
 # Response serializer
+
 
 class AccountResponseSerializer(serializers.ModelSerializer):
     """Serialize an Account using its latest immutable AccountDetail."""
@@ -114,4 +112,3 @@ class AccountResponseSerializer(serializers.ModelSerializer):
     def get_timestamp(self, obj):
         detail = self._get_latest_detail(obj)
         return detail.timestamp.isoformat() if detail else None
-    

@@ -23,15 +23,14 @@ EXCHANGE_ACCOUNT_EVENTS = os.getenv(
 EXCHANGE_SYNCHRONIZE_EVENTS = os.getenv(
     "EXCHANGE_SYNCHRONIZE_EVENTS", "synchronize-events"
 )
-EXCHANGE_AI_TRANSACTION = os.getenv(
-    "EXCHANGE_AI_TRANSACTION", "ai-service-transaction"
-)
+EXCHANGE_AI_TRANSACTION = os.getenv("EXCHANGE_AI_TRANSACTION", "ai-service-transaction")
 
 ROUTING_KEY_SYNCHRONIZE_ACCOUNT = os.getenv(
     "ROUTING_KEY_SYNCHRONIZE_ACCOUNT", "synchronize-account-queue"
 )
 
 # Internal helpers
+
 
 def _get_connection():
     """Create a new blocking connection to RabbitMQ."""
@@ -91,6 +90,7 @@ def _build_metadata(message_type: str, message_id: str | None = None) -> dict:
 
 # Contract 1 – Account Created
 
+
 def publish_account_created(account_data: dict) -> None:
     """Publish ACCOUNT_CREATE to Transaction-Service and Synchronize-Service."""
     # Step 2 → Transaction-Service
@@ -99,15 +99,15 @@ def publish_account_created(account_data: dict) -> None:
         "fanout",
         "",
         {
-        "data": {
-            "accountGuid": str(account_data["account_guid"]),
-            "ownerId": account_data["owner_id"],
-            "type": account_data["type"],
-            "name": account_data["name"],
-            "isFrozen": account_data["is_frozen"],
-            "timestamp": account_data["timestamp"],
-        },
-        "metadata": _build_metadata("ACCOUNT_CREATE"),
+            "data": {
+                "accountGuid": str(account_data["account_guid"]),
+                "ownerId": account_data["owner_id"],
+                "type": account_data["type"],
+                "name": account_data["name"],
+                "isFrozen": account_data["is_frozen"],
+                "timestamp": account_data["timestamp"],
+            },
+            "metadata": _build_metadata("ACCOUNT_CREATE"),
         },
     )
 
@@ -117,25 +117,27 @@ def publish_account_created(account_data: dict) -> None:
         "direct",
         ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
         {
-        "data": {
-            "ownerId": account_data["owner_id"],
-            "account": {
-                "accountGuid": str(account_data["account_guid"]),
-                "type": account_data["type"],
-                "name": account_data["name"],
-                "isFrozen": account_data["is_frozen"],
-                "timestamp": account_data["timestamp"],
-                "balance": {
-                    "amount": "0",
+            "data": {
+                "ownerId": account_data["owner_id"],
+                "account": {
+                    "accountGuid": str(account_data["account_guid"]),
+                    "type": account_data["type"],
+                    "name": account_data["name"],
+                    "isFrozen": account_data["is_frozen"],
                     "timestamp": account_data["timestamp"],
+                    "balance": {
+                        "amount": "0",
+                        "timestamp": account_data["timestamp"],
+                    },
                 },
             },
-        },
-        "metadata": _build_metadata("ACCOUNT_CREATE"),
+            "metadata": _build_metadata("ACCOUNT_CREATE"),
         },
     )
 
+
 # Contract 2 – Account Frozen / Unfrozen
+
 
 def publish_account_frozen(
     owner_id: str,
@@ -149,20 +151,21 @@ def publish_account_frozen(
         "direct",
         ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
         {
-        "data": {
-            "ownerId": owner_id,
-            "account": {
-                "accountGuid": str(account_guid),
-                "isFrozen": is_frozen,
-                "timestamp": timestamp,
+            "data": {
+                "ownerId": owner_id,
+                "account": {
+                    "accountGuid": str(account_guid),
+                    "isFrozen": is_frozen,
+                    "timestamp": timestamp,
+                },
             },
-        },
-        "metadata": _build_metadata("ACCOUNT_STATUS"),
+            "metadata": _build_metadata("ACCOUNT_STATUS"),
         },
     )
 
 
 # Contract 3 – Account Updated (rename / type change)
+
 
 def publish_account_updated(
     owner_id: str,
@@ -177,24 +180,27 @@ def publish_account_updated(
         "direct",
         ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
         {
-        "data": {
-            "ownerId": owner_id,
-            "account": {
-                "accountGuid": str(account_guid),
-                "name": name,
-                "type": account_type,
-                "timestamp": timestamp,
+            "data": {
+                "ownerId": owner_id,
+                "account": {
+                    "accountGuid": str(account_guid),
+                    "name": name,
+                    "type": account_type,
+                    "timestamp": timestamp,
+                },
             },
-        },
-        "metadata": _build_metadata("ACCOUNT_UPDATE"),
+            "metadata": _build_metadata("ACCOUNT_UPDATE"),
         },
     )
 
 
 # Contract 4 – Account Deleted (soft)
 
+
 def publish_account_deleted(
-    account_guid, owner_id: str, timestamp: str,
+    account_guid,
+    owner_id: str,
+    timestamp: str,
 ) -> None:
     """Publish ACCOUNT_DELETE to Transaction-Service and Synchronize-Service."""
     # Step 2 → Transaction-Service
@@ -203,12 +209,12 @@ def publish_account_deleted(
         "fanout",
         "",
         {
-        "data": {
-            "accountGuid": str(account_guid),
-            "ownerId": owner_id,
-            "timestamp": timestamp,
-        },
-        "metadata": _build_metadata("ACCOUNT_DELETE"),
+            "data": {
+                "accountGuid": str(account_guid),
+                "ownerId": owner_id,
+                "timestamp": timestamp,
+            },
+            "metadata": _build_metadata("ACCOUNT_DELETE"),
         },
     )
 
@@ -218,18 +224,20 @@ def publish_account_deleted(
         "direct",
         ROUTING_KEY_SYNCHRONIZE_ACCOUNT,
         {
-        "data": {
-            "ownerId": owner_id,
-            "account": {
-                "accountGuid": str(account_guid),
-                "timestamp": timestamp,
+            "data": {
+                "ownerId": owner_id,
+                "account": {
+                    "accountGuid": str(account_guid),
+                    "timestamp": timestamp,
+                },
             },
-        },
-        "metadata": _build_metadata("ACCOUNT_DELETE"),
+            "metadata": _build_metadata("ACCOUNT_DELETE"),
         },
     )
 
+
 # Contract 5 – Bank Transaction
+
 
 def publish_transaction(event_data: dict) -> None:
     """Publish fraud-check request to Fraud-Service (Contract 5, Step 2)."""
@@ -264,10 +272,11 @@ def publish_transaction(event_data: dict) -> None:
         "fanout",
         "",
         {
-        "data": data,
-        "metadata": _build_metadata(
-            f"TRANSACTION_{transaction_type}", message_id,
-        ),
+            "data": data,
+            "metadata": _build_metadata(
+                f"TRANSACTION_{transaction_type}",
+                message_id,
+            ),
         },
     )
 

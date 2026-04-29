@@ -9,9 +9,8 @@ Maps HTTP endpoints to view functions following the contracts:
     POST   /accounts/{guid}/exchanges    → initiate currency exchange (Contract 6)
 """
 
-from django.urls import path  # type: ignore[import-untyped]
-
 from accounts import views
+from django.urls import path  # type: ignore[import-untyped]
 
 urlpatterns = [
     path("", views.account_list, name="account_list"),
