@@ -1,0 +1,60 @@
+/* TransactionForm.css */
+
+.transaction-container {
+  max-width: 400px; /* Keeps the form neat */
+  padding: 2rem;
+  border: 1px solid #d4dfec;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7fbff 100%);
+  box-shadow: 0 14px 28px rgb(10 40 70 / 8%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.transaction-title {
+  margin: 0 0 0.5rem;
+  color: #0f2f49;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.transaction-input, 
+.transaction-select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #d4dfec;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #173a56;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.transaction-input:focus, 
+.transaction-select:focus {
+  outline: none;
+  border-color: #73b8f0;
+  box-shadow: 0 0 0 3px rgb(115 184 240 / 20%);
+}
+
+.transaction-button {
+  border: none;
+  background: #14548a;
+  color: #fff;
+  padding: 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.transaction-button:hover {
+  background: #0f4673;
+}
+
+.transaction-button:active {
+  transform: translateY(1px);
+}
