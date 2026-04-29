@@ -5,7 +5,7 @@ import { createAudit, getLatestBalance, updateBalance } from "../repository";
 
 export default async function handleWithdraw(payload: TTransactionPayload) {
 	console.log("Handling withdraw:", payload);
-	const { data, metadata } = payload.message;
+	const { data, metadata } = payload;
 
 	const message = await prisma.$transaction(async (tx) => {
 		const latestBalance = await getLatestBalance(tx, data.account.guid);

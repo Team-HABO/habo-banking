@@ -48,6 +48,9 @@ builder.Services.AddMassTransit(config =>
                 host.Password(rabbitMqPassword);
             });
 
+            cfg.ClearSerialization();
+            cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
             // Publish FraudNotification to notification-events DIRECT exchange
             cfg.Publish<FraudNotification>(x => x.ExchangeType = "direct");
 

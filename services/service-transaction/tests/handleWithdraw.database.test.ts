@@ -53,14 +53,14 @@ describe("handleWithdraw database integration", () => {
 
 	it("should not throw when the account does not exist", async () => {
 		const payload = makePayload("50", ACCOUNT_GUID, 0, "WITHDRAW");
-		payload.message.data.account.guid = "non-existent-guid-xyz";
+		payload.data.account.guid = "non-existent-guid-xyz";
 
 		await expect(handleWithdraw(payload)).resolves.toBeUndefined();
 	});
 
 	it("should not create a new balance detail when the account does not exist", async () => {
 		const payload = makePayload("50", ACCOUNT_GUID, 0, "WITHDRAW");
-		payload.message.data.account.guid = "non-existent-guid-xyz";
+		payload.data.account.guid = "non-existent-guid-xyz";
 
 		await handleWithdraw(payload);
 
@@ -102,7 +102,7 @@ describe("handleWithdraw database integration", () => {
 
 		expect(audits).toHaveLength(1);
 		expect(audits[0]!.amount).toBe("30");
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 		expect(audits[0]!.senderBalanceId).toBe(balanceId);
 		expect(audits[0]!.receiverBalanceId).toBe(balanceId);
 	});
@@ -118,6 +118,6 @@ describe("handleWithdraw database integration", () => {
 		});
 
 		expect(audits).toHaveLength(1);
-		expect(audits[0]!.transactionId).toBe(payload.message.metadata.messageId);
+		expect(audits[0]!.transactionId).toBe(payload.metadata.messageId);
 	});
 });

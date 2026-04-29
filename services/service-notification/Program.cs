@@ -77,9 +77,14 @@ builder.Services.AddMassTransit(config =>
             host.Password(rabbitMqPassword);
         });
 
+        cfg.ClearSerialization();
+        cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
         // Consume from notification-events DIRECT, queue notification-queue
         cfg.ReceiveEndpoint("notification-queue", ep =>
         {
+            ep.ConfigureConsumeTopology = false;
+
             ep.Bind("notification-events", x =>
             {
                 x.ExchangeType = "direct";

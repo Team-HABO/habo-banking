@@ -1,0 +1,21 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: service-notification-scaledobject
+  namespace: habo-banking
+spec:
+  scaleTargetRef:
+    name: service-notification
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  pollingInterval: 15
+  cooldownPeriod: 60
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: http
+        queueName: notification-queue
+        mode: QueueLength
+        value: "5"
+      authenticationRef:
+        name: rabbitmq-trigger-auth

@@ -6,7 +6,7 @@ import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
 
 export default async function handleDeposit(payload: TTransactionPayload) {
 	console.log("Handling deposit:", payload);
-	const { data, metadata } = payload.message;
+	const { data, metadata } = payload;
 
 	const message = await prisma.$transaction(async (tx) => {
 		const latestBalance = await getLatestBalance(tx, data.account.guid);

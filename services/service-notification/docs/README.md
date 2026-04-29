@@ -65,15 +65,12 @@ dotnet run
 
 ```json
 {
- "messageType": ["urn:message:notification-events"],
- "message": {
-  "data": {
-   "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
-  },
-  "metadata": {
-   "messageType": "TRANSACTION_DEPOSIT",
-   "messageTimestamp": "2026-03-10T12:00:00Z"
-  }
+ "data": {
+  "message": "Fraud detected: transaction amount of 25000 exceeds the allowed threshold of 10000."
+ },
+ "metadata": {
+  "messageType": "TRANSACTION_DEPOSIT",
+  "messageTimestamp": "2026-03-10T12:00:00Z"
  }
 }
 ```

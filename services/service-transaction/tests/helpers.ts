@@ -13,37 +13,33 @@ export const EXCHANGE = "transaction-exchange";
 
 export function makePayload(amount: string, accountGuid = ACCOUNT_GUID, offsetMs = 0, transactionType: string): TTransactionPayload {
 	return {
-		message: {
-			data: {
-				ownerId: OWNER_ID,
-				account: { guid: accountGuid, name: "Test Account", type: "SAVINGS" },
-				amount,
-				transactionType
-			},
-			metadata: {
-				messageType: "TRANSACTION",
-				messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
-				messageId: uuidv4() // Generate random GUID
-			}
+		data: {
+			ownerId: OWNER_ID,
+			account: { guid: accountGuid, name: "Test Account", type: "SAVINGS" },
+			amount,
+			transactionType
+		},
+		metadata: {
+			messageType: "TRANSACTION",
+			messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
+			messageId: uuidv4() // Generate random GUID
 		}
 	};
 }
 
 export function makeTransferPayload(amount: string, senderGuid: string, receiverGuid: string, offsetMs = 0): TTransactionPayload {
 	return {
-		message: {
-			data: {
-				ownerId: OWNER_ID,
-				account: { guid: senderGuid, name: "Sender Account", type: "SAVINGS" },
-				receiver: { guid: receiverGuid, name: "Receiver Account", type: "SAVINGS" },
-				amount,
-				transactionType: "TRANSFER"
-			},
-			metadata: {
-				messageType: "TRANSACTION_TRANSFER",
-				messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
-				messageId: uuidv4()
-			}
+		data: {
+			ownerId: OWNER_ID,
+			account: { guid: senderGuid, name: "Sender Account", type: "SAVINGS" },
+			receiver: { guid: receiverGuid, name: "Receiver Account", type: "SAVINGS" },
+			amount,
+			transactionType: "TRANSFER"
+		},
+		metadata: {
+			messageType: "TRANSACTION_TRANSFER",
+			messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
+			messageId: uuidv4()
 		}
 	};
 }

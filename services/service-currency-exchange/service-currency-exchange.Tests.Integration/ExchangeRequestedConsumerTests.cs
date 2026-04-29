@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using MassTransit;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NSubstitute.ExceptionExtensions;
@@ -48,7 +49,7 @@ public class ExchangeRequestedConsumerTests(ExchangeRequestedConsumerFixture fix
             .GetRateFromDkkAsync("USD", Arg.Any<CancellationToken>())
             .Returns(0.1425m);
 
-        await fixture.Bus.Publish(BuildRequest("USD"));
+        await fixture.Bus.Publish(BuildRequest("USD"), x => x.SetRoutingKey("currency-exchange-requests-queue"));
 
         var message = await fixture.ExchangeProcessedConsumer.WaitForMessageAsync(Timeout);
 
@@ -65,7 +66,7 @@ public class ExchangeRequestedConsumerTests(ExchangeRequestedConsumerFixture fix
             .GetRateFromDkkAsync("XYZ", Arg.Any<CancellationToken>())
             .Returns((decimal?)null);
 
-        await fixture.Bus.Publish(BuildRequest("XYZ"));
+        await fixture.Bus.Publish(BuildRequest("XYZ"), x => x.SetRoutingKey("currency-exchange-requests-queue"));
 
         var message = await fixture.ExchangeNotificationConsumer.WaitForMessageAsync(Timeout);
 
@@ -79,7 +80,7 @@ public class ExchangeRequestedConsumerTests(ExchangeRequestedConsumerFixture fix
             .GetRateFromDkkAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Frankfurter unreachable"));
 
-        await fixture.Bus.Publish(BuildRequest("EUR"));
+        await fixture.Bus.Publish(BuildRequest("EUR"), x => x.SetRoutingKey("currency-exchange-requests-queue"));
 
         var message = await fixture.ExchangeNotificationConsumer.WaitForMessageAsync(Timeout);
 

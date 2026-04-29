@@ -1,4 +1,4 @@
-import type { TTransactionPayload } from "./events/transaction";
+import type { TExchangeRequestedPayload } from "./events/transaction";
 import { RabbitMQ } from "./RabbitMQ";
 
 export async function produceNotification(payload: object) {
@@ -22,8 +22,8 @@ export async function produceSynchronization<T>(payload: T, routingKey: string) 
 	}
 }
 
-export async function produceCurrencyExchanger(payload: TTransactionPayload) {
-	const rabbit = new RabbitMQ<TTransactionPayload>();
+export async function produceCurrencyExchanger(payload: TExchangeRequestedPayload) {
+	const rabbit = new RabbitMQ<TExchangeRequestedPayload>();
 	try {
 		await rabbit.connect();
 		await rabbit.sendToExchange("currency-exchange-events", "direct", payload, "currency-exchange-requests-queue");

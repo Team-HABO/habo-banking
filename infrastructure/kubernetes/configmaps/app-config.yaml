@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: habo-banking
+data:
+  RABBITMQ_HOST: rabbitmq
+  SMTP_HOST: sandbox.smtp.mailtrap.io
+  SMTP_PORT: "587"
+  SMTP_FROM_EMAIL: notification@habo-bank.com
+  SMTP_FROM_NAME: HABO-Bank

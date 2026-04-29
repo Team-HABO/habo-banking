@@ -14,6 +14,7 @@ public record CheckFraudData
     public string Amount { get; init; } = string.Empty;
     public string TransactionType { get; init; } = string.Empty;
     public string OriginIpAddress { get; init; } = string.Empty;
+    public string? Currency { get; init; }
 }
 
 public record CheckFraudMetadata

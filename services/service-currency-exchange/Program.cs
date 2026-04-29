@@ -45,6 +45,9 @@ builder.Services.AddMassTransit(config =>
             host.Password(rabbitMqPassword);
         });
 
+        cfg.ClearSerialization();
+        cfg.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType, true);
+
         // Publish ExchangeProcessed to currency-exchange-events DIRECT
         cfg.Publish<ExchangeProcessed>(x => x.ExchangeType = "direct");
 
@@ -54,6 +57,8 @@ builder.Services.AddMassTransit(config =>
         // Consume ExchangeRequested from currency-exchange-events DIRECT, queue currency-exchange-requests-queue
         cfg.ReceiveEndpoint("currency-exchange-requests-queue", ep =>
         {
+            ep.ConfigureConsumeTopology = false;
+
             ep.Bind("currency-exchange-events", x =>
             {
                 x.ExchangeType = "direct";

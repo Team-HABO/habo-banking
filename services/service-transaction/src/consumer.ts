@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { RabbitMQ } from "./RabbitMQ.js";
 import type { TAccountPayload } from "./events/account.js";
-import type { TTransactionPayload } from "./events/transaction.js";
+import type { TExchangeProcessedPayload, TTransactionPayload } from "./events/transaction.js";
 import handleCreate from "./handlers/handleCreate.js";
 import handleDelete from "./handlers/handleDelete.js";
 import handleDeposit from "./handlers/handleDeposit.js";
@@ -29,7 +29,7 @@ const accountRabbit = new RabbitMQ<TAccountPayload>();
 await accountRabbit.connect();
 
 await transactionRabbit.consumeFromExchange("check-fraud", "service_ai.Messages:FraudChecked", "fanout", async (data, ack, nack) => {
-	const transactionType = data.message.data.transactionType.toUpperCase();
+	const transactionType = data.data.transactionType.toUpperCase();
 	const handler = transactionHandlers[transactionType];
 
 	if (!handler) {
@@ -47,7 +47,10 @@ await transactionRabbit.consumeFromExchange("check-fraud", "service_ai.Messages:
 	}
 });
 
-await transactionRabbit.consumeFromExchange(
+const exchangeRabbit = new RabbitMQ<TExchangeProcessedPayload>();
+await exchangeRabbit.connect();
+
+await exchangeRabbit.consumeFromExchange(
 	"currency-exchange-response-queue",
 	"currency-exchange-events",
 	"direct",

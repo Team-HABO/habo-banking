@@ -21,6 +21,7 @@ public record FraudCheckedData
     public AccountInfo? Receiver { get; init; }
     public string Amount { get; init; } = string.Empty;
     public string TransactionType { get; init; } = string.Empty;
+    public string? Currency { get; init; }
 }
 
 public record FraudCheckedMetadata

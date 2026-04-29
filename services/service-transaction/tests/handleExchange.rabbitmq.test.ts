@@ -3,19 +3,20 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { prisma } from "../prisma/prisma";
 import { RabbitMQ } from "../src/RabbitMQ";
 import handleExchange from "../src/handlers/handleExchange";
-import type { TTransactionPayload } from "../src/events/transaction";
-import { ACCOUNT_GUID, cleanupBalance, EXCHANGE, makePayload, OWNER_ID, QUEUE } from "./helpers";
+import type { TExchangeProcessedPayload } from "../src/events/transaction";
+import { ACCOUNT_GUID, cleanupBalance, EXCHANGE, OWNER_ID, QUEUE } from "./helpers";
+import { v4 as uuidv4 } from "uuid";
 
 describe("handleExchange via RabbitMQ exchange", () => {
 	let balanceId: number;
-	let producer: RabbitMQ<TTransactionPayload>;
-	let consumer: RabbitMQ<TTransactionPayload>;
+	let producer: RabbitMQ<TExchangeProcessedPayload>;
+	let consumer: RabbitMQ<TExchangeProcessedPayload>;
 
 	beforeEach(async () => {
-		producer = new RabbitMQ<TTransactionPayload>();
+		producer = new RabbitMQ<TExchangeProcessedPayload>();
 		await producer.connect();
 
-		consumer = new RabbitMQ<TTransactionPayload>();
+		consumer = new RabbitMQ<TExchangeProcessedPayload>();
 		await consumer.connect();
 
 		// Set up exchange, DLX, and queue binding, then purge leftover messages
@@ -59,11 +60,23 @@ describe("handleExchange via RabbitMQ exchange", () => {
 		await cleanupBalance(ACCOUNT_GUID);
 	});
 
-	function makeExchangePayload(amount: string, offsetMs = 0): TTransactionPayload {
-		const payload = makePayload(amount, ACCOUNT_GUID, offsetMs, "EXCHANGE");
-		payload.message.data.currency = "EUR";
-		payload.message.data.exchangeRate = 0.5;
-		return payload;
+	function makeExchangePayload(amount: string, offsetMs = 0): TExchangeProcessedPayload {
+		return {
+			data: {
+				ownerId: OWNER_ID,
+				accountGuid: ACCOUNT_GUID,
+				accountName: "Test Account",
+				amount,
+				currency: "EUR",
+				transactionType: "EXCHANGE",
+				exchangeRate: 0.5
+			},
+			metadata: {
+				messageType: "TRANSACTION_EXCHANGE",
+				messageTimestamp: new Date(Date.now() + offsetMs).toISOString(),
+				messageId: uuidv4()
+			}
+		};
 	}
 
 	it("should process an EXCHANGE message published to the exchange", async () => {

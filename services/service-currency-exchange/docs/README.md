@@ -89,20 +89,18 @@ Successful exchange (DKK → USD):
 
 ```json
 {
- "messageType": ["urn:message:currency-exchange-events"],
- "message": {
-  "data": {
-   "ownerId": "user-123",
-   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-   "amount": "1000",
-   "currency": "USD",
-   "transactionType": "exchange"
-  },
-  "metadata": {
-   "messageType": "TRANSACTION_EXCHANGE",
-   "messageTimestamp": "2026-03-12T12:00:00Z",
-   "messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
-  }
+ "data": {
+  "ownerId": "user-123",
+  "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "accountName": "My Savings",
+  "amount": "1000",
+  "currency": "USD",
+  "transactionType": "exchange"
+ },
+ "metadata": {
+  "messageType": "TRANSACTION_EXCHANGE",
+  "messageTimestamp": "2026-03-12T12:00:00Z",
+  "messageId": "d3b07384-d113-4ec4-a1e0-b3cc7c9c6e1a"
  }
 }
 ```
@@ -111,20 +109,18 @@ Unsupported currency (triggers `ExchangeNotification`):
 
 ```json
 {
- "messageType": ["urn:message:currency-exchange-events"],
- "message": {
-  "data": {
-   "ownerId": "user-456",
-   "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-   "amount": "500",
-   "currency": "XYZ",
-   "transactionType": "exchange"
-  },
-  "metadata": {
-   "messageType": "TRANSACTION_EXCHANGE",
-   "messageTimestamp": "2026-03-12T12:00:00Z",
-   "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  }
+ "data": {
+  "ownerId": "user-456",
+  "accountGuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "accountName": "My Savings",
+  "amount": "500",
+  "currency": "XYZ",
+  "transactionType": "exchange"
+ },
+ "metadata": {
+  "messageType": "TRANSACTION_EXCHANGE",
+  "messageTimestamp": "2026-03-12T12:00:00Z",
+  "messageId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
  }
 }
 ```

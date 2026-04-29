@@ -11,10 +11,35 @@ export type TTransactionData = {
 };
 
 export type TTransactionPayload = {
-	message: {
-		data: TTransactionData;
-		metadata: TMetadata;
+	data: TTransactionData;
+	metadata: TMetadata;
+};
+
+// Sent to currency-exchange service (ExchangeRequested)
+export type TExchangeRequestedPayload = {
+	data: {
+		ownerId: string;
+		accountGuid: string;
+		accountName: string;
+		amount: string;
+		currency: string;
+		transactionType: string;
 	};
+	metadata: TMetadata;
+};
+
+// Received from currency-exchange service (ExchangeProcessed)
+export type TExchangeProcessedPayload = {
+	data: {
+		ownerId: string;
+		accountGuid: string;
+		accountName: string;
+		amount: string;
+		currency: string;
+		transactionType: string;
+		exchangeRate: number;
+	};
+	metadata: TMetadata;
 };
 
 export type TSynchronizeTransactionPayload = {

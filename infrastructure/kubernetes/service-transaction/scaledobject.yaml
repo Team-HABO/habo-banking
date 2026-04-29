@@ -1,0 +1,31 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: service-transaction-scaledobject
+  namespace: habo-banking
+spec:
+  scaleTargetRef:
+    name: service-transaction
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  pollingInterval: 15
+  cooldownPeriod: 60
+  triggers:
+    # Scale on either incoming queue — whichever has the most backlog wins.
+    # KEDA evaluates all triggers and picks the highest desired replica count.
+    - type: rabbitmq
+      metadata:
+        protocol: http
+        queueName: check-fraud
+        mode: QueueLength
+        value: "5"
+      authenticationRef:
+        name: rabbitmq-trigger-auth
+    - type: rabbitmq
+      metadata:
+        protocol: http
+        queueName: currency-exchange-response-queue
+        mode: QueueLength
+        value: "5"
+      authenticationRef:
+        name: rabbitmq-trigger-auth

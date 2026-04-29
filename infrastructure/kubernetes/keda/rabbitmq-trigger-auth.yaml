@@ -1,0 +1,13 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-trigger-auth
+  namespace: habo-banking
+spec:
+  secretTargetRef:
+    # The `host` parameter maps to the RabbitMQ management API URL.
+    # KEDA (running in the `keda` namespace) uses this to poll queue depths
+    # via the HTTP management API, so the URL must be a cluster-internal FQDN.
+    - parameter: host
+      name: rabbitmq-secret
+      key: RABBITMQ_MANAGEMENT_URL

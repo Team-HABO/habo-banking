@@ -1,0 +1,21 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: service-currency-exchange-scaledobject
+  namespace: habo-banking
+spec:
+  scaleTargetRef:
+    name: service-currency-exchange
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  pollingInterval: 15 # Check queue depth every 15 seconds
+  cooldownPeriod: 60 # Wait 60 seconds before scaling down
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: http
+        queueName: currency-exchange-requests-queue
+        mode: QueueLength
+        value: "5" # Scale up when more than 5 messages are queued per replica
+      authenticationRef:
+        name: rabbitmq-trigger-auth
