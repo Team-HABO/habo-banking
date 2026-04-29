@@ -1,9 +1,10 @@
-"""URL configuration for account_service project."""
+"""URL configuration for account_service project.
 
-from accounts import views
-from django.urls import path  # type: ignore[import-untyped]
+Root-level routing that delegates /accounts/ to the accounts app.
+"""
+
+from django.urls import include, path  # type: ignore[import-untyped]
 
 urlpatterns = [
-    path("", views.root, name="root"),
-    path("health/", views.health, name="health"),
+    path("accounts/", include("accounts.urls")),
 ]
