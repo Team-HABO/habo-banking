@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 using service_synchronize.Consumers;
 using service_synchronize.Messages;
 using service_synchronize.Services;
@@ -15,7 +16,7 @@ namespace service_synchronize.tests.UnitTests
         public TransactionCreatedConsumerTests()
         {
             _serviceMock = new Mock<ITransactionService>();
-            _consumer = new TransactionCreatedConsumer(_serviceMock.Object);
+            _consumer = new TransactionCreatedConsumer(_serviceMock.Object, NullLogger<TransactionCreatedConsumer>.Instance);
             _contextMock = new Mock<ConsumeContext<TransactionCreated>>();
         }
 

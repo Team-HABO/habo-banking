@@ -14,9 +14,10 @@ namespace service_synchronize.tests.IntegrationRabbitMq
         private IServiceProvider _serviceProvider = default!;
         private  IBusControl _bus = default!;
         private readonly Mock<IAccountService> _serviceMock = new();
-        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountDetail firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountDetail secondAccount = TestData.CreateAccountDto("2");
 
-        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_CREATE" };
+        private readonly AccountMetadata md = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_CREATE" };
         public async Task DisposeAsync()
         {
             await _bus.StopAsync();
@@ -32,7 +33,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
 
             services.AddMassTransit(x =>
             {
-                x.AddConsumer<AccountCreatedConsumer>();
+                x.AddConsumer<AccountEventConsumer>();
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -41,12 +42,12 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                     cfg.ReceiveEndpoint("synchronize-account-queue-test", e =>
                     {
                         e.UseRawJsonDeserializer(); 
-                        e.ConfigureConsumer<AccountCreatedConsumer>(context);
+                        e.ConfigureConsumer<AccountEventConsumer>(context);
 
                         e.Bind("synchronize-events", s =>
                         {
                             s.ExchangeType = "direct";
-                            s.RoutingKey = "synchronize-account";
+                            s.RoutingKey = "synchronize-account-queue";
                         });
                     });
                 });
@@ -60,28 +61,103 @@ namespace service_synchronize.tests.IntegrationRabbitMq
         }
 
         [Fact]
-        public async Task SendMessage_ShouldTriggerConsumer_AndCallService()
+        public async Task SendAccountCreateMessage_ShouldTriggerCreateHandler()
         {
-            // Creates a signal for when method in _serviceMock is called
             TaskCompletionSource<bool> signal = new();
 
             _serviceMock
-                .Setup(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountCreatedAccountDto>()))
+                .Setup(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountDetail>()))
                 .Returns(Task.CompletedTask)
-                .Callback(() => signal.SetResult(true)); // Signal success!
+                .Callback(() => signal.SetResult(true));
 
-            AccountCreatedData messageData = new() { Account = firstAccount, OwnerId = "user-1" };
-            AccountCreated message = new() { Data = messageData, Metadata = md };
+            AccountEventData messageData = new() { Account = firstAccount, OwnerId = "user-1" };
+            AccountEventEnvelope message = new() { Data = messageData, Metadata = md };
 
             await _bus.Publish(message);
 
-            // Wait for signal or timeout (10 seconds)
             Task completedTask = await Task.WhenAny(signal.Task, Task.Delay(10000));
 
-            // Assert that signal.Task completed first. If not it prints error message
             Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
 
-            _serviceMock.Verify(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountCreatedAccountDto>()), Times.Once);
+            _serviceMock.Verify(s => s.ProcessAccountCreationAsync("user-1", It.IsAny<AccountDetail>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAccountUpdateMessage_ShouldTriggerUpdateHandler()
+        {
+            TaskCompletionSource<bool> signal = new();
+
+            _serviceMock
+                .Setup(s => s.ProcessAccountUpdateAsync("user-1", It.IsAny<AccountDetail>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => signal.SetResult(true));
+
+            AccountEventEnvelope message = new()
+            {
+                Data = new() { Account = secondAccount, OwnerId = "user-1" },
+                Metadata = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_UPDATE" }
+            };
+
+            await _bus.Publish(message);
+
+            Task completedTask = await Task.WhenAny(signal.Task, Task.Delay(10000));
+
+            Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
+
+            _serviceMock.Verify(s => s.ProcessAccountUpdateAsync("user-1", It.IsAny<AccountDetail>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAccountStatusMessage_ShouldTriggerStatusHandler()
+        {
+            TaskCompletionSource<bool> signal = new();
+
+            _serviceMock
+                .Setup(s => s.ProcessStatusChangeAsync("user-1", "2", true))
+                .Returns(Task.CompletedTask)
+                .Callback(() => signal.SetResult(true));
+
+            AccountDetail statusAccount = TestData.CreateAccountDto("2");
+            statusAccount.IsFrozen = true;
+
+            AccountEventEnvelope message = new()
+            {
+                Data = new() { Account = statusAccount, OwnerId = "user-1" },
+                Metadata = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_STATUS" }
+            };
+
+            await _bus.Publish(message);
+
+            Task completedTask = await Task.WhenAny(signal.Task, Task.Delay(10000));
+
+            Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
+
+            _serviceMock.Verify(s => s.ProcessStatusChangeAsync("user-1", "2", true), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAccountDeleteMessage_ShouldTriggerDeleteHandler()
+        {
+            TaskCompletionSource<bool> signal = new();
+
+            _serviceMock
+                .Setup(s => s.ProcessAccountDeletionAsync("user-1", "2"))
+                .Returns(Task.CompletedTask)
+                .Callback(() => signal.SetResult(true));
+
+            AccountEventEnvelope message = new()
+            {
+                Data = new() { Account = secondAccount, OwnerId = "user-1" },
+                Metadata = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_DELETE" }
+            };
+
+            await _bus.Publish(message);
+
+            Task completedTask = await Task.WhenAny(signal.Task, Task.Delay(10000));
+
+            Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
+
+            _serviceMock.Verify(s => s.ProcessAccountDeletionAsync("user-1", "2"), Times.Once);
         }
     }
 }

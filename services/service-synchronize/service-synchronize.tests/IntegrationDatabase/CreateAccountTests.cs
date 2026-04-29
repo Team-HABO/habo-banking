@@ -1,84 +1,67 @@
-﻿using MongoDB.Driver;
-using service_synchronize.Database;
-using service_synchronize.Messages;
-using service_synchronize.Models;
-using service_synchronize.Services;
+﻿using service_synchronize.Models;
 
 namespace service_synchronize.tests.IntegrationDatabase
 {
-    public class CreateAccountTests : IAsyncLifetime
-    {
-        private readonly MongoClient _client;
-        private UsersRepository _repository = default!;
-        private AccountService _service = default!;
-        private string _dbName = default!;
-        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
-        private readonly AccountCreatedAccountDto secondAccount = TestData.CreateAccountDto("2");
-        private readonly AccountCreatedAccountDto secondAccountDiffPayloadSameGuid = TestData.CreateAccountDto("2", "my other account");
-        private readonly string mongoConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
-            ?? "mongodb://localhost:27017";
-        public CreateAccountTests()
-        {
-            _client = new MongoClient(mongoConnectionString);
-        }
-        
-        private readonly string userId = "1";
+   public class CreateAccountTests : MongoDbIntegrationTestBase, IClassFixture<MongoDbFixture>
+   {
+      public CreateAccountTests(MongoDbFixture fixture)
+         : base(fixture)
+      {
+      }
 
+      [Fact]
+      public async Task UpsertAccountAsync_ShouldCreateUserAndInsertAccount_WhenUserDoesNotExist()
+      {
+         Account account = TestData.CreateAccount("account-1");
+
+         await Repository.UpsertAccountAsync("user-1", account);
+
+         User? user = await Repository.GetUserByIdAsync("user-1");
+
+         Assert.NotNull(user);
+         Assert.Equal("user-1", user.Id);
+         Assert.Single(user.Accounts);
+         Assert.Equal("account-1", user.Accounts[0].AccountGuid);
+         Assert.Equal("Default Account", user.Accounts[0].Name);
+      }
+
+      [Fact]
+      public async Task UpsertAccountAsync_ShouldAddAccount_WhenUserAlreadyExists()
+      {
+         User existingUser = new()
+         {
+            Id = "user-2",
+            Accounts =
+            [
+               TestData.CreateAccount("account-1", "Primary Account")
+            ]
+         };
+
+         await UserCollection.InsertOneAsync(existingUser);
+
+         Account secondAccount = TestData.CreateAccount("account-2", "Savings Account");
+
+         await Repository.UpsertAccountAsync("user-2", secondAccount);
+
+         User? user = await Repository.GetUserByIdAsync("user-2");
+
+         Assert.NotNull(user);
+         Assert.Equal("user-2", user.Id);
+         Assert.Equal(2, user.Accounts.Count);
+         Assert.Contains(user.Accounts, account => account.AccountGuid == "account-1");
+         Assert.Contains(user.Accounts, account => account.AccountGuid == "account-2");
+      }
         [Fact]
-        public async Task CreateAccount_ShouldCreateUser_WhenUserDoesNotExist()
+        public async Task UpsertAccountAsync_ShouldNotCreateDuplicate_WhenCalledTwiceWithSameAccount()
         {
-            await _service.ProcessAccountCreationAsync(userId, firstAccount);
-            User? createdUser = await _repository.GetUserByIdAsync(userId);
+            Account account = TestData.CreateAccount("account-1");
 
-            Assert.NotNull(createdUser);
-            Assert.Equal(userId, createdUser.Id);
-            Assert.Single(createdUser.Accounts);
-            Assert.Equal("Default Account", createdUser.Accounts[0].Name);
-            Assert.Equal("1", createdUser.Accounts[0].AccountGuid);
-            Assert.Equal(Account.AccountType.Savings, createdUser.Accounts[0].Type);
-        }
-        [Fact]
-        public async Task CreateAccount_ShouldEmbedAccount_WhenUserExistsAndAccountDoesNotExist()
-        {
-            await _service.ProcessAccountCreationAsync(userId, firstAccount);
-            await _service.ProcessAccountCreationAsync(userId, secondAccount);
+            await Repository.UpsertAccountAsync("user-1", account);
+            await Repository.UpsertAccountAsync("user-1", account);
 
-            User? user = await _repository.GetUserByIdAsync(userId);
+            User? user = await Repository.GetUserByIdAsync("user-1");
 
-            Assert.NotNull(user);
-            Assert.Equal(userId, user.Id);
-            Assert.Equal(2, user.Accounts.Count);
-            Assert.Equal("1", user.Accounts[0].AccountGuid);
-            Assert.Equal("2", user.Accounts[1].AccountGuid);
-
-        }
-        [Fact]
-        public async Task CreateAccount_ShouldNotCreateThirdAccount_WhenAccountAlreadyExists()
-        {
-            await _service.ProcessAccountCreationAsync(userId, firstAccount);
-            await _service.ProcessAccountCreationAsync(userId, secondAccount);
-            await _service.ProcessAccountCreationAsync(userId, secondAccountDiffPayloadSameGuid);
-
-            User? user = await _repository.GetUserByIdAsync(userId);
-            Assert.NotNull(user);
-            Assert.Equal(userId, user.Id);
-            Assert.Equal(2, user.Accounts.Count);
-            Assert.Equal("1", user.Accounts[0].AccountGuid);
-            Assert.Equal("2", user.Accounts[1].AccountGuid);
-        }
-
-        public Task InitializeAsync()
-        {
-            _dbName = "TestDB_" + Guid.NewGuid().ToString("N");
-            _repository = new UsersRepository(_client, _dbName);
-            _service = new AccountService(_repository);
-
-            return Task.CompletedTask;
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _client.DropDatabaseAsync(_dbName);
+            Assert.Single(user!.Accounts);
         }
     }
 }

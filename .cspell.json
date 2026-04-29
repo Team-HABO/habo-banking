@@ -71,6 +71,7 @@
     "mypy",
     "healthcheck",
     "idempotently",
-    "deletetable"
+    "deletetable",
+    "Upserted"
   ]
 }
