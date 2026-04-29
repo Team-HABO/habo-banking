@@ -25,6 +25,9 @@ from django.views.decorators.http import (  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
+ERROR_INVALID_JSON = "Invalid JSON body."
+ERROR_ACCOUNT_NOT_FOUND = "Account not found."
+
 
 # Utility
 
@@ -33,7 +36,7 @@ def _parse_json(request):
     """Return parsed JSON body or None."""
     try:
         return json.loads(request.body)
-    except (json.JSONDecodeError, ValueError):
+    except json.JSONDecodeError:
         return None
 
 
@@ -58,7 +61,7 @@ def account_list(request):
 def _create_account(request):
     body = _parse_json(request)
     if body is None:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+        return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
     # owner_id currently comes from request body until JWT integration is added.
     owner_id = body.get("owner_id")
@@ -88,7 +91,7 @@ def account_detail(request, guid):
     try:
         account = services.get_account_by_guid(guid)
     except Account.DoesNotExist:
-        return JsonResponse({"error": "Account not found."}, status=404)
+        return JsonResponse({"error": ERROR_ACCOUNT_NOT_FOUND}, status=404)
 
     if request.method == "PUT":
         return _update_account(request, account)
@@ -100,7 +103,7 @@ def account_detail(request, guid):
 def _update_account(request, account):
     body = _parse_json(request)
     if body is None:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+        return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
     serializer = UpdateAccountSerializer(data=body)
     if not serializer.is_valid():
@@ -118,7 +121,7 @@ def _update_account(request, account):
 def _freeze_account(request, account):
     body = _parse_json(request)
     if body is None:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+        return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
     serializer = FreezeAccountSerializer(data=body)
     if not serializer.is_valid():
@@ -147,11 +150,11 @@ def account_transactions(request, guid):
     try:
         account = services.get_account_by_guid(guid)
     except Account.DoesNotExist:
-        return JsonResponse({"error": "Account not found."}, status=404)
+        return JsonResponse({"error": ERROR_ACCOUNT_NOT_FOUND}, status=404)
 
     body = _parse_json(request)
     if body is None:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+        return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
     serializer = TransactionSerializer(data=body)
     if not serializer.is_valid():
@@ -183,11 +186,11 @@ def account_exchanges(request, guid):
     try:
         account = services.get_account_by_guid(guid)
     except Account.DoesNotExist:
-        return JsonResponse({"error": "Account not found."}, status=404)
+        return JsonResponse({"error": ERROR_ACCOUNT_NOT_FOUND}, status=404)
 
     body = _parse_json(request)
     if body is None:
-        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+        return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
     serializer = ExchangeSerializer(data=body)
     if not serializer.is_valid():

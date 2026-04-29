@@ -50,7 +50,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "account_db"),
         "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
         "HOST": os.getenv("POSTGRES_HOST", "db"),
         "PORT": "5432",
     }
@@ -62,5 +62,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
-RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "")
 RABBITMQ_EXCHANGE = os.getenv("RABBITMQ_EXCHANGE", "habo_exchange")

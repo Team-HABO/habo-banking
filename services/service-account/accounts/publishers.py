@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
-RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "")
 
 EXCHANGE_ACCOUNT_EVENTS = os.getenv(
     "EXCHANGE_ACCOUNT_EVENTS", "account-exchange-events"
