@@ -17,9 +17,9 @@ namespace service_synchronize.tests
                 Balance = new() { Amount = 0M }
             };
         }
-        public static AccountCreatedAccountDto CreateAccountDto(string? guid = null, string name = "Default Account")
-        {
-            return new AccountCreatedAccountDto
+        public static AccountDetail CreateAccountDto(string? guid = null, string name = "Default Account")
+        {   
+            return new AccountDetail
             {
                 AccountGuid = guid ?? Guid.NewGuid().ToString(),
                 Name = name,

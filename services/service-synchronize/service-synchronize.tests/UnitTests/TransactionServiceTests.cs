@@ -20,17 +20,6 @@ namespace service_synchronize.tests.UnitTests
             _service = new TransactionService(_repoMock.Object, _loggerMock.Object);
         }
 
-        [Fact]
-        public async Task ProcessTransaction_ShouldReturn_WhenAuditAlreadyExists()
-        {
-            TransactionCreated message = CreateMessage("DEPOSIT", "100.00");
-            _repoMock.Setup(r => r.AuditExistsAsync(It.IsAny<string>(), It.IsAny<string>()))
-                     .ReturnsAsync(true);
-
-            await _service.ProcessTransaction(message);
-
-            _repoMock.Verify(r => r.UpdateUserWithNewTransaction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<Audit>()), Times.Never);
-        }
         [Theory]
         [InlineData("not-a-number")] // Case: Parsing fails
         [InlineData("-50.00")]       // Case: Amount is negative
@@ -173,6 +162,42 @@ namespace service_synchronize.tests.UnitTests
                 Times.Never);
         }
 
+        [Fact]
+        public async Task ProcessTransaction_ShouldUpdateBalance_OnTransactionExchange()
+        {
+            TransactionCreated message = CreateExchangeMessage("50.00");
+
+            await _service.ProcessTransaction(message);
+
+            _repoMock.Verify(r => r.UpdateUserWithNewTransaction(
+                "user1",
+                "acc1",
+                -50.00m,
+                It.IsAny<Audit>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ProcessTransaction_ShouldMapExchangeAuditType_OnTransactionExchange()
+        {
+            TransactionCreated message = CreateExchangeMessage("20.50");
+            Audit? capturedAudit = null;
+
+            _repoMock
+                .Setup(r => r.UpdateUserWithNewTransaction(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    It.IsAny<Audit>()))
+                .Callback<string, string, decimal, Audit>((_, _, _, audit) => capturedAudit = audit);
+
+            await _service.ProcessTransaction(message);
+
+            Assert.NotNull(capturedAudit);
+            Assert.Equal(Audit.AuditType.Exchange, capturedAudit!.Type);
+            Assert.Equal("GUID2", capturedAudit.AuditId);
+            Assert.Equal("20.50", capturedAudit.Amount);
+        }
         private static TransactionCreated CreateMessage(string type, string amount) => new()
         {
             Metadata = new() { MessageType = type, MessageId = "msg123", MessageTimestamp = "2026-04-06T09:21:00Z" },
@@ -183,6 +208,19 @@ namespace service_synchronize.tests.UnitTests
                 {
                     Guid = "acc1",
                     Audit = new() { Amount = amount, Type = "DEPOSIT", Timestamp = "now" }
+                }
+            }
+        };
+        private static TransactionCreated CreateExchangeMessage(string amount) => new()
+        {
+            Metadata = new() { MessageType = "TRANSACTION_EXCHANGE", MessageId = "GUID2", MessageTimestamp = "2026-04-06T09:22:00Z" },
+            Data = new()
+            {
+                OwnerId = "user1",
+                Account = new()
+                {
+                    Guid = "acc1",
+                    Audit = new() { Amount = amount, Type = "EXCHANGE", Timestamp = "2026-04-06T09:22:00Z" }
                 }
             }
         };

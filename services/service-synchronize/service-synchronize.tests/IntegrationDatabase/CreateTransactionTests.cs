@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using Microsoft.Extensions.Logging.Abstractions;
 using service_synchronize.Database;
 using service_synchronize.Models;
 
@@ -18,7 +19,7 @@ namespace service_synchronize.tests.IntegrationDatabase
         {
             _fixture = fixture;
             // Use the shared client
-            _repository = new UsersRepository(_fixture.Client, "TestDb");
+            _repository = new UsersRepository(_fixture.Client, NullLogger<UsersRepository>.Instance, "TestDb");
             _userCollection = _fixture.Client.GetDatabase("TestDb").GetCollection<User>("users");
         }
         public Task DisposeAsync() => Task.CompletedTask;
@@ -182,6 +183,73 @@ namespace service_synchronize.tests.IntegrationDatabase
             string? userIdFromDb = await _repository.GetUserIdByAccountGuidAsync(invalidUserId);
 
             Assert.Null(userIdFromDb);
+        }
+        [Fact]
+        public async Task UpdateUserWithNewTransaction_ShouldNotDuplicateAuditOrBalance_WhenAuditIdAlreadyExists()
+        {
+            Audit duplicateAudit = new()
+            {
+                AuditId = "existing-audit-id",
+                Amount = "10.00",
+                Type = Audit.AuditType.Deposit,
+                Timestamp = validTimestamp
+            };
+
+            await _repository.UpdateUserWithNewTransaction(userId, accountGuid, 10m, duplicateAudit);
+
+            User? user = await _repository.GetUserByIdAsync(userId);
+            Assert.NotNull(user);
+            Account account = user.Accounts.First(a => a.AccountGuid == accountGuid);
+
+            Assert.Equal(1000.01m, account.Balance.Amount, 2);
+            Assert.Single(account.Audits, a => a.AuditId == "existing-audit-id");
+        }
+
+        [Fact]
+        public async Task ExecuteTransferAsync_ShouldNotDuplicateAuditOrChangeBalances_WhenAuditIdAlreadyExistsOnBothAccounts()
+        {
+            User user2 = new()
+            {
+                Id = "user-2",
+                Accounts =
+                [
+                    new() {
+                        AccountGuid = "accountGuid2",
+                        Balance = new Balance { Amount = 1000.01M },
+                        Audits = [
+                            new Audit {
+                                AuditId = "existing-audit-id",
+                                Amount = "100.00",
+                                Type = Audit.AuditType.Deposit,
+                                Timestamp = validTimestamp
+                            }
+                        ],
+                        Type = Account.AccountType.Main,
+                        Name = "My main account",
+                        Timestamp = validTimestamp,
+                        IsFrozen = false
+                    }
+                ]
+            };
+            await _userCollection.InsertOneAsync(user2);
+
+            Audit senderAudit = new() { AuditId = "existing-audit-id", Amount = "50.50", Type = Audit.AuditType.Transfer, Timestamp = validTimestamp };
+            Audit receiverAudit = new() { AuditId = "existing-audit-id", Amount = "50.50", Type = Audit.AuditType.Transfer, Timestamp = validTimestamp };
+
+            await _repository.ExecuteTransferAsync(userId, accountGuid, 50.50m, senderAudit, user2.Id, "accountGuid2", receiverAudit);
+
+            User? user1FromDatabase = await _repository.GetUserByIdAsync(userId);
+            Assert.NotNull(user1FromDatabase);
+            Account account1 = user1FromDatabase.Accounts.First(a => a.AccountGuid == accountGuid);
+
+            User? user2FromDatabase = await _repository.GetUserByIdAsync(user2.Id);
+            Assert.NotNull(user2FromDatabase);
+            Account account2 = user2FromDatabase.Accounts.First(a => a.AccountGuid == "accountGuid2");
+
+            Assert.Equal(1000.01m, account1.Balance.Amount, 2);
+            Assert.Equal(1000.01m, account2.Balance.Amount, 2);
+            Assert.Single(account1.Audits, a => a.AuditId == "existing-audit-id");
+            Assert.Single(account2.Audits, a => a.AuditId == "existing-audit-id");
         }
 
     }

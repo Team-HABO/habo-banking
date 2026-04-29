@@ -1,4 +1,5 @@
 ﻿using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 using service_synchronize.Database;
 using service_synchronize.Messages;
 using service_synchronize.Models;
@@ -6,125 +7,99 @@ using service_synchronize.Services;
 
 namespace service_synchronize.tests.UnitTests
 {
-    public class AccountServiceTests
-    {
-        private readonly Mock<IUsersRepository> _repositoryMock;
-        private readonly AccountService _service;
-        private readonly string userId = "111";
-        private readonly AccountCreatedAccountDto firstAccountDto = TestData.CreateAccountDto("1");
-        private readonly AccountCreatedAccountDto secondAccountDto = TestData.CreateAccountDto("2");
-        public AccountServiceTests()
-        {
-            _repositoryMock = new Mock<IUsersRepository>();
-            _service = new AccountService(_repositoryMock.Object);
-        }
+   public class AccountServiceTests
+   {
+      private readonly Mock<IUsersRepository> _repositoryMock = new();
+      private readonly AccountService _service;
+      private readonly string _userId = "user-1";
 
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenUserDoesNotExist()
-        {
+      public AccountServiceTests()
+      {
+         _service = new AccountService(_repositoryMock.Object, NullLogger<AccountService>.Instance);
+      }
 
-            await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
+      [Fact]
+      public async Task ProcessAccountCreationAsync_ShouldMapAccountAndCallUpsertAccountAsync()
+      {
+         AccountDetail accountDto = TestData.CreateAccountDto("acc-1", "Savings Account");
 
-            _repositoryMock.Verify(r =>
-                r.UpsertAccountAsync(
-                    userId,
-                    It.Is<Account>(a => a.AccountGuid == firstAccountDto.AccountGuid)
-                ),
-                Times.Once);
-        }
+         await _service.ProcessAccountCreationAsync(_userId, accountDto);
 
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenUserExistsAndAccountDoesNotExist()
-        {
-            Account firstAccount = AccountService.MapAccountToModel(firstAccountDto);
-            Account secondAccount = AccountService.MapAccountToModel(secondAccountDto);
+         _repositoryMock.Verify(r => r.UpsertAccountAsync(
+            _userId,
+            It.Is<Account>(account =>
+               account.AccountGuid == accountDto.AccountGuid &&
+               account.Name == accountDto.Name &&
+               account.IsFrozen == accountDto.IsFrozen &&
+               account.Timestamp == accountDto.Timestamp &&
+               account.Type == Account.AccountType.Savings &&
+               account.Balance.Amount == 0M &&
+               account.Audits.Count == 0)),
+            Times.Once);
+      }
 
-            await _service.ProcessAccountCreationAsync(userId, secondAccountDto);
+      [Fact]
+      public async Task ProcessAccountCreationAsync_ShouldThrow_WhenAccountIsNull()
+      {
+         await Assert.ThrowsAsync<InvalidDataException>(() =>
+            _service.ProcessAccountCreationAsync(_userId, null!));
 
-            _repositoryMock.Verify(r => r.UpsertAccountAsync(
-                userId,
-                It.Is<Account>(a => a.AccountGuid == secondAccount.AccountGuid)
-            ), Times.Once);
-        }
+         _repositoryMock.Verify(r => r.UpsertAccountAsync(It.IsAny<string>(), It.IsAny<Account>()), Times.Never);
+      }
 
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldCallUpsertAccountAsync_WhenAccountAlreadyExists()
-        {
-            Account firstAccount = AccountService.MapAccountToModel(firstAccountDto);
+      [Fact]
+      public async Task ProcessAccountCreationAsync_ShouldThrow_WhenUserIdIsMissing()
+      {
+         AccountDetail accountDto = TestData.CreateAccountDto("acc-1");
 
-            await _service.ProcessAccountCreationAsync(userId, firstAccountDto);
+         await Assert.ThrowsAsync<InvalidDataException>(() =>
+            _service.ProcessAccountCreationAsync(string.Empty, accountDto));
 
-            _repositoryMock.Verify(r =>
-                r.UpsertAccountAsync(userId, It.IsAny<Account>()),
-                Times.Once);
-        }
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldThrow_WhenDtoIsNull()
-        {
-            await Assert.ThrowsAsync<InvalidDataException>(() =>
-                _service.ProcessAccountCreationAsync(userId, null!));
-        }
+         _repositoryMock.Verify(r => r.UpsertAccountAsync(It.IsAny<string>(), It.IsAny<Account>()), Times.Never);
+      }
 
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldThrow_WhenUserIdIsNullOrEmpty()
-        {
-            await Assert.ThrowsAsync<InvalidDataException>(() =>
-                _service.ProcessAccountCreationAsync("", firstAccountDto));
-            await Assert.ThrowsAsync<InvalidDataException>(() =>
-                _service.ProcessAccountCreationAsync(null!, firstAccountDto));
-        }
-        [Fact]
-        public async Task ProcessAccountCreationAsync_ShouldMapAllFieldsCorrectly_AndCallRepository()
-        {
-            string timestamp = DateTime.UtcNow.ToString();
-            BalanceDto bDto = new()
-            { 
-                Amount = "0"
-            };
-            AccountCreatedAccountDto dto = new()
-            {
-                AccountGuid = "guid-123",
-                Name = "My savings",
-                Type = "SAVINGS",
-                Balance = bDto,
-                IsFrozen = false,
-                Timestamp = timestamp
-            };
-            await _service.ProcessAccountCreationAsync(userId, dto);
+      [Fact]
+      public async Task ProcessAccountUpdateAsync_ShouldMapAccountAndCallUpdateAccountAsync()
+      {
+         AccountDetail accountDto = TestData.CreateAccountDto("acc-2", "Updated Account");
 
-            _repositoryMock.Verify(r => r.UpsertAccountAsync(
-                userId,
-                It.Is<Account>(a =>
-                    a.AccountGuid == dto.AccountGuid &&
-                    a.Type == Account.AccountType.Savings &&
-                    a.Name == dto.Name &&
-                    a.IsFrozen == dto.IsFrozen &&
-                    a.Timestamp == dto.Timestamp &&
-                    a.Balance.Amount == 0M
-                )
-            ), Times.Once);
-        }
-        [Fact]
-        public async Task ProcessAccountCreationAsync_WhenBalanceIsNull_ShouldThrowException_AndNotCallRepository()
-        {
-            string userId = "user-1";
-            AccountCreatedAccountDto dto = new()
-            {
-                AccountGuid = "guid-123",
-                Name = "My savings",
-                Type = "SAVINGS",
-                Balance = null!, 
-                IsFrozen = false,
-                Timestamp = DateTime.UtcNow.ToString()
-            };
+         await _service.ProcessAccountUpdateAsync(_userId, accountDto);
 
-            await Assert.ThrowsAsync<InvalidDataException>(() =>
-                _service.ProcessAccountCreationAsync(userId, dto));
+         _repositoryMock.Verify(r => r.UpdateAccountAsync(
+            _userId,
+            It.Is<Account>(account =>
+               account.AccountGuid == accountDto.AccountGuid &&
+               account.Name == accountDto.Name &&
+               account.Timestamp == accountDto.Timestamp &&
+               account.Type == Account.AccountType.Savings &&
+               !account.IsFrozen &&
+               account.Balance.Amount == 0M)),
+            Times.Once);
+      }
 
-            _repositoryMock.Verify(r => r.UpsertAccountAsync(
-                It.IsAny<string>(),
-                It.IsAny<Account>()
-            ), Times.Never);
-        }
-    }
+      [Fact]
+      public async Task ProcessAccountUpdateAsync_ShouldThrow_WhenAccountIsNull()
+      {
+         await Assert.ThrowsAsync<InvalidDataException>(() =>
+            _service.ProcessAccountUpdateAsync(_userId, null!));
+
+         _repositoryMock.Verify(r => r.UpdateAccountAsync(It.IsAny<string>(), It.IsAny<Account>()), Times.Never);
+      }
+
+      [Fact]
+      public async Task ProcessStatusChangeAsync_ShouldCallUpdateAccountStatusAsync()
+      {
+         await _service.ProcessStatusChangeAsync(_userId, "acc-3", true);
+
+         _repositoryMock.Verify(r => r.UpdateAccountStatusAsync(_userId, "acc-3", true), Times.Once);
+      }
+
+      [Fact]
+      public async Task ProcessAccountDeletionAsync_ShouldCallDeleteAccountAsync()
+      {
+         await _service.ProcessAccountDeletionAsync(_userId, "acc-4");
+
+         _repositoryMock.Verify(r => r.DeleteAccountAsync(_userId, "acc-4"), Times.Once);
+      }
+   }
 }

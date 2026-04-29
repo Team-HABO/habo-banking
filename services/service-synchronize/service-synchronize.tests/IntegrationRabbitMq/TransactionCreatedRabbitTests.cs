@@ -67,7 +67,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
                         e.Bind("synchronize-events", s =>
                         {
                             s.ExchangeType = "direct";
-                            s.RoutingKey = "synchronize-transaction";
+                            s.RoutingKey = "synchronize-transaction-queue";
                         });
                     });
                 });
@@ -93,7 +93,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
 
             await channel.ExchangeDeclareAsync("synchronize-events", "direct", durable: true);
             await channel.QueueDeclareAsync("synchronize-transaction-queue", durable: true, exclusive: false, autoDelete: false);
-            await channel.QueueBindAsync("synchronize-transaction-queue", "synchronize-events", "synchronize-transaction");
+            await channel.QueueBindAsync("synchronize-transaction-queue", "synchronize-events", "synchronize-transaction-queue");
 
 
             BasicProperties properties = new() { ContentType = "application/json" };
@@ -101,7 +101,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
 
             await channel.BasicPublishAsync(
                 exchange: "synchronize-events",
-                routingKey: "synchronize-transaction",
+                routingKey: "synchronize-transaction-queue",
                 mandatory: false,
                 basicProperties: properties,
                 body: body);

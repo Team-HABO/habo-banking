@@ -10,34 +10,34 @@ namespace service_synchronize.tests.UnitTests
 {
     public class AccountCreatedConsumerTests
     {
-        private readonly AccountCreatedAccountDto firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountDetail firstAccount = TestData.CreateAccountDto("1");
+        private readonly AccountDetail secondAccount = TestData.CreateAccountDto("2");
         private readonly string userId = "user-1";
-        
 
-        private readonly AccountCreatedMetadata md = new() { MessageTimestamp = "2026-04-06T09:22:00Z", MessageType = "ACCOUNT_CREATE" };
+        private static readonly string MessageTimestamp = "2026-04-06T09:22:00Z";
+
         [Fact]
-        public async Task Consume_ValidMessageType_ShouldCallService()
+        public async Task Consume_AccountCreate_ShouldCallCreateMethod()
         {
             Mock<IAccountService> accountServiceMock = new();
             await using ServiceProvider provider = CreateProvider(accountServiceMock.Object);
             ITestHarness harness = provider.GetRequiredService<ITestHarness>();
             await harness.Start();
-            AccountCreatedData messageData = new() { Account = firstAccount, OwnerId = userId };
 
-            await harness.Bus.Publish(new AccountCreated
-            {
-                Data = messageData,
-                Metadata = md
-            });
+            await harness.Bus.Publish(CreateMessage("ACCOUNT_CREATE", firstAccount));
 
-            Assert.True(await harness.Consumed.Any<AccountCreated>());
+            Assert.True(await harness.Consumed.Any<AccountEventEnvelope>());
             accountServiceMock.Verify(
-                s => s.ProcessAccountCreationAsync(userId, It.IsAny<AccountCreatedAccountDto>()),
+                s => s.ProcessAccountCreationAsync(userId, It.IsAny<AccountDetail>()),
                 Times.Once
             );
+            accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
+
         [Fact]
-        public async Task Consume_InvalidMessageType_ShouldDiscardAndNotCallService()
+        public async Task Consume_AccountDelete_ShouldCallDeleteMethod()
         {
             Mock<IAccountService> accountServiceMock = new();
 
@@ -45,49 +45,98 @@ namespace service_synchronize.tests.UnitTests
             ITestHarness harness = provider.GetRequiredService<ITestHarness>();
             await harness.Start();
 
-            await harness.Bus.Publish(new AccountCreated
-            {
-                Data = new() { Account = firstAccount, OwnerId = userId },
-                Metadata = new() { MessageType = "invalid_type", MessageTimestamp = "2026-04-06T09:22:00Z" }
-            });
+            await harness.Bus.Publish(CreateMessage("ACCOUNT_DELETE", secondAccount));
 
-            Assert.True(await harness.GetConsumerHarness<AccountCreatedConsumer>().Consumed.Any<AccountCreated>());
+            Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
+            accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(userId, "2"), Times.Once);
+            accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Consume_AccountStatus_ShouldCallStatusMethod()
+        {
+            Mock<IAccountService> accountServiceMock = new();
+
+            await using ServiceProvider provider = CreateProvider(accountServiceMock.Object);
+            ITestHarness harness = provider.GetRequiredService<ITestHarness>();
+            await harness.Start();
+
+            AccountDetail frozenAccount = TestData.CreateAccountDto("2");
+            frozenAccount.IsFrozen = true;
+
+            await harness.Bus.Publish(CreateMessage("ACCOUNT_STATUS", frozenAccount));
+
+            Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(userId, "2", true), Times.Once);
+            accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Consume_AccountUpdate_ShouldCallUpdateMethod()
+        {
+            Mock<IAccountService> accountServiceMock = new();
+
+            await using ServiceProvider provider = CreateProvider(accountServiceMock.Object);
+            ITestHarness harness = provider.GetRequiredService<ITestHarness>();
+            await harness.Start();
+
+            await harness.Bus.Publish(CreateMessage("ACCOUNT_UPDATE", secondAccount));
+
+            Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
+            accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(userId, It.IsAny<AccountDetail>()), Times.Once);
+            accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Consume_InvalidMessageType_ShouldDiscardAndNotCallAnyServiceMethod()
+        {
+            Mock<IAccountService> accountServiceMock = new();
+
+            await using ServiceProvider provider = CreateProvider(accountServiceMock.Object);
+            ITestHarness harness = provider.GetRequiredService<ITestHarness>();
+            await harness.Start();
+
+            await harness.Bus.Publish(CreateMessage("invalid_type", firstAccount));
+
+            Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
 
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(
                 It.IsAny<string>(),
-                It.IsAny<AccountCreatedAccountDto>()),
+                It.IsAny<AccountDetail>()),
                 Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
-        [Fact]
-        public async Task Consume_InvalidAccountType_ShouldDiscardAndNotCallService()
+
+        private static AccountEventEnvelope CreateMessage(string messageType, AccountDetail account)
         {
-            Mock<IAccountService> accountServiceMock = new();
-
-            await using ServiceProvider provider = CreateProvider(accountServiceMock.Object);
-            ITestHarness harness = provider.GetRequiredService<ITestHarness>();
-            await harness.Start();
-
-            AccountCreated invalidAccountDto = new()
+            return new AccountEventEnvelope
             {
-                Data = new() { Account = firstAccount, OwnerId = userId },
-                Metadata = md
+                Data = new AccountEventData
+                {
+                    OwnerId = "user-1",
+                    Account = account
+                },
+                Metadata = new AccountMetadata
+                {
+                    MessageType = messageType,
+                    MessageTimestamp = MessageTimestamp
+                }
             };
-            invalidAccountDto.Data.Account.Type = "wrongType";
-            
-            await harness.Bus.Publish(invalidAccountDto);
-
-            Assert.True(await harness.GetConsumerHarness<AccountCreatedConsumer>().Consumed.Any<AccountCreated>());
-
-            accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(
-                It.IsAny<string>(),
-                It.IsAny<AccountCreatedAccountDto>()),
-                Times.Never);
         }
+
         //Helper to create the service provider for the tests
         private static ServiceProvider CreateProvider(IAccountService service)
         {
             return new ServiceCollection()
-                .AddMassTransitTestHarness(x => x.AddConsumer<AccountCreatedConsumer>())
+                .AddMassTransitTestHarness(x => x.AddConsumer<AccountEventConsumer>())
                 .AddSingleton(service)
                 .AddLogging()
                 .BuildServiceProvider();
