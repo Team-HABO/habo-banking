@@ -114,3 +114,4 @@ class AccountResponseSerializer(serializers.ModelSerializer):
     def get_timestamp(self, obj):
         detail = self._get_latest_detail(obj)
         return detail.timestamp.isoformat() if detail else None
+    

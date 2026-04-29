@@ -301,6 +301,3 @@ def publish_exchange_request(
             "metadata": _build_metadata("TRANSACTION_EXCHANGE", message_id),
         },
     )
-
-
-
