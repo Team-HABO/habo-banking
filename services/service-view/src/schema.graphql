@@ -1,0 +1,23 @@
+type Audit {
+  auditId: ID!
+  amount: String
+  type: String
+  timestamp: String
+  sender: String
+  receiver: String
+}
+
+type Account {
+  accountGuid: ID!
+  type: String
+  name: String
+  timestamp: String
+  isFrozen: Boolean
+  balance: Float # You will need a custom resolver to parse $numberDecimal
+  audits: [Audit]
+}
+
+type Query {
+  getUserAccounts(userId: ID!): [Account]
+  getAccountAudits(userId: ID!, accountGuid: ID!): [Audit]
+}

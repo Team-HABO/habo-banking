@@ -1,0 +1,30 @@
+name: Service View CI/CD
+
+permissions:
+  pull-requests: write
+  contents: read
+  packages: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - services/service-view/**
+  pull_request:
+    paths:
+      - services/service-view/**
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/service-view-tests.yml
+
+  dockerize:
+    needs: run-tests
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/dockerize.yml
+    with:
+      docker-image-name: service-view
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.OLIVIA_DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.OLIVIA_DOCKER_PASSWORD }}

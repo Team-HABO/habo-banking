@@ -1,0 +1,65 @@
+name: View Service tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27018:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGODB_CONNECTION_STRING: mongodb://localhost:27018/HABO_DB?directConnection=true
+      BASE_URL: http://127.0.0.1:4000
+      POSTMAN_USER_ID: test-user-id
+      POSTMAN_ACCOUNT_GUID: test-account-guid
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: services/service-view/package-lock.json
+
+      - name: Install dependencies
+        working-directory: services/service-view
+        run: npm install --include=dev --no-audit --no-fund
+
+      - name: Start service-view
+        working-directory: services/service-view
+        run: |
+          nohup npm start > /tmp/service-view.log 2>&1 &
+          echo $! > /tmp/service-view.pid
+
+      - name: Wait for service-view
+        run: |
+          curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 2 "$BASE_URL/" > /dev/null
+
+      - name: Run Newman tests
+        run: |
+          npx -y newman run "services/service-view/postman/service-view GraphQL.postman_collection.json" \
+            --env-var "baseUrl=$BASE_URL" \
+            --env-var "userId=$POSTMAN_USER_ID" \
+            --env-var "accountGuid=$POSTMAN_ACCOUNT_GUID"
+
+      - name: Show service log on failure
+        if: failure()
+        run: |
+          if [ -f /tmp/service-view.log ]; then
+            cat /tmp/service-view.log
+          fi
+
