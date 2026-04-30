@@ -32,7 +32,7 @@ namespace service_synchronize.tests.UnitTests
                 Times.Once
             );
             accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
-            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
@@ -51,7 +51,7 @@ namespace service_synchronize.tests.UnitTests
             accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(userId, "2"), Times.Once);
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
-            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace service_synchronize.tests.UnitTests
             await harness.Bus.Publish(CreateMessage("ACCOUNT_STATUS", frozenAccount));
 
             Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
-            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(userId, "2", true), Times.Once);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(userId, "2", true, MessageTimestamp), Times.Once);
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -89,7 +89,7 @@ namespace service_synchronize.tests.UnitTests
             Assert.True(await harness.GetConsumerHarness<AccountEventConsumer>().Consumed.Any<AccountEventEnvelope>());
             accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(userId, It.IsAny<AccountDetail>()), Times.Once);
             accountServiceMock.Verify(s => s.ProcessAccountCreationAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
-            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
@@ -111,7 +111,7 @@ namespace service_synchronize.tests.UnitTests
                 It.IsAny<AccountDetail>()),
                 Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountUpdateAsync(It.IsAny<string>(), It.IsAny<AccountDetail>()), Times.Never);
-            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            accountServiceMock.Verify(s => s.ProcessStatusChangeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
             accountServiceMock.Verify(s => s.ProcessAccountDeletionAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 

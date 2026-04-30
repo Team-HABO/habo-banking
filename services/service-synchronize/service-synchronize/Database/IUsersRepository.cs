@@ -14,7 +14,7 @@ namespace service_synchronize.Database
             string senderId, string senderAccountGuid, decimal amount, Audit senderAudit,
             string receiverId, string receiverAccountGuid, Audit receiverAudit);
         Task UpdateAccountAsync(string userId, Account account);
-        Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen);
+        Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen, string incomingTimestamp);
         Task DeleteAccountAsync(string userId, string accountGuid);
     }
 }

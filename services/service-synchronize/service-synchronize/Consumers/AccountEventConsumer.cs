@@ -44,7 +44,7 @@ namespace service_synchronize.Consumers
                         {
                             throw new InvalidDataException($"Status update failed: 'isFrozen' field is missing for Account {data.Account.AccountGuid}");
                         }
-                        await accountService.ProcessStatusChangeAsync(data.OwnerId, data.Account.AccountGuid, data.Account.IsFrozen.Value);
+                        await accountService.ProcessStatusChangeAsync(data.OwnerId, data.Account.AccountGuid, data.Account.IsFrozen.Value, metadata.MessageTimestamp);
                         break;
 
                     default:

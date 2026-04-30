@@ -116,7 +116,7 @@ dotnet run
 ```json
 {
     "data": {
-        "ownerId": "user-12345",
+        "ownerId": "user-1",
         "account": {
             "accountGuid": "1",
             "timestamp": "2026-04-06T09:21:00Z"
@@ -128,6 +128,45 @@ dotnet run
     }
 }
 ```
+### Account Update type and name
+
+```json
+{
+    "data": {
+        "ownerId": "user-1",
+        "account": {
+            "accountGuid": "1",
+            "name": "new account name",
+            "type": "Pension",
+            "timestamp": "2026-04-06T09:22:00Z",
+        }
+    },
+    "metadata": {
+        "messageType": "ACCOUNT_UPDATE",
+        "messageTimestamp": "2026-04-06T09:22:00Z"
+    }
+}
+```
+
+### Account Change Status
+
+```json
+{
+    "data": {
+        "ownerId": "user-1",
+        "account": {
+            "accountGuid": "1",
+            "isFrozen": true,
+            "timestamp": "2026-04-06T09:22:00Z",
+        }
+    },
+    "metadata": {
+        "messageType": "ACCOUNT_STATUS",
+        "messageTimestamp": "2026-04-06T09:22:00Z"
+    }
+}
+```
+
 ### Transaction Deposit
 
 ```json
