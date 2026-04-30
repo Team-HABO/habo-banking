@@ -8,16 +8,24 @@ import { resolvers } from './graphql/resolvers';
 
 async function startServer() {
   const mongoConnectionString = process.env.MONGODB_CONNECTION_STRING;
+  const serverHost = process.env.SERVER_HOST ?? 'localhost';
+  const serverPort = Number(process.env.SERVER_PORT ?? '4000');
 
   if (!mongoConnectionString) {
     throw new Error('MONGODB_CONNECTION_STRING is not set');
+  }
+
+  if (Number.isNaN(serverPort) || serverPort <= 0) {
+    throw new Error('SERVER_PORT must be a positive number');
   }
 
   await mongoose.connect(mongoConnectionString);
   console.log("Connected to MongoDB");
 
   const server = new ApolloServer({ typeDefs, resolvers });
-  const { url } = await startStandaloneServer(server, { listen: { port: 4000 } });
+  const { url } = await startStandaloneServer(server, {
+    listen: { host: serverHost, port: serverPort },
+  });
 
   console.log(`🚀 Server ready at ${url}`);
 }

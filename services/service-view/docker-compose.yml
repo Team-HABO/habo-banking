@@ -34,8 +34,10 @@ services:
       - .env
     environment:
       MONGODB_CONNECTION_STRING: mongodb://mongodb:27017/HABO_DB?replicaSet=rs0&directConnection=true
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: ${SERVER_PORT:-4000}
     ports:
-      - "4000:4000"
+      - "${SERVER_PORT:-4000}:${SERVER_PORT:-4000}"
     restart: unless-stopped
     depends_on:
       mongodb:

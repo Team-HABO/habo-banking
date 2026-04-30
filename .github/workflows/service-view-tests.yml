@@ -40,7 +40,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: services/service-view
-        run: npm install --include=dev --no-audit --no-fund
+        run: npm ci --include=dev --no-audit --no-fund
 
       - name: Start service-view
         working-directory: services/service-view
@@ -50,7 +50,11 @@ jobs:
 
       - name: Wait for service-view
         run: |
-          curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 2 "$BASE_URL/" > /dev/null
+          curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 2 \
+            -X POST "$BASE_URL/" \
+            -H "Content-Type: application/json" \
+            -H "Apollo-Require-Preflight: true" \
+            --data '{"query":"{ __schema { queryType { name } } }"}' > /dev/null
 
       - name: Run Newman tests
         run: |

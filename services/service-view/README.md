@@ -10,9 +10,11 @@ GraphQL service for reading user account and audit data from MongoDB.
 
 ## Environment
 
-This service uses one required environment variable:
+This service uses these environment variables:
 
 - `MONGODB_CONNECTION_STRING`
+- `SERVER_HOST` (default: `localhost`)
+- `SERVER_PORT` (default: `4000`)
 
 You can copy `.env.example` to `.env` and update if needed.
 
@@ -38,7 +40,7 @@ npm run dev
 
 4. Open GraphQL endpoint:
 
-- `http://localhost:4000/`
+- `http://<SERVER_HOST>:<SERVER_PORT>/`
 
 ## Run With Docker Compose
 
@@ -51,7 +53,7 @@ docker compose up --build
 This starts:
 
 - `mongodb` on `localhost:27017`
-- `service-view` on `localhost:4000`
+- `service-view` on `localhost:${SERVER_PORT:-4000}`
 
 To stop:
 
@@ -72,12 +74,12 @@ The service exposes two queries:
 - `getUserAccounts(userId: ID!)`
 - `getAccountAudits(userId: ID!, accountGuid: ID!)`
 
-Use POST requests to `http://localhost:4000/`.
+Use POST requests to `http://localhost:<SERVER_PORT>/`.
 
 ### 1) getUserAccounts
 
 ```bash
-curl -X POST http://localhost:4000/ \
+curl -X POST http://localhost:$SERVER_PORT/ \
   -H "Content-Type: application/json" \
   -d '{
     "query": "query ($userId: ID!) { getUserAccounts(userId: $userId) { accountGuid type name balance audits { auditId amount type timestamp sender receiver } } }",
@@ -97,13 +99,13 @@ $body = @{
   }
 } | ConvertTo-Json -Depth 5
 
-Invoke-RestMethod -Uri 'http://localhost:4000/' -Method Post -ContentType 'application/json' -Body $body
+Invoke-RestMethod -Uri "http://localhost:$env:SERVER_PORT/" -Method Post -ContentType 'application/json' -Body $body
 ```
 
 ### 2) getAccountAudits
 
 ```bash
-curl -X POST http://localhost:4000/ \
+curl -X POST http://localhost:$SERVER_PORT/ \
   -H "Content-Type: application/json" \
   -d '{
     "query": "query ($userId: ID!, $accountGuid: ID!) { getAccountAudits(userId: $userId, accountGuid: $accountGuid) { auditId amount type timestamp sender receiver } }",
@@ -125,10 +127,31 @@ $body = @{
   }
 } | ConvertTo-Json -Depth 5
 
-Invoke-RestMethod -Uri 'http://localhost:4000/' -Method Post -ContentType 'application/json' -Body $body
+Invoke-RestMethod -Uri "http://localhost:$env:SERVER_PORT/" -Method Post -ContentType 'application/json' -Body $body
 ```
 
 ## Notes
 
 - The resolver returns empty arrays when no matching user/account is found.
 - `Account.balance` is stored as MongoDB `Decimal128` and exposed as a string.
+
+## Tests
+
+Unit tests use Vitest. From the `services/service-view` folder run:
+
+```bash
+npm ci
+npm test
+```
+
+Run a single test file or pattern:
+
+```bash
+npm test -- tests/resolvers.test.ts -- --run
+```
+
+Run tests in watch mode during development:
+
+```bash
+npx vitest --watch
+```
