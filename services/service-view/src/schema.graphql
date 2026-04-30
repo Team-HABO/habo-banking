@@ -1,23 +1,61 @@
+"""Represents an audit entry associated with an account transaction."""
 type Audit {
-  auditId: ID!
+  """Transaction amount represented as a string."""
   amount: String
-  type: String
-  timestamp: String
-  sender: String
+  """Unique identifier for the audit record."""
+  auditId: ID!
+  """Receiver identifier for transfer operations."""
   receiver: String
-}
-
-type Account {
-  accountGuid: ID!
-  type: String
-  name: String
+  """Sender identifier for transfer operations."""
+  sender: String
+  """Timestamp for when the audit event occurred."""
   timestamp: String
-  isFrozen: Boolean
-  balance: Float # You will need a custom resolver to parse $numberDecimal
-  audits: [Audit]
+  """Audit operation type."""
+  type: String
 }
 
+"""Represents a user account and its related audit history."""
+type Account {
+  """Stable identifier for the account."""
+  accountGuid: ID!
+  """List of audit records for this account."""
+  audits: [Audit]
+  """Current account balance value."""
+  balance: Float
+  """Indicates whether the account is currently frozen."""
+  isFrozen: Boolean
+  """Human-readable account name."""
+  name: String
+  """Timestamp for the latest account update."""
+  timestamp: String
+  """Account type label."""
+  type: String
+}
+
+"""Relay pagination metadata."""
+type PageInfo {
+  """The cursor corresponding to the last returned edge."""
+  endCursor: String
+  """Whether more edges exist after the current page."""
+  hasNextPage: Boolean!
+  """Whether more edges exist before the current page."""
+  hasPreviousPage: Boolean!
+  """The cursor corresponding to the first returned edge."""
+  startCursor: String
+}
+
+"""Root query entry points for reading account and audit data."""
 type Query {
-  getUserAccounts(userId: ID!): [Account]
-  getAccountAudits(userId: ID!, accountGuid: ID!): [Audit]
+  """Returns audits for a specific account belonging to a user."""
+  getAccountAudits(
+    """Identifier of the user that owns the account."""
+    userId: ID!
+    """Identifier of the account to fetch audits for."""
+    accountGuid: ID!
+  ): [Audit]
+  """Returns all accounts for a specific user."""
+  getUserAccounts(
+    """Identifier of the user to fetch accounts for."""
+    userId: ID!
+  ): [Account]
 }

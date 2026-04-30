@@ -71,7 +71,7 @@
     "mypy",
     "healthcheck",
     "idempotently",
-    "deletetable"
+    "deletetable",
     "scaledobject",
     "scaledobjects",
     "kedacore",
@@ -80,7 +80,7 @@
     "amqp",
     "winget",
     "choco",
-    "alihmohammad"
+    "alihmohammad",
     "forkeh",
     "configmap",
     "cooldown",
