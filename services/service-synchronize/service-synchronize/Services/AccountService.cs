@@ -66,6 +66,12 @@ namespace service_synchronize.Services
                 throw new InvalidDataException("AccountGuid is missing.");
             }
 
+            if(string.IsNullOrWhiteSpace(newAccount.Type))
+            {
+                logger.LogWarning("Rejected account update for account {AccountGuid}: account type is null or whitespace '{Type}'.", newAccount.AccountGuid, newAccount.Type);
+                throw new InvalidDataException($"Account type is nulle or whitespace '{newAccount.Type}'. Allowed types are: Savings, Pension, Main.");
+            }
+
             if (!Enum.TryParse(newAccount.Type, true, out Account.AccountType accountType))
             {
                 logger.LogWarning("Rejected account update for account {AccountGuid}: invalid account type '{Type}'.", newAccount.AccountGuid, newAccount.Type);
@@ -74,16 +80,24 @@ namespace service_synchronize.Services
 
             logger.LogInformation("Processing account update for user {UserId} and account {AccountGuid}.", userId, newAccount.AccountGuid);
 
-            if (string.IsNullOrWhiteSpace(newAccount.Timestamp))
+            string[] acceptedFormats =
+            [
+                "O",
+                "yyyy-MM-dd'T'HH:mm:ssK",
+                "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK"
+            ];
+
+            if (!DateTimeOffset.TryParseExact(
+                newAccount.Timestamp,
+                acceptedFormats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out DateTimeOffset parsedTimestamp))
             {
                 throw new ArgumentException("Invalid or missing ISO 8601 Timestamp.");
             }
 
-            string normalizedTimestamp = NormalizeIso8601TimestampOrThrow(
-                newAccount.Timestamp,
-                newAccount.AccountGuid,
-                "Rejected account update for account {AccountGuid}: invalid Timestamp '{Timestamp}'.",
-                "Invalid or missing ISO 8601 Timestamp.");
+            string normalizedTimestamp = parsedTimestamp.UtcDateTime.ToString("o");
 
             Account account = new()
             {
@@ -108,7 +122,7 @@ namespace service_synchronize.Services
                 throw new InvalidDataException($"MessageTimestamp is missing for account {accountGuid}");
             }
 
-            string normalizedIncomingTimestamp = NormalizeIso8601TimestampOrThrow(
+            string normalizedIncomingTimestamp = NormalizeTimestampOrThrow(
                 incomingTimestamp,
                 accountGuid,
                 "Rejected status update for account {AccountGuid}: invalid MessageTimestamp '{IncomingTimestamp}'.",
@@ -133,11 +147,7 @@ namespace service_synchronize.Services
             logger.LogInformation("Completed status change for user {UserId} and account {AccountGuid}.", userId, accountGuid);
         }
 
-        private string NormalizeIso8601TimestampOrThrow(
-            string timestamp,
-            string accountGuid,
-            string warningTemplate,
-            string exceptionMessage)
+        private string NormalizeTimestampOrThrow(string timestamp, string accountGuid, string warningTemplate, string exceptionMessage)
         {
             string[] acceptedFormats =
             [
