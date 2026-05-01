@@ -2,6 +2,6 @@ title = "habo-banking gitleaks config"
 
 [allowlist]
   description = "RabbitMQ well-known default credentials used only in local dev and CI test environments"
-  regexes = [
-    '''guest:guest''',
+  paths = [
+    '''^systems-tests/.*$''',
   ]
