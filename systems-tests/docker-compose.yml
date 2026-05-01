@@ -5,7 +5,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -17,7 +17,7 @@ services:
       POSTGRES_PASSWORD: testpassword
       POSTGRES_DB: testdb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      test: [ "CMD-SHELL", "pg_isready -U testuser" ]
       interval: 10s
       timeout: 5s
       retries: 5

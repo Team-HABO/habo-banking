@@ -1,53 +1,54 @@
 name: Systems Tests
 
 on:
-  workflow_call:
-  workflow_dispatch:
+    workflow_call:
+    workflow_dispatch:
+    pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Build and start services
-        run: docker compose -f systems-tests/docker-compose.yml up -d --build
+            - name: Build and start services
+              run: docker compose -f systems-tests/docker-compose.yml up -d --build
 
-      - name: Wait for service-transaction to bind its queue
-        # Polls the RabbitMQ management API until the "check-fraud" queue exists,
-        # meaning service-transaction has started and connected. Fails after ~60s.
-        run: |
-          echo "Waiting for service-transaction to be ready..."
-          for i in $(seq 1 30); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u guest:guest \
-              http://localhost:15672/api/queues/%2F/check-fraud)
-            if [ "$STATUS" = "200" ]; then
-              echo "service-transaction is ready (check-fraud queue found)"
-              exit 0
-            fi
-            echo "Attempt $i/30 — queue not ready yet (HTTP $STATUS), retrying in 2s..."
-            sleep 2
-          done
-          echo "Timed out waiting for service-transaction to be ready"
-          docker compose -f systems-tests/docker-compose.yml logs
-          exit 1
+            - name: Wait for service-transaction to bind its queue
+              # Polls the RabbitMQ management API until the "check-fraud" queue exists,
+              # meaning service-transaction has started and connected. Fails after ~60s.
+              run: |
+                  echo "Waiting for service-transaction to be ready..."
+                  for i in $(seq 1 30); do
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u guest:guest \
+                      http://localhost:15672/api/queues/%2F/check-fraud)
+                    if [ "$STATUS" = "200" ]; then
+                      echo "service-transaction is ready (check-fraud queue found)"
+                      exit 0
+                    fi
+                    echo "Attempt $i/30 — queue not ready yet (HTTP $STATUS), retrying in 2s..."
+                    sleep 2
+                  done
+                  echo "Timed out waiting for service-transaction to be ready"
+                  docker compose -f systems-tests/docker-compose.yml logs
+                  exit 1
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: systems-tests/package-lock.json
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: systems-tests/package-lock.json
 
-      - name: Install dependencies
-        working-directory: systems-tests
-        run: npm ci
+            - name: Install dependencies
+              working-directory: systems-tests
+              run: npm ci
 
-      - name: Run systems tests
-        working-directory: systems-tests
-        run: npm test
+            - name: Run systems tests
+              working-directory: systems-tests
+              run: npm test
 
-      - name: Tear down services
-        if: always()
-        run: docker compose -f systems-tests/docker-compose.yml down
+            - name: Tear down services
+              if: always()
+              run: docker compose -f systems-tests/docker-compose.yml down
