@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
     environment:
       RABBITMQ_HOST: rabbitmq
-      DATABASE_URL: postgresql://testuser:testpassword@postgres:5432/testdb
+      DATABASE_URL: postgresql://testuser:testpassword@postgres:5432/testdb # secretlint-disable-line
     depends_on:
       rabbitmq:
         condition: service_healthy

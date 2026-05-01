@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "Waiting for service-transaction to be ready..."
           for i in $(seq 1 30); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u guest:guest \
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u guest:guest \ # gitleaks:allow
               http://localhost:15672/api/queues/%2F/check-fraud)
             if [ "$STATUS" = "200" ]; then
               echo "service-transaction is ready (check-fraud queue found)"
