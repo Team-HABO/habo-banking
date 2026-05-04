@@ -1,4 +1,5 @@
 import type { TExchangeRequestedPayload } from "./events/transaction";
+import type { TAccountCreateFailedPayload } from "./events/account";
 import { RabbitMQ } from "./RabbitMQ";
 
 export async function produceNotification(payload: object) {
@@ -27,6 +28,16 @@ export async function produceCurrencyExchanger(payload: TExchangeRequestedPayloa
 	try {
 		await rabbit.connect();
 		await rabbit.sendToExchange("currency-exchange-events", "direct", payload, "currency-exchange-requests-queue");
+	} finally {
+		await rabbit.closeConnection();
+	}
+}
+
+export async function produceAccountCreateFailed(payload: TAccountCreateFailedPayload) {
+	const rabbit = new RabbitMQ<TAccountCreateFailedPayload>();
+	try {
+		await rabbit.connect();
+		await rabbit.sendToExchange("account-create-response", "direct", payload, "account-create-failed-queue");
 	} finally {
 		await rabbit.closeConnection();
 	}
