@@ -211,7 +211,8 @@ def compensate_account_creation(account_guid: str, reason: str) -> None:
         account = Account.objects.get(account_guid=account_guid)
     except Account.DoesNotExist:
         logger.warning(
-            "Compensating transaction skipped – account %s not found (already deleted?).",
+            "Compensating transaction skipped – account %s not found"
+            " (already deleted?).",
             account_guid,
         )
         return

@@ -9,6 +9,7 @@ import logging
 import os
 
 import pika  # type: ignore[import-untyped]
+from django.db import DatabaseError
 
 from accounts import services
 
@@ -60,7 +61,7 @@ def _on_balance_create_failed(ch, method, _properties, body):
     except json.JSONDecodeError:
         logger.error("Invalid JSON in BALANCE_CREATE_FAILED message.")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-    except Exception:
+    except (DatabaseError, pika.exceptions.AMQPError):
         logger.exception("Error processing BALANCE_CREATE_FAILED.")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
