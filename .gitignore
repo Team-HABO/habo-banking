@@ -832,3 +832,5 @@ appsettings.Development.json
 .env
 
 services/service-transaction/generated
+
+.vscode
