@@ -53,7 +53,7 @@ namespace service_synchronize.tests.IntegrationDatabase
             Assert.Equal("New Account Name", account.Name);
             Assert.Equal(Account.AccountType.Pension, account.Type);
             Assert.Equal(updatedAccount.Timestamp, account.Timestamp);
-            Assert.True(account.IsFrozen);
+            Assert.False(account.IsFrozen);
         }
 
         [Fact]

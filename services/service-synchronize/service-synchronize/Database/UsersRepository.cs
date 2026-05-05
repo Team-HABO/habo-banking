@@ -227,8 +227,7 @@ namespace service_synchronize.Database
             UpdateDefinition<User> update = Builders<User>.Update
                 .Set("accounts.$.name", account.Name)
                 .Set("accounts.$.type", account.Type.ToString())
-                .Set("accounts.$.timestamp", account.Timestamp)
-                .Set("accounts.$.isFrozen", account.IsFrozen);
+                .Set("accounts.$.timestamp", account.Timestamp);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 

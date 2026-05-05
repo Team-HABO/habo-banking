@@ -138,7 +138,7 @@ dotnet run
             "accountGuid": "1",
             "name": "new account name",
             "type": "Pension",
-            "timestamp": "2026-04-06T09:22:00Z",
+            "timestamp": "2026-04-06T09:22:00Z"
         }
     },
     "metadata": {

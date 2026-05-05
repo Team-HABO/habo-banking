@@ -73,12 +73,19 @@ namespace service_synchronize.Services
 
             logger.LogInformation("Processing account update for user {UserId} and account {AccountGuid}.", userId, newAccount.AccountGuid);
 
+            if (!DateTime.TryParse(newAccount.Timestamp, out DateTime parsedDate))
+            {
+                throw new ArgumentException("Invalid or missing ISO 8601 Timestamp.");
+            }
+
+            string normalizedTimestamp = parsedDate.ToUniversalTime().ToString("o");
+
             Account account = new()
             {
                 AccountGuid = newAccount.AccountGuid,
                 Name = newAccount.Name ?? "Unknown Account",
                 Type = accountType,
-                Timestamp = newAccount.Timestamp,
+                Timestamp = normalizedTimestamp,
                 IsFrozen = newAccount.IsFrozen ?? false,
                 Balance = new Balance { Amount = 0M },
                 Audits = []
