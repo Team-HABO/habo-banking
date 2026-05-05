@@ -20,7 +20,7 @@ export const resolvers = {
   },
   Audit: {
     // Serialize Date values to a stable ISO-8601 string format.
-timestamp: (parent: any) => {
+    timestamp: (parent: any) => {
       const dateTime = parent?.timestamp;
       if (!dateTime) return null;
 

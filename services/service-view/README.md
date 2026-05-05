@@ -120,7 +120,7 @@ npm test
 Run a single test file or pattern:
 
 ```bash
-npm test -- tests/resolvers.test.ts -- --run
+npm test -- tests/resolvers.test.ts
 ```
 
 Run tests in watch mode during development:
