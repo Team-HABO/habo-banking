@@ -63,7 +63,7 @@ jobs:
 
       - name: Run resolver tests
         working-directory: services/service-view
-        run: npm test -- run tests/resolvers.test.ts
+        run: npm test -- tests/resolvers.test.ts
 
       - name: Run Newman tests
         run: |

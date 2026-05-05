@@ -6,6 +6,7 @@
 		"types": ["node"],
 		"lib": ["esnext"],
 		"outDir": "./dist",
+		"rootDir": "./src",
 
 		"sourceMap": true,
 		"declaration": true,
@@ -25,5 +26,6 @@
 		"noUncheckedSideEffectImports": true,
 		"moduleDetection": "force",
 		"skipLibCheck": true
-	}
+	},
+  "include": ["src/**/*"]
 }
