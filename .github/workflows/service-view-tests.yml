@@ -43,6 +43,10 @@ jobs:
         working-directory: services/service-view
         run: npm ci --include=dev --no-audit --no-fund
 
+      - name: Build service
+        working-directory: services/service-view
+        run: npm run build
+
       - name: Start service-view
         working-directory: services/service-view
         run: |

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest",
+    "test": "npx vitest --coverage.enabled true --run",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "RUN npx tsc"
