@@ -80,24 +80,11 @@ namespace service_synchronize.Services
 
             logger.LogInformation("Processing account update for user {UserId} and account {AccountGuid}.", userId, newAccount.AccountGuid);
 
-            string[] acceptedFormats =
-            [
-                "O",
-                "yyyy-MM-dd'T'HH:mm:ssK",
-                "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK"
-            ];
-
-            if (!DateTimeOffset.TryParseExact(
+            string normalizedTimestamp = NormalizeTimestampOrThrow(
                 newAccount.Timestamp,
-                acceptedFormats,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out DateTimeOffset parsedTimestamp))
-            {
-                throw new ArgumentException("Invalid or missing ISO 8601 Timestamp.");
-            }
-
-            string normalizedTimestamp = parsedTimestamp.UtcDateTime.ToString("o");
+                newAccount.AccountGuid,
+                "Rejected account update for account {AccountGuid}: invalid Timestamp '{Timestamp}'.",
+                "Invalid or missing ISO 8601 Timestamp.");
 
             Account account = new()
             {
