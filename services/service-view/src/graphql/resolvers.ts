@@ -1,49 +1,17 @@
-import { User } from '../mongoose/schema';
+import { User } from '../mongoose/schema.js';
 
 export const resolvers = {
   Query: {
     getUserAccounts: async (_: any, { userId }: { userId: string }) => {
       const user = await User.findById(userId);
-      const accounts = user?.accounts || [];
-
-      // Normalize nested audit timestamps to ISO strings to avoid inconsistent serialization
-      return accounts.map((acc: any) => {
-        const plainAcc = acc && typeof acc.toObject === 'function' ? acc.toObject() : { ...acc };
-        if (Array.isArray(plainAcc.audits)) {
-          plainAcc.audits = plainAcc.audits.map((a: any) => ({
-            ...a,
-            timestamp: (() => {
-              const v = a?.timestamp;
-              if (!v) return null;
-              if (v instanceof Date) return v.toISOString();
-              if (typeof v === 'number') return new Date(v).toISOString();
-              if (typeof v === 'string' && /^\d+$/.test(v)) return new Date(Number(v)).toISOString();
-              const d = new Date(v);
-              return Number.isNaN(d.getTime()) ? null : d.toISOString();
-            })()
-          }));
-        }
-        return plainAcc;
-      });
+      return user?.accounts || [];
     },
     getAccountAudits: async (_: any, { userId, accountGuid }: any) => {
       const user = await User.findOne(
         { _id: userId, "accounts.accountGuid": accountGuid },
         { "accounts.$": 1 }
       );
-      const audits = user?.accounts?.[0]?.audits || [];
-      return audits.map((a: any) => ({
-        ...(a && typeof a.toObject === 'function' ? a.toObject() : a),
-        timestamp: (() => {
-          const v = a?.timestamp;
-          if (!v) return null;
-          if (v instanceof Date) return v.toISOString();
-          if (typeof v === 'number') return new Date(v).toISOString();
-          if (typeof v === 'string' && /^\d+$/.test(v)) return new Date(Number(v)).toISOString();
-          const d = new Date(v);
-          return Number.isNaN(d.getTime()) ? null : d.toISOString();
-        })()
-      }));
+      return user?.accounts?.[0]?.audits || [];
     }
   },
   Account: {
@@ -52,16 +20,15 @@ export const resolvers = {
   },
   Audit: {
     // Serialize Date values to a stable ISO-8601 string format.
-    timestamp: (parent: any) => {
-      if (!parent?.timestamp) {
-        return null;
-      }
+timestamp: (parent: any) => {
+      const dateTime = parent?.timestamp;
+      if (!dateTime) return null;
 
-      const v = parent.timestamp;
-      if (v instanceof Date) return v.toISOString();
-      if (typeof v === 'number') return new Date(v).toISOString();
-      if (typeof v === 'string' && /^\d+$/.test(v)) return new Date(Number(v)).toISOString();
-      const d = new Date(v);
+      if (dateTime instanceof Date) return dateTime.toISOString();
+      if (typeof dateTime === 'number') return new Date(dateTime).toISOString();
+      if (typeof dateTime === 'string' && /^\d+$/.test(dateTime)) return new Date(Number(dateTime)).toISOString();
+      
+      const d = new Date(dateTime);
       return Number.isNaN(d.getTime()) ? null : d.toISOString();
     }
   }

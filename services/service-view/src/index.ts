@@ -2,13 +2,13 @@ import 'dotenv/config';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import mongoose from 'mongoose';
-import { typeDefs } from './graphql/typeDefs';
-import { resolvers } from './graphql/resolvers';    
+import { typeDefs } from './graphql/typeDefs.js';
+import { resolvers } from './graphql/resolvers.js';    
 
 
 async function startServer() {
   const mongoConnectionString = process.env.MONGODB_CONNECTION_STRING;
-  const serverHost = process.env.SERVER_HOST ?? 'localhost';
+  const serverHost = process.env.SERVER_HOST ?? '0.0.0.0';
   const serverPort = Number(process.env.SERVER_PORT ?? '4000');
 
   if (!mongoConnectionString) {

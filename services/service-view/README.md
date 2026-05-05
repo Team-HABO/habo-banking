@@ -4,7 +4,7 @@ GraphQL service for reading user account and audit data from MongoDB.
 
 ## Prerequisites
 
-- Node.js 22+
+- Node.js 24+
 - npm
 - Docker Desktop (for MongoDB and Docker Compose flow)
 

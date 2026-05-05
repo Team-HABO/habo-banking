@@ -24,6 +24,7 @@ jobs:
 
     env:
       MONGODB_CONNECTION_STRING: mongodb://localhost:27018/HABO_DB?directConnection=true
+      SERVER_HOST: 0.0.0.0
       BASE_URL: http://127.0.0.1:4000
       POSTMAN_USER_ID: test-user-id
       POSTMAN_ACCOUNT_GUID: test-account-guid
@@ -56,12 +57,22 @@ jobs:
             -H "Apollo-Require-Preflight: true" \
             --data '{"query":"{ __schema { queryType { name } } }"}' > /dev/null
 
+      - name: Run resolver tests
+        working-directory: services/service-view
+        run: npm test -- run tests/resolvers.test.ts
+
       - name: Run Newman tests
         run: |
           npx -y newman run "services/service-view/postman/service-view GraphQL.postman_collection.json" \
             --env-var "baseUrl=$BASE_URL" \
             --env-var "userId=$POSTMAN_USER_ID" \
             --env-var "accountGuid=$POSTMAN_ACCOUNT_GUID"
+
+      - name: Report Coverage
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          working-directory: "services/service-view"
 
       - name: Show service log on failure
         if: failure()

@@ -5,6 +5,7 @@
 		"target": "es2023",
 		"types": ["node"],
 		"lib": ["esnext"],
+		"outDir": "./dist",
 
 		"sourceMap": true,
 		"declaration": true,
