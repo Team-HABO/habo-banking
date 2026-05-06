@@ -16,6 +16,21 @@ services:
     env_file:
       - .env
 
+  consumer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: python /workspace/manage.py consume_events
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env
+
   rabbitmq:
     image: rabbitmq:management
     restart: unless-stopped

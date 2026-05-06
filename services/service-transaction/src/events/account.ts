@@ -44,3 +44,12 @@ export type TSynchronizeAccountCreatePayload = {
 	};
 	metadata: TMetadata;
 };
+
+export type TAccountCreateFailedPayload = {
+	data: {
+		accountGuid: string;
+		ownerId: string;
+		reason: string;
+	};
+	metadata: TMetadata;
+};
