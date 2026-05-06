@@ -76,6 +76,19 @@ services:
       retries: 5
       start_period: 15s
 
+  compass:
+    image: haohanyang/compass-web
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - CW_MONGO_URI=mongodb://mongodb:27017
+      - CW_ENABLE_SHELL=true
+      - CW_MASTER_PASSWORD=changeme
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
   # ── Application Services ───────────────────────────────────────
 
   service-account-app:
