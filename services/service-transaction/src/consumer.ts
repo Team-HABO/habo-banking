@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { RabbitMQ } from "./RabbitMQ.js";
-import type { TAccountPayload } from "./events/account.js";
+import type { TAccountCreateFailedPayload, TAccountPayload } from "./events/account.js";
 import type { TExchangeProcessedPayload, TTransactionPayload } from "./events/transaction.js";
 import handleCreate from "./handlers/handleCreate.js";
 import handleDelete from "./handlers/handleDelete.js";
@@ -9,6 +9,7 @@ import handleExchange from "./handlers/handleExchange.js";
 import handleExchangeRequest from "./handlers/handleExchangeRequest.js";
 import handleTransfer from "./handlers/handleTransfer.js";
 import handleWithdraw from "./handlers/handleWithdraw.js";
+import { produceAccountCreateFailed } from "./producer.js";
 
 const transactionHandlers: Record<string, (data: TTransactionPayload) => Promise<void>> = {
 	TRANSFER: handleTransfer,
@@ -81,6 +82,31 @@ await accountRabbit.consumeFromExchange("account-queue", "account-exchange-event
 		ack();
 	} catch (error) {
 		console.error(`Handler failed for event ${JSON.stringify(data)}. Error: `, error);
-		nack(true);
+
+		if (messageType === "ACCOUNT_CREATE") {
+			// Saga: publish compensating event to rollback account creation
+			try {
+				const compensationPayload: TAccountCreateFailedPayload = {
+					data: {
+						accountGuid: data.message.data.accountGuid,
+						ownerId: data.message.data.ownerId,
+						reason: error instanceof Error ? error.message : "Balance creation failed"
+					},
+					metadata: {
+						messageType: "BALANCE_CREATE_FAILED",
+						messageTimestamp: new Date().toISOString(),
+						messageId: data.message.metadata.messageId
+					}
+				};
+				await produceAccountCreateFailed(compensationPayload);
+				console.log(`[SAGA] Published BALANCE_CREATE_FAILED for account ${data.message.data.accountGuid}`);
+				ack();
+			} catch (compensationError) {
+				console.error("[SAGA] Failed to publish compensation event:", compensationError);
+				nack(true);
+			}
+		} else {
+			nack(true);
+		}
 	}
 });

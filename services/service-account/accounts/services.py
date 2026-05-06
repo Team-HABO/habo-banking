@@ -200,3 +200,33 @@ def initiate_exchange(
             "origin_ip": origin_ip,
         }
     )
+
+
+# Saga – Compensating transaction for failed balance creation
+
+
+def compensate_account_creation(account_guid: str, reason: str) -> None:
+    """Rollback account creation when balance creation fails in Transaction-Service."""
+    try:
+        account = Account.objects.get(account_guid=account_guid)
+    except Account.DoesNotExist:
+        logger.warning(
+            "Compensating transaction skipped – account %s not found"
+            " (already deleted?).",
+            account_guid,
+        )
+        return
+
+    if account.deleted_records.exists():
+        logger.info(
+            "Compensating transaction skipped – account %s already deleted.",
+            account_guid,
+        )
+        return
+
+    soft_delete_account(account)
+    logger.info(
+        "Compensating transaction completed – account %s deleted. Reason: %s",
+        account_guid,
+        reason,
+    )
