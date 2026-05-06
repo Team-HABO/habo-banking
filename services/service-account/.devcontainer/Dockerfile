@@ -1,14 +1,10 @@
-FROM mcr.microsoft.com/devcontainers/anaconda:1-3
+FROM python:3.12-slim
 
-COPY environment.yml* /tmp/conda-tmp/
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
 COPY requirements.txt* /tmp/pip-tmp/
-
-RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/conda env update -n base -f /tmp/conda-tmp/environment.yml; fi \
-    && rm -rf /tmp/conda-tmp
-
 RUN if [ -f "/tmp/pip-tmp/requirements.txt" ]; then pip install --no-cache-dir -r /tmp/pip-tmp/requirements.txt; fi \
     && rm -rf /tmp/pip-tmp
-
-# [Optional]
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
