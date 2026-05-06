@@ -24,12 +24,18 @@ namespace service_synchronize.Services
 
             logger.LogInformation("Processing account creation for user {UserId} and account {AccountGuid}.", userId, accountDto.AccountGuid);
 
+            string normalizedTimestamp = NormalizeTimestampOrThrow(
+                accountDto.Timestamp,
+                accountDto.AccountGuid,
+                "Rejected account creation for account {AccountGuid}: invalid Timestamp '{Timestamp}'.",
+                "Invalid or missing ISO 8601 Timestamp.");
+
             Account account = new()
             {
                 AccountGuid = accountDto.AccountGuid,
                 Name = accountDto.Name ?? "Unknown Account",
                 IsFrozen = accountDto.IsFrozen ?? false,
-                Timestamp = accountDto.Timestamp,
+                Timestamp = normalizedTimestamp,  // was: accountDto.Timestamp
                 Type = Enum.TryParse(accountDto.Type, true, out Account.AccountType type) ? type : Account.AccountType.Main,
                 Balance = new Balance { Amount = 0M },
                 Audits = []

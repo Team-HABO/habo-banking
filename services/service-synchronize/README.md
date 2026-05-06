@@ -157,12 +157,12 @@ dotnet run
         "account": {
             "accountGuid": "1",
             "isFrozen": true,
-            "timestamp": "2026-04-06T09:22:00Z"
+            "timestamp": "2026-04-06T09:22:10Z"
         }
     },
     "metadata": {
         "messageType": "ACCOUNT_STATUS",
-        "messageTimestamp": "2026-04-06T09:22:00Z"
+        "messageTimestamp": "2026-04-06T09:22:10Z"
     }
 }
 ```

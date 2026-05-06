@@ -241,7 +241,8 @@ namespace service_synchronize.Database
                     return; 
                 }
 
-                throw new InvalidOperationException($"Account {account.AccountGuid} not found for user {userId}.");
+                _logger.LogInformation("Discarded update for account {AccountGuid} for user {UserId} because the account was not found.", account.AccountGuid, userId);
+                return;
             }
 
             _logger.LogInformation("Successfully updated account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
