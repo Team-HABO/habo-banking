@@ -106,7 +106,7 @@ describe("handleExchange via RabbitMQ exchange", () => {
 		});
 
 		expect(latest).not.toBeNull();
-		expect(latest!.amount).toBe("75"); // 100 - (50 * 0.5)
+		expect(latest!.amount).toBe("50"); // 100 - 50
 	});
 
 	it("should process multiple EXCHANGE messages published to the exchange in order", async () => {
@@ -145,7 +145,7 @@ describe("handleExchange via RabbitMQ exchange", () => {
 
 		expect(details).toHaveLength(3);
 		expect(details[0]!.amount).toBe("100");
-		expect(details[1]!.amount).toBe("90"); // 100 - (20 * 0.5)
-		expect(details[2]!.amount).toBe("85"); // 90 - (10 * 0.5)
+		expect(details[1]!.amount).toBe("80"); // 100 - 20
+		expect(details[2]!.amount).toBe("70"); // 80 - 10
 	});
 });

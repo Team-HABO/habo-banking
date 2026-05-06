@@ -13,20 +13,18 @@ const COMPENSATION_QUEUE = "account-create-failed-queue";
 
 function makeCreatePayload(accountGuid = ACCOUNT_GUID, ownerId = OWNER_ID): TAccountPayload {
 	return {
-		message: {
-			data: {
-				accountGuid,
-				ownerId,
-				type: "SAVINGS",
-				name: "Test Account",
-				isFrozen: false,
-				timestamp: new Date().toISOString()
-			},
-			metadata: {
-				messageType: "ACCOUNT_CREATE",
-				messageTimestamp: new Date().toISOString(),
-				messageId: uuidv4()
-			}
+		data: {
+			accountGuid,
+			ownerId,
+			type: "SAVINGS",
+			name: "Test Account",
+			isFrozen: false,
+			timestamp: new Date().toISOString()
+		},
+		metadata: {
+			messageType: "ACCOUNT_CREATE",
+			messageTimestamp: new Date().toISOString(),
+			messageId: uuidv4()
 		}
 	};
 }
@@ -118,14 +116,14 @@ describe("Saga: ACCOUNT_CREATE compensation flow", () => {
 
 			const compensationPayload: TAccountCreateFailedPayload = {
 				data: {
-					accountGuid: payload.message.data.accountGuid,
-					ownerId: payload.message.data.ownerId,
+					accountGuid: payload.data.accountGuid,
+					ownerId: payload.data.ownerId,
 					reason: error.message
 				},
 				metadata: {
 					messageType: "BALANCE_CREATE_FAILED",
 					messageTimestamp: new Date().toISOString(),
-					messageId: payload.message.metadata.messageId
+					messageId: payload.metadata.messageId
 				}
 			};
 
@@ -133,7 +131,7 @@ describe("Saga: ACCOUNT_CREATE compensation flow", () => {
 			expect(compensationPayload.data.ownerId).toBe(OWNER_ID);
 			expect(compensationPayload.data.reason).toBe("Some DB error");
 			expect(compensationPayload.metadata.messageType).toBe("BALANCE_CREATE_FAILED");
-			expect(compensationPayload.metadata.messageId).toBe(payload.message.metadata.messageId);
+			expect(compensationPayload.metadata.messageId).toBe(payload.metadata.messageId);
 		});
 	});
 
@@ -227,14 +225,14 @@ describe("Saga: ACCOUNT_CREATE compensation flow", () => {
 					} catch (error) {
 						const compensationPayload: TAccountCreateFailedPayload = {
 							data: {
-								accountGuid: data.message.data.accountGuid,
-								ownerId: data.message.data.ownerId,
+								accountGuid: data.data.accountGuid,
+								ownerId: data.data.ownerId,
 								reason: error instanceof Error ? error.message : "Balance creation failed"
 							},
 							metadata: {
 								messageType: "BALANCE_CREATE_FAILED",
 								messageTimestamp: new Date().toISOString(),
-								messageId: data.message.metadata.messageId
+								messageId: data.metadata.messageId
 							}
 						};
 						await produceAccountCreateFailed(compensationPayload);
@@ -278,14 +276,14 @@ describe("Saga: ACCOUNT_CREATE compensation flow", () => {
 						} catch (error) {
 							const compensationPayload: TAccountCreateFailedPayload = {
 								data: {
-									accountGuid: data.message.data.accountGuid,
-									ownerId: data.message.data.ownerId,
+									accountGuid: data.data.accountGuid,
+									ownerId: data.data.ownerId,
 									reason: error instanceof Error ? error.message : "Balance creation failed"
 								},
 								metadata: {
 									messageType: "BALANCE_CREATE_FAILED",
 									messageTimestamp: new Date().toISOString(),
-									messageId: data.message.metadata.messageId
+									messageId: data.metadata.messageId
 								}
 							};
 							await produceAccountCreateFailed(compensationPayload);
