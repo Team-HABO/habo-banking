@@ -44,7 +44,7 @@ namespace service_synchronize.tests.IntegrationDatabase
 
             Account account = user.Accounts[0];
             Assert.True(account.IsFrozen);
-            Assert.Equal(existingTimestamp, account.Timestamp);
+            Assert.Equal(incomingTimestamp, account.Timestamp);
             Assert.Equal("Primary Account", account.Name);
         }
 

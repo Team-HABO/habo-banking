@@ -277,7 +277,9 @@ namespace service_synchronize.Database
                 )
             );
 
-            UpdateDefinition<User> update = Builders<User>.Update.Set("accounts.$.isFrozen", isFrozen);
+            UpdateDefinition<User> update = Builders<User>.Update
+                .Set("accounts.$.isFrozen", isFrozen)
+                .Set("Accounts.$.Timestamp", incomingTimestamp);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 

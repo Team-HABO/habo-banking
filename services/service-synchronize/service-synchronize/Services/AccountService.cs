@@ -2,6 +2,7 @@
 using service_synchronize.Messages;
 using service_synchronize.Models;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace service_synchronize.Services
 {
@@ -73,12 +74,16 @@ namespace service_synchronize.Services
 
             logger.LogInformation("Processing account update for user {UserId} and account {AccountGuid}.", userId, newAccount.AccountGuid);
 
-            if (!DateTime.TryParse(newAccount.Timestamp, out DateTime parsedDate))
+            if (string.IsNullOrWhiteSpace(newAccount.Timestamp))
             {
                 throw new ArgumentException("Invalid or missing ISO 8601 Timestamp.");
             }
 
-            string normalizedTimestamp = parsedDate.ToUniversalTime().ToString("o");
+            string normalizedTimestamp = NormalizeIso8601TimestampOrThrow(
+                newAccount.Timestamp,
+                newAccount.AccountGuid,
+                "Rejected account update for account {AccountGuid}: invalid Timestamp '{Timestamp}'.",
+                "Invalid or missing ISO 8601 Timestamp.");
 
             Account account = new()
             {
@@ -103,6 +108,12 @@ namespace service_synchronize.Services
                 throw new InvalidDataException($"MessageTimestamp is missing for account {accountGuid}");
             }
 
+            string normalizedIncomingTimestamp = NormalizeIso8601TimestampOrThrow(
+                incomingTimestamp,
+                accountGuid,
+                "Rejected status update for account {AccountGuid}: invalid MessageTimestamp '{IncomingTimestamp}'.",
+                "Invalid or missing ISO 8601 MessageTimestamp.");
+
             if (string.IsNullOrWhiteSpace(userId))
             {
                 logger.LogWarning("Rejected status update for account {AccountGuid} because OwnerId was missing.", accountGuid);
@@ -115,11 +126,40 @@ namespace service_synchronize.Services
                 throw new InvalidDataException("AccountGuid is missing.");
             }
 
-            logger.LogInformation("Processing status change for user {UserId} and account {AccountGuid}. Incoming timestamp: {IncomingTimestamp}, new isFrozen value: {IsFrozen}.", userId, accountGuid, incomingTimestamp, isFrozen);
+            logger.LogInformation("Processing status change for user {UserId} and account {AccountGuid}. Incoming timestamp: {IncomingTimestamp}, new isFrozen value: {IsFrozen}.", userId, accountGuid, normalizedIncomingTimestamp, isFrozen);
 
-            await repository.UpdateAccountStatusAsync(userId, accountGuid, isFrozen, incomingTimestamp);
+            await repository.UpdateAccountStatusAsync(userId, accountGuid, isFrozen, normalizedIncomingTimestamp);
 
             logger.LogInformation("Completed status change for user {UserId} and account {AccountGuid}.", userId, accountGuid);
+        }
+
+        private string NormalizeIso8601TimestampOrThrow(
+            string timestamp,
+            string accountGuid,
+            string warningTemplate,
+            string exceptionMessage)
+        {
+            string[] acceptedFormats =
+            [
+                "O",
+                "yyyy-MM-dd'T'HH:mm:ssK",
+                "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK"
+            ];
+
+            bool parsed = DateTimeOffset.TryParseExact(
+                timestamp,
+                acceptedFormats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out DateTimeOffset parsedTimestamp);
+
+            if (!parsed)
+            {
+                logger.LogWarning(warningTemplate, accountGuid, timestamp);
+                throw new InvalidDataException(exceptionMessage);
+            }
+
+            return parsedTimestamp.UtcDateTime.ToString("o");
         }
 
     }

@@ -13,6 +13,7 @@ namespace service_synchronize.tests.UnitTests
       private readonly AccountService _service;
       private readonly string _userId = "user-1";
         private static readonly string MessageTimestamp = "2026-04-06T09:22:00Z";
+        private static readonly string NormalizedMessageTimestamp = "2026-04-06T09:22:00.0000000Z";
 
 
         public AccountServiceTests()
@@ -145,7 +146,7 @@ namespace service_synchronize.tests.UnitTests
       {
          await _service.ProcessStatusChangeAsync(_userId, "acc-3", true, MessageTimestamp);
 
-         _repositoryMock.Verify(r => r.UpdateAccountStatusAsync(_userId, "acc-3", true, MessageTimestamp), Times.Once);
+         _repositoryMock.Verify(r => r.UpdateAccountStatusAsync(_userId, "acc-3", true, NormalizedMessageTimestamp), Times.Once);
       }
 
       [Fact]
