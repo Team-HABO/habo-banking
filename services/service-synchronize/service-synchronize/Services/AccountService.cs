@@ -69,7 +69,7 @@ namespace service_synchronize.Services
             if(string.IsNullOrWhiteSpace(newAccount.Type))
             {
                 logger.LogWarning("Rejected account update for account {AccountGuid}: account type is null or whitespace '{Type}'.", newAccount.AccountGuid, newAccount.Type);
-                throw new InvalidDataException($"Account type is nulle or whitespace '{newAccount.Type}'. Allowed types are: Savings, Pension, Main.");
+                throw new InvalidDataException($"Account type is null or whitespace '{newAccount.Type}'. Allowed types are: Savings, Pension, Main.");
             }
 
             if (!Enum.TryParse(newAccount.Type, true, out Account.AccountType accountType))
