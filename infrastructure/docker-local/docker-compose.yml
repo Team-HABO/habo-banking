@@ -131,6 +131,18 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  service-currency-exchange:
+    build:
+      context: ../../services/service-currency-exchange
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   service-transaction:
     build:
       context: ../../services/service-transaction
