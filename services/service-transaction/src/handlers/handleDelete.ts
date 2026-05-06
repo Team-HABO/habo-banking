@@ -5,7 +5,7 @@ import { deleteBalance, getLatestBalance } from "../repository";
 
 export default async function handleDelete(payload: TAccountPayload) {
 	console.log("Handling delete account:", payload);
-	const { data, metadata } = payload.message;
+	const { data, metadata } = payload;
 
 	const message = await prisma.$transaction(async (tx) => {
 		const balanceExists = await getLatestBalance(tx, data.accountGuid);

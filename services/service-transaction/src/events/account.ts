@@ -10,10 +10,8 @@ export type TAccountData = {
 };
 
 export type TAccountPayload = {
-	message: {
-		data: TAccountData;
-		metadata: TMetadata;
-	};
+	data: TAccountData;
+	metadata: TMetadata;
 };
 
 export type TSynchronizeAccountDeletePayload = {
