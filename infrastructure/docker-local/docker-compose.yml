@@ -1,0 +1,149 @@
+services:
+  # ── Infrastructure ─────────────────────────────────────────────
+
+  rabbitmq:
+    image: rabbitmq:management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-account:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-account-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-transaction:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: transaction_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-transaction-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Application Services ───────────────────────────────────────
+
+  service-account-app:
+    build:
+      context: ../../services/service-account
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../../services/service-account:/app:cached
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: postgres-account
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      postgres-account:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  service-account-consumer:
+    build:
+      context: ../../services/service-account
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../../services/service-account:/app:cached
+    command: python manage.py consume_events
+    environment:
+      POSTGRES_HOST: postgres-account
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      postgres-account:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  service-ai:
+    build:
+      context: ../../services/service-ai
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-notification:
+    build:
+      context: ../../services/service-notification
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-transaction:
+    build:
+      context: ../../services/service-transaction
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-transaction:5432/transaction_db?schema=public
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres-transaction:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres-account-data:
+  postgres-transaction-data:
