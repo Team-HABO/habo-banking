@@ -279,7 +279,7 @@ namespace service_synchronize.Database
 
             UpdateDefinition<User> update = Builders<User>.Update
                 .Set("accounts.$.isFrozen", isFrozen)
-                .Set("Accounts.$.Timestamp", incomingTimestamp);
+                .Set("accounts.$.timestamp", incomingTimestamp);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 
