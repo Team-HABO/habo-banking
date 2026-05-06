@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using service_synchronize.Database;
 using service_synchronize.Messages;
@@ -10,7 +11,7 @@ namespace service_synchronize.Services
     {
         public enum TransactionMessageType
         {
-            TRANSACTION_TRANSFER, WITHDRAW, DEPOSIT, TRANSACTION_EXCHANGE
+            TRANSACTION_TRANSFER, TRANSACTION_WITHDRAW, TRANSACTION_DEPOSIT, TRANSACTION_EXCHANGE
         }
         private async Task ProcessDeposit(string ownerId, string accountGuid, decimal amount, Audit newAudit)
         {
@@ -33,11 +34,26 @@ namespace service_synchronize.Services
             string ownerAccountId = messageData.Account.Guid;
             string auditId = message.Metadata.MessageId;
 
-            if (!Enum.TryParse(message.Metadata.MessageType, true, out TransactionMessageType transactionType))
+            string rawType = message.Metadata.MessageType ?? string.Empty;
+            if (!Enum.TryParse(rawType, true, out TransactionMessageType transactionType))
             {
-                logger.LogWarning("Discarded: Message {Guid} has an invalid Type '{Type}'",
-                    message.Metadata.MessageId, message.Metadata.MessageType);
-                return;
+                const string prefix = "TRANSACTION_";
+                if (rawType.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    string alt = rawType.Substring(prefix.Length);
+                    if (!Enum.TryParse(alt, true, out transactionType))
+                    {
+                        logger.LogWarning("Discarded: Message {Guid} has an invalid Type '{Type}'",
+                            message.Metadata.MessageId, message.Metadata.MessageType);
+                        return;
+                    }
+                }
+                else
+                {
+                    logger.LogWarning("Discarded: Message {Guid} has an invalid Type '{Type}'",
+                        message.Metadata.MessageId, message.Metadata.MessageType);
+                    return;
+                }
             }
             if (!decimal.TryParse(messageData.Account.Audit.Amount, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal amount) || amount <= 0)
             {
@@ -53,10 +69,10 @@ namespace service_synchronize.Services
             Audit ownerAudit = MapAudit(messageData.Account.Audit, message.Metadata.MessageId);
             switch (transactionType)
             {
-                case TransactionMessageType.DEPOSIT:
+                case TransactionMessageType.TRANSACTION_DEPOSIT:
                     await ProcessDeposit(ownerId, ownerAccountId, amount, ownerAudit);
                     break;
-                case TransactionMessageType.WITHDRAW:
+                case TransactionMessageType.TRANSACTION_WITHDRAW:
                 case TransactionMessageType.TRANSACTION_EXCHANGE:
                     await ProcessWithdraw(ownerId, ownerAccountId, amount, ownerAudit);
                     break;
@@ -72,15 +88,31 @@ namespace service_synchronize.Services
         }
         public static Audit MapAudit(AuditDto dto, string auditGuid)
         {
-            return !Enum.TryParse(dto.Type, true, out Audit.AuditType type)
-                ? throw new InvalidDataException($"Invalid audit type: {dto.Type}")
-                : new Audit
+            string rawType = dto.Type ?? string.Empty;
+            if (!Enum.TryParse(rawType, true, out Audit.AuditType type))
+            {
+                const string prefix = "TRANSACTION_";
+                if (rawType.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    AuditId = auditGuid,
-                    Type = type,
-                    Amount = dto.Amount,
-                    Timestamp = dto.Timestamp
-                };
+                    string alt = rawType.Substring(prefix.Length);
+                    if (!Enum.TryParse(alt, true, out type))
+                    {
+                        throw new InvalidDataException($"Invalid audit type: {dto.Type}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidDataException($"Invalid audit type: {dto.Type}");
+                }
+            }
+
+            return new Audit
+            {
+                AuditId = auditGuid,
+                Type = type,
+                Amount = dto.Amount,
+                Timestamp = dto.Timestamp
+            };
         }
     }
 }
