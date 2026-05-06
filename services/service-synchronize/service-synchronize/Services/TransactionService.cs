@@ -88,15 +88,31 @@ namespace service_synchronize.Services
         }
         public static Audit MapAudit(AuditDto dto, string auditGuid)
         {
-            return !Enum.TryParse(dto.Type, true, out Audit.AuditType type)
-                ? throw new InvalidDataException($"Invalid audit type: {dto.Type}")
-                : new Audit
+            string rawType = dto.Type ?? string.Empty;
+            if (!Enum.TryParse(rawType, true, out Audit.AuditType type))
+            {
+                const string prefix = "TRANSACTION_";
+                if (rawType.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    AuditId = auditGuid,
-                    Type = type,
-                    Amount = dto.Amount,
-                    Timestamp = dto.Timestamp
-                };
+                    string alt = rawType.Substring(prefix.Length);
+                    if (!Enum.TryParse(alt, true, out type))
+                    {
+                        throw new InvalidDataException($"Invalid audit type: {dto.Type}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidDataException($"Invalid audit type: {dto.Type}");
+                }
+            }
+
+            return new Audit
+            {
+                AuditId = auditGuid,
+                Type = type,
+                Amount = dto.Amount,
+                Timestamp = dto.Timestamp
+            };
         }
     }
 }
