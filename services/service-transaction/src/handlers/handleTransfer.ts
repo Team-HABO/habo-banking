@@ -60,7 +60,7 @@ export default async function handleTransfer(payload: TTransactionPayload) {
 						amount: updatedSenderBalance.amount,
 						timestamp: updatedSenderBalance.createdAt
 					},
-					audits: {
+					audit: {
 						receiver: data.account.name,
 						amount: data.amount,
 						type: data.transactionType.toUpperCase(),
@@ -73,7 +73,7 @@ export default async function handleTransfer(payload: TTransactionPayload) {
 						amount: updatedReceiverBalance.amount,
 						timestamp: updatedReceiverBalance.createdAt
 					},
-					audits: {
+					audit: {
 						receiver: data.account.name,
 						amount: data.amount,
 						type: data.transactionType.toUpperCase(),

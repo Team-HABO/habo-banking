@@ -55,7 +55,7 @@ export default async function handleExchange(payload: TExchangeProcessedPayload)
 						amount: updatedBalance.amount,
 						timestamp: updatedBalance.createdAt
 					},
-					audits: {
+					audit: {
 						receiver: data.accountName,
 						amount: data.amount,
 						type: data.transactionType.toUpperCase(),

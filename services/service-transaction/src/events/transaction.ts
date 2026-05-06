@@ -57,7 +57,7 @@ type TSynchronizeData = {
 		amount: string;
 		timestamp: Date;
 	};
-	audits: {
+	audit: {
 		receiver: string;
 		amount: string;
 		type: string;
