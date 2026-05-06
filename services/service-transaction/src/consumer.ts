@@ -68,7 +68,7 @@ await exchangeRabbit.consumeFromExchange(
 );
 
 await accountRabbit.consumeFromExchange("account-queue", "account-exchange-events", "fanout", async (data, ack, nack) => {
-	const messageType = data.message.metadata.messageType.toUpperCase();
+	const messageType = data.metadata.messageType.toUpperCase();
 	const handler = accountHandlers[messageType];
 
 	if (!handler) {
@@ -88,18 +88,18 @@ await accountRabbit.consumeFromExchange("account-queue", "account-exchange-event
 			try {
 				const compensationPayload: TAccountCreateFailedPayload = {
 					data: {
-						accountGuid: data.message.data.accountGuid,
-						ownerId: data.message.data.ownerId,
+						accountGuid: data.data.accountGuid,
+						ownerId: data.data.ownerId,
 						reason: error instanceof Error ? error.message : "Balance creation failed"
 					},
 					metadata: {
 						messageType: "BALANCE_CREATE_FAILED",
 						messageTimestamp: new Date().toISOString(),
-						messageId: data.message.metadata.messageId
+						messageId: data.metadata.messageId
 					}
 				};
 				await produceAccountCreateFailed(compensationPayload);
-				console.log(`[SAGA] Published BALANCE_CREATE_FAILED for account ${data.message.data.accountGuid}`);
+				console.log(`[SAGA] Published BALANCE_CREATE_FAILED for account ${data.data.accountGuid}`);
 				ack();
 			} catch (compensationError) {
 				console.error("[SAGA] Failed to publish compensation event:", compensationError);

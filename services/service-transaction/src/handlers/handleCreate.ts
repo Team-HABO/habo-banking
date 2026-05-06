@@ -5,7 +5,7 @@ import { produceSynchronization } from "../producer";
 
 export default async function handleCreate(payload: TAccountPayload) {
 	console.log("Handling create account:", payload);
-	const { data, metadata } = payload.message;
+	const { data, metadata } = payload;
 
 	const message = await prisma.$transaction(async (tx) => {
 		const latestBalance = await tx.balance.findUnique({ where: { accountGuid: data.accountGuid } });
