@@ -8,20 +8,18 @@ import { v4 as uuidv4 } from "uuid";
 
 function makeCreatePayload(accountGuid = ACCOUNT_GUID, ownerId = OWNER_ID): TAccountPayload {
 	return {
-		message: {
-			data: {
-				accountGuid,
-				ownerId,
-				type: "SAVINGS",
-				name: "Test Account",
-				isFrozen: false,
-				timestamp: new Date().toISOString()
-			},
-			metadata: {
-				messageType: "ACCOUNT_CREATE",
-				messageTimestamp: new Date().toISOString(),
-				messageId: uuidv4()
-			}
+		data: {
+			accountGuid,
+			ownerId,
+			type: "SAVINGS",
+			name: "Test Account",
+			isFrozen: false,
+			timestamp: new Date().toISOString()
+		},
+		metadata: {
+			messageType: "ACCOUNT_CREATE",
+			messageTimestamp: new Date().toISOString(),
+			messageId: uuidv4()
 		}
 	};
 }
