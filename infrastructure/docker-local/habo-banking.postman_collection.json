@@ -1,0 +1,125 @@
+{
+	"info": {
+		"name": "HABO Banking",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8000" },
+		{ "key": "account_guid_1", "value": "" },
+		{ "key": "account_guid_2", "value": "" }
+	],
+	"item": [
+		{
+			"name": "Create Account 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"const res = pm.response.json();",
+							"pm.collectionVariables.set('account_guid_1', res.account_guid);",
+							"pm.test('Account 1 created', () => pm.response.to.have.status(201));"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"owner_id\": \"user-1\",\n  \"name\": \"Account 1\",\n  \"type\": \"checking\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/accounts/",
+					"host": ["{{base_url}}"],
+					"path": ["accounts", ""]
+				}
+			}
+		},
+		{
+			"name": "Create Account 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"const res = pm.response.json();",
+							"pm.collectionVariables.set('account_guid_2', res.account_guid);",
+							"pm.test('Account 2 created', () => pm.response.to.have.status(201));"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"owner_id\": \"user-2\",\n  \"name\": \"Account 2\",\n  \"type\": \"checking\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/accounts/",
+					"host": ["{{base_url}}"],
+					"path": ["accounts", ""]
+				}
+			}
+		},
+		{
+			"name": "Deposit 100 into Account 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Deposit accepted', () => pm.response.to.have.status(202));"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"amount\": \"100\",\n  \"transactionType\": \"DEPOSIT\",\n  \"messageId\": \"{{$guid}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/accounts/{{account_guid_1}}/transactions/",
+					"host": ["{{base_url}}"],
+					"path": ["accounts", "{{account_guid_1}}", "transactions", ""]
+				}
+			}
+		},
+		{
+			"name": "Transfer 30 from Account 1 to Account 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Transfer accepted', () => pm.response.to.have.status(202));"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"amount\": \"30\",\n  \"transactionType\": \"TRANSFER\",\n  \"receiverAccountGuid\": \"{{account_guid_2}}\",\n  \"messageId\": \"{{$guid}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/accounts/{{account_guid_1}}/transactions/",
+					"host": ["{{base_url}}"],
+					"path": ["accounts", "{{account_guid_1}}", "transactions", ""]
+				}
+			}
+		}
+	]
+}
