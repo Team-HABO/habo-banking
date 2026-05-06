@@ -29,8 +29,7 @@ export default async function handleExchange(payload: TExchangeProcessedPayload)
 			return;
 		}
 
-		const exchangeAmount = Number(data.amount) * data.exchangeRate!;
-		const newAmount = Number(latestBalance.amount) - exchangeAmount;
+		const newAmount = Number(latestBalance.amount) - Number(data.amount);
 		if (newAmount < 0) {
 			return `Insufficient funds. Current balance: ${latestBalance.amount}, requested exchange: ${data.amount}.`;
 		}

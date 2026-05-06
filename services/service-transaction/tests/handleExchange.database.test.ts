@@ -54,7 +54,7 @@ describe("handleExchange database integration", () => {
 		});
 
 		expect(latest).not.toBeNull();
-		expect(latest!.amount).toBe("75"); // 100 - (50 * 0.5)
+		expect(latest!.amount).toBe("50"); // 100 - 50
 	});
 
 	it("should accumulate balance across multiple exchanges", async () => {
@@ -68,8 +68,8 @@ describe("handleExchange database integration", () => {
 
 		expect(details).toHaveLength(3);
 		expect(details[0]!.amount).toBe("100"); // initial
-		expect(details[1]!.amount).toBe("90"); // 100 - (20 * 0.5)
-		expect(details[2]!.amount).toBe("85"); // 90 - (10 * 0.5)
+		expect(details[1]!.amount).toBe("80"); // 100 - 20
+		expect(details[2]!.amount).toBe("70"); // 80 - 10
 	});
 
 	it("should not throw when the account does not exist", async () => {
@@ -99,7 +99,7 @@ describe("handleExchange database integration", () => {
 		});
 
 		expect(details).toHaveLength(2); // initial + one exchange
-		expect(details[1]!.amount).toBe("75"); // 100 - (50 * 0.5), applied once
+		expect(details[1]!.amount).toBe("50"); // 100 - 50, applied once
 	});
 
 	it("should not apply an old exchange event", async () => {
@@ -112,7 +112,7 @@ describe("handleExchange database integration", () => {
 		});
 
 		expect(details).toHaveLength(2); // initial + first exchange only
-		expect(details[1]!.amount).toBe("95"); // 100 - (10 * 0.5)
+		expect(details[1]!.amount).toBe("90"); // 100 - 10
 	});
 
 	it("should not exchange from a deleted balance", async () => {
