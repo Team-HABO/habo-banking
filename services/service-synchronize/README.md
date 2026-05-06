@@ -144,7 +144,7 @@ dotnet run
         }
     },
     "metadata": {
-        "messageType": "DEPOSIT",
+        "messageType": "TRANSACTION_DEPOSIT",
         "messageTimestamp": "2026-04-06T09:22:00Z",
         "messageId": "GUID"
     }
@@ -167,7 +167,7 @@ dotnet run
         }
     },
     "metadata": {
-        "messageType": "WITHDRAW",
+        "messageType": "TRANSACTION_WITHDRAW",
         "messageTimestamp": "2026-04-06T09:22:00Z",
         "messageId": "GUID1"
     }
