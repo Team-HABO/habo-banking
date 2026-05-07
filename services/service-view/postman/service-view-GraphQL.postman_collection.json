@@ -1,0 +1,300 @@
+{
+  "info": {
+    "_postman_id": "d904ae0b-74b7-4d5a-9b45-d909db83b62d",
+    "name": "service-view GraphQL",
+    "description": "Postman collection for the service-view GraphQL API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25638427",
+    "_collection_link": "https://go.postman.co/collection/25638427-d904ae0b-74b7-4d5a-9b45-d909db83b62d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get User Accounts Unauthenticated",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const response = pm.response.json();\r",
+              "pm.test(\"Response has errors\", () => {\r",
+              "    pm.expect(response.errors).to.be.an('array');\r",
+              "});\r",
+              "pm.test(\"Error message is 'Unauthorized'\", () => {\r",
+              "    pm.expect(response.errors[0].message).to.equal('Unauthorized');\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query GetUserAccounts {\r\n  getUserAccounts {\r\n    accountGuid\r\n    balance\r\n    name\r\n    type\r\n  }\r\n}",
+            "variables": ""
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Calls the getUserAccounts resolver."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Account Audits Unauthenticated",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const response = pm.response.json();\r",
+              "pm.test(\"Response has errors\", () => {\r",
+              "    pm.expect(response.errors).to.be.an('array');\r",
+              "});\r",
+              "pm.test(\"Error message is 'Unauthorized'\", () => {\r",
+              "    pm.expect(response.errors[0].message).to.equal('Unauthorized');\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query GetAccountAudits($accountGuid: ID!) {\r\n  getAccountAudits(accountGuid: $accountGuid) {\r\n    amount\r\n    auditId\r\n    receiver\r\n    sender\r\n    timestamp\r\n    type\r\n  }\r\n}",
+            "variables": "{\r\n  \"accountGuid\": \"1\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Calls the getUserAccounts resolver."
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Accounts",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "const response = pm.response.json();\r",
+              "pm.test(\"Response has user accounts\", () => {\r",
+              "    pm.expect(response.data.getUserAccounts).to.be.an('array');\r",
+              "    pm.expect(response.data.getUserAccounts.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Account object has correct fields\", () => {\r",
+              "    const account = response.data.getUserAccounts[0];\r",
+              "    pm.expect(account).to.have.all.keys('accountGuid', 'balance', 'name', 'type');\r",
+              "    pm.expect(account.accountGuid).to.be.a('string');\r",
+              "});\r",
+              "pm.test(\"Balance is a valid positive number\", () => {\r",
+              "    const balanceStr = response.data.getUserAccounts[0].balance;\r",
+              "    const balanceNum = parseFloat(balanceStr);\r",
+              "    \r",
+              "    pm.expect(isNaN(balanceNum)).to.be.false;\r",
+              "    pm.expect(balanceNum).to.be.at.least(0);\r",
+              "});\r",
+              "\r",
+              "const accountGuid = response.data.getUserAccounts[0].accountGuid;\r",
+              "\r",
+              "pm.collectionVariables.set(\"accountGuid\", accountGuid);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query GetUserAccounts {\r\n  getUserAccounts {\r\n    accountGuid\r\n    balance\r\n    name\r\n    type\r\n  }\r\n}",
+            "variables": ""
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Calls the getUserAccounts resolver."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Account Audits",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();\r",
+              "const audits = response.data.getAccountAudits;\r",
+              "\r",
+              "pm.test(\"Response status code is 200\", () => {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Audit list is an array and not empty\", () => {\r",
+              "    pm.expect(audits).to.be.an('array');\r",
+              "    pm.expect(audits.length).to.be.at.least(1);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Every audit has required keys\", () => {\r",
+              "    audits.forEach((audit) => {\r",
+              "        pm.expect(audit).to.have.all.keys(\r",
+              "            'amount', 'auditId', 'receiver', 'sender', 'timestamp', 'type'\r",
+              "        );\r",
+              "    });\r",
+              "});\r",
+              "pm.test(\"Amounts are valid numeric strings\", () => {\r",
+              "    audits.forEach((audit) => {\r",
+              "        const val = parseFloat(audit.amount);\r",
+              "        pm.expect(isNaN(val)).to.be.false;\r",
+              "        pm.expect(val).to.be.above(0);\r",
+              "    });\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query GetAccountAudits($accountGuid: ID!) {\r\n  getAccountAudits(accountGuid: $accountGuid) {\r\n    amount\r\n    auditId\r\n    receiver\r\n    sender\r\n    timestamp\r\n    type\r\n  }\r\n}",
+            "variables": "{\r\n  \"accountGuid\": \"{{accountGuid}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Calls the getAccountAudits resolver."
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "accountGuid",
+      "value": ""
+    }
+  ]
+}

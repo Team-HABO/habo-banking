@@ -65,12 +65,58 @@ jobs:
         working-directory: services/service-view
         run: npm test -- tests/resolvers.test.ts
 
+      - name: Seed MongoDB
+        run: |
+          mongosh "mongodb://localhost:27018/HABO_DB" <<EOF
+          db.your_collection_name.insertOne({
+            "_id": "Test",
+            "accounts": [
+              {
+                "accountGuid": "my-guid",
+                "type": "Savings",
+                "name": "my savings",
+                "timestamp": "2026-04-06T09:21:00Z",
+                "isFrozen": false,
+                "balance": {
+                  "amount": NumberDecimal("650.00")
+                },
+                "audits": [
+                  {
+                    "auditId": "GUID",
+                    "amount": "200.00",
+                    "type": "Deposit",
+                    "timestamp": "2026-04-06T09:22:00Z",
+                    "sender": null,
+                    "receiver": null
+                  },
+                  {
+                    "auditId": "GUID2",
+                    "amount": "500.00",
+                    "type": "Deposit",
+                    "timestamp": "2026-04-06T09:22:00Z",
+                    "sender": null,
+                    "receiver": null
+                  },
+                  {
+                    "auditId": "GUID3",
+                    "amount": "50.00",
+                    "type": "Withdraw",
+                    "timestamp": "2026-04-06T09:22:00Z",
+                    "sender": null,
+                    "receiver": null
+                  }
+                ]
+              }
+            ]
+          })
+          EOF
+
       - name: Run Newman tests
         run: |
-          npx -y newman run "services/service-view/postman/service-view GraphQL.postman_collection.json" \
-            --env-var "baseUrl=$BASE_URL" \
-            --env-var "userId=$POSTMAN_USER_ID" \
-            --env-var "accountGuid=$POSTMAN_ACCOUNT_GUID"
+          npx newman run "services/service-view/postman/service-view-GraphQL.postman_collection.json" \
+          -e "services/service-view/postman/habo-banking-view.postman_environment.json" \
+          --env-var "jwt_token=${{ secrets.OAUTH_TEST_JWT_TOKEN }}"
+
 
       - name: Report Coverage
         if: always()
