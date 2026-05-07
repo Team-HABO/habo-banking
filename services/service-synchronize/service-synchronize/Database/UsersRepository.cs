@@ -110,10 +110,6 @@ namespace service_synchronize.Database
 
             if (result.MatchedCount == 0)
             {
-                if (await AuditExistsAsync(userId, newAudit.AuditId))
-                {
-                    return;
-                }
                 _logger.LogWarning("Transaction update failed: account {AccountGuid} not found for user {UserId}.", accountGuid, userId);
                 throw new InvalidOperationException($"No account found for userId '{userId}' and accountGuid '{accountGuid}'.");
             }
@@ -169,14 +165,8 @@ namespace service_synchronize.Database
         {
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                Builders<User>.Filter.Eq(u => u.Id, userId),
-               Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid),
-               Builders<User>.Filter.Not(
-                   Builders<User>.Filter.ElemMatch(
-                       "accounts.audits",
-                       Builders<BsonDocument>.Filter.Eq("auditId", audit.AuditId)
-                   )
-               )
-           );
+               Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid)
+            );
 
             UpdateDefinition<User> update = Builders<User>.Update
                 .Push("accounts.$.audits", audit)
@@ -185,10 +175,6 @@ namespace service_synchronize.Database
             UpdateResult result = await _usersCollection.UpdateOneAsync(session, filter, update);
             if (result.MatchedCount == 0)
             {
-                if (await AuditExistsAsync(userId, audit.AuditId))
-                {
-                    return;
-                }
                 _logger.LogWarning(
                     "Session update failed: account {AccountGuid} not found for user {UserId}.",
                     accountGuid, userId);

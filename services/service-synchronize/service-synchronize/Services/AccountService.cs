@@ -36,7 +36,7 @@ namespace service_synchronize.Services
                 Name = accountDto.Name ?? "Unknown Account",
                 IsFrozen = accountDto.IsFrozen ?? false,
                 Timestamp = normalizedTimestamp,  // was: accountDto.Timestamp
-                Type = Enum.TryParse(accountDto.Type, true, out Account.AccountType type) ? type : Account.AccountType.Main,
+                Type = Enum.TryParse(accountDto.Type, true, out Account.AccountType type) ? type : Account.AccountType.Checking,
                 Balance = new Balance { Amount = 0M },
                 Audits = []
             };
