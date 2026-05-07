@@ -123,7 +123,34 @@ namespace service_synchronize.tests.UnitTests
             Assert.Equal("receiver-account-name", capturedSenderAudit!.ReceiverAccountName);
             Assert.Equal("sender-account-name", capturedReceiverAudit!.SenderAccountName);
         }
+        [Fact]
+        public async Task ProcessTransaction_ShouldSkip_WhenAuditAlreadyExists()
+        {
+            TransactionCreated message = CreateTransferMessage("75.00", "sender-account-name", "receiver-account-name");
+            _repoMock.Setup(r => r.AuditExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
 
+            await _service.ProcessTransaction(message);
+
+            _repoMock.Verify(x => x.AuditExistsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _repoMock.Verify(
+                x => x.UpdateUserWithNewTransaction(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    It.IsAny<Audit>()),
+                Times.Never);
+
+            _repoMock.Verify(
+                x => x.ExecuteTransferAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    It.IsAny<Audit>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Audit>()),
+                Times.Never);
+        }
         [Fact]
         public async Task ProcessTransaction_ShouldThrowInvalidOperationException_WhenTransferReceiverIsMissing()
         {
