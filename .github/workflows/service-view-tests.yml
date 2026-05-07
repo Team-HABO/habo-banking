@@ -69,7 +69,7 @@ jobs:
 
       - name: Run Newman tests
         run: |
-          npx newman run "services/service-view/postman/service-view-GraphQL.postman_collection.json" \
+          npx -y newman run "services/service-view/postman/service-view-GraphQL.postman_collection.json" \
           -e "services/service-view/postman/habo-banking-view.postman_environment.json" \
           --env-var "jwt_token=${{ secrets.OAUTH_TEST_JWT_TOKEN }}"
 
