@@ -113,7 +113,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
             TaskCompletionSource<bool> signal = new();
 
             _serviceMock
-                .Setup(s => s.ProcessStatusChangeAsync("user-1", "2", true))
+                .Setup(s => s.ProcessStatusChangeAsync("user-1", "2", true, md.MessageTimestamp))
                 .Returns(Task.CompletedTask)
                 .Callback(() => signal.SetResult(true));
 
@@ -132,7 +132,7 @@ namespace service_synchronize.tests.IntegrationRabbitMq
 
             Assert.True(completedTask == signal.Task, "The consumer was not triggered within the timeout period.");
 
-            _serviceMock.Verify(s => s.ProcessStatusChangeAsync("user-1", "2", true), Times.Once);
+            _serviceMock.Verify(s => s.ProcessStatusChangeAsync("user-1", "2", true, md.MessageTimestamp), Times.Once);
         }
 
         [Fact]

@@ -199,12 +199,29 @@ namespace service_synchronize.Database
             _logger.LogInformation("Applied session update for user {UserId} account {AccountGuid}.", userId, accountGuid);
         }
 
-        // TODO: the following logic might need to change so no tests has been done
         public async Task UpdateAccountAsync(string userId, Account account)
         {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Update account failed: UserId is null or empty.");
+                throw new InvalidOperationException("UserId cannot be null or empty.");
+            }
+
+            if (account == null)
+            {
+                _logger.LogWarning("Update account failed: Account object is null.");
+                throw new InvalidOperationException("Account object cannot be null.");
+            }
+
+            _logger.LogInformation("Updating account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
+
+           
+
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", account.AccountGuid)
+                Builders<User>.Filter.ElemMatch(u => u.Accounts, a => 
+                    a.AccountGuid == account.AccountGuid && 
+                    a.Timestamp.CompareTo(account.Timestamp) < 0) 
             );
 
             UpdateDefinition<User> update = Builders<User>.Update
@@ -216,28 +233,77 @@ namespace service_synchronize.Database
 
             if (result.MatchedCount == 0)
             {
-                _logger.LogWarning("Update failed: Account {AccountGuid} not found for user {UserId}.", account.AccountGuid, userId);
+                bool exists = await _usersCollection.Find(u => u.Id == userId && u.Accounts.Any(a => a.AccountGuid == account.AccountGuid)).AnyAsync();
+                
+                if (exists)
+                {
+                    _logger.LogInformation("Discarded stale update for account {AccountGuid}. Newer data already exists.", account.AccountGuid);
+                    return; 
+                }
+
+                _logger.LogInformation("Discarded update for account {AccountGuid} for user {UserId} because the account was not found.", account.AccountGuid, userId);
                 return;
             }
 
-            _logger.LogInformation("Updated account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
+            _logger.LogInformation("Successfully updated account {AccountGuid} for user {UserId}.", account.AccountGuid, userId);
         }
-        // TODO: the following logic might need to change so no tests has been done
-        public async Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen)
+        public async Task UpdateAccountStatusAsync(string userId, string accountGuid, bool isFrozen, string incomingTimestamp)
         {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Status update failed: UserId is null or empty.");
+                throw new InvalidOperationException("UserId cannot be null or empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(accountGuid))
+            {
+                _logger.LogWarning("Status update failed: AccountGuid is null or empty.");
+                throw new InvalidOperationException("AccountGuid cannot be null or empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(incomingTimestamp))
+            {
+                _logger.LogWarning("Status update failed for account {AccountGuid}: incoming timestamp is missing.", accountGuid);
+                throw new InvalidDataException("Incoming timestamp cannot be null or empty.");
+            }
+
+            _logger.LogInformation("Updating status for account {AccountGuid} for user {UserId}.", accountGuid, userId);
+
             FilterDefinition<User> filter = Builders<User>.Filter.And(
                 Builders<User>.Filter.Eq(u => u.Id, userId),
-                Builders<User>.Filter.Eq("accounts.accountGuid", accountGuid)
+                Builders<User>.Filter.ElemMatch(
+                    u => u.Accounts,
+                    a => a.AccountGuid == accountGuid && 
+                    a.Timestamp.CompareTo(incomingTimestamp) < 0
+                )
             );
 
-            UpdateDefinition<User> update = Builders<User>.Update.Set("accounts.$.isFrozen", isFrozen);
+            UpdateDefinition<User> update = Builders<User>.Update
+                .Set("accounts.$.isFrozen", isFrozen)
+                .Set("accounts.$.timestamp", incomingTimestamp);
 
             UpdateResult result = await _usersCollection.UpdateOneAsync(filter, update);
 
             if (result.MatchedCount == 0)
             {
-                _logger.LogWarning("Status update failed: Account {Guid} not found for User {UserId}.", accountGuid, userId);
+                bool accountExists = await _usersCollection.Find(
+                    Builders<User>.Filter.And(
+                        Builders<User>.Filter.Eq(u => u.Id, userId),
+                        Builders<User>.Filter.ElemMatch(u => u.Accounts, a => a.AccountGuid == accountGuid)
+                    )
+                ).AnyAsync();
+
+                if (accountExists)
+                {
+                    _logger.LogInformation("Skipped status update for account {AccountGuid}: incoming timestamp {IncomingTimestamp} is not newer than the stored timestamp.", accountGuid, incomingTimestamp);
+                    return;
+                }
+
+                _logger.LogWarning("Status update failed: Account {AccountGuid} not found for User {UserId}.", accountGuid, userId);
+                throw new InvalidOperationException($"No account found for userId '{userId}' and accountGuid '{accountGuid}'.");
             }
+
+            _logger.LogInformation("Successfully updated status for account {AccountGuid} for user {UserId}.", accountGuid, userId);
         }
 
     }
