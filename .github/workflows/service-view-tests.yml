@@ -26,8 +26,7 @@ jobs:
       MONGODB_CONNECTION_STRING: mongodb://localhost:27018/HABO_DB?directConnection=true
       SERVER_HOST: 0.0.0.0
       BASE_URL: http://127.0.0.1:4000
-      POSTMAN_USER_ID: test-user-id
-      POSTMAN_ACCOUNT_GUID: test-account-guid
+      JWT_SECRET: ${{ secrets.JWT_SECRET_API_KEY }}
 
     steps:
       - uses: actions/checkout@v6
@@ -130,4 +129,3 @@ jobs:
           if [ -f /tmp/service-view.log ]; then
             cat /tmp/service-view.log
           fi
-
