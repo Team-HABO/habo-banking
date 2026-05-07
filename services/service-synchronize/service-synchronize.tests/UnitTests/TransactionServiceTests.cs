@@ -26,7 +26,7 @@ namespace service_synchronize.tests.UnitTests
         [InlineData("0")]            // Case: Amount is zero
         public async Task ProcessTransaction_ShouldThrowInvalidDataException_WhenAmountIsInvalid(string invalidAmount)
         {
-            TransactionCreated message = CreateMessage("DEPOSIT", invalidAmount);
+            TransactionCreated message = CreateMessage("TRANSACTION_DEPOSIT", invalidAmount);
 
             InvalidDataException exception = await Assert.ThrowsAsync<InvalidDataException>(() =>
                 _service.ProcessTransaction(message)
@@ -38,7 +38,7 @@ namespace service_synchronize.tests.UnitTests
         [Fact]
         public async Task ProcessTransaction_ShouldUpdateBalance_OnDeposit()
         {
-            TransactionCreated message = CreateMessage("DEPOSIT", "50.00");
+            TransactionCreated message = CreateMessage("TRANSACTION_DEPOSIT", "50.00");
             _repoMock.Setup(r => r.AuditExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 
             await _service.ProcessTransaction(message);
@@ -53,7 +53,7 @@ namespace service_synchronize.tests.UnitTests
         [Fact]
         public async Task ProcessTransaction_ShouldUpdateBalance_OnWithdraw()
         {
-            TransactionCreated message = CreateMessage("WITHDRAW", "50.00");
+            TransactionCreated message = CreateMessage("TRANSACTION_WITHDRAW", "50.00");
             _repoMock.Setup(r => r.AuditExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 
             await _service.ProcessTransaction(message);
@@ -207,7 +207,7 @@ namespace service_synchronize.tests.UnitTests
                 Account = new()
                 {
                     Guid = "acc1",
-                    Audit = new() { Amount = amount, Type = "DEPOSIT", Timestamp = "now" }
+                    Audit = new() { Amount = amount, Type = "TRANSACTION_DEPOSIT", Timestamp = "now" }
                 }
             }
         };
