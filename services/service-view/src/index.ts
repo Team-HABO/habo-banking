@@ -41,12 +41,9 @@ async function startServer() {
   const { url } = await startStandaloneServer(server, {
     listen: { host: serverHost, port: serverPort },
     context: async ({ req }) => {
-      console.log(req.headers);
       try {
         const cookies = cookie.parse(req.headers.cookie || '');
-        console.log('Parsed Cookies:', cookies);
         const token = cookies.token;
-        console.log('Extracted Token:', token);
         if (!token) {
           return { userId: null };
         }
