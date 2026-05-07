@@ -24,7 +24,6 @@ jobs:
 
     env:
       MONGODB_CONNECTION_STRING: mongodb://localhost:27018/HABO_DB?directConnection=true
-      SERVER_HOST: 0.0.0.0
       BASE_URL: http://127.0.0.1:4000
       JWT_SECRET: ${{ secrets.JWT_SECRET_API_KEY }}
 
