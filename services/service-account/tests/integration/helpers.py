@@ -1,13 +1,6 @@
 """RabbitMQ test consumer helper.
-
 Binds a temporary exclusive queue to an exchange BEFORE a test runs,
-then lets you read the message that arrived AFTER the action.
-
-Usage:
-    consumer = RabbitMQTestConsumer("account-exchange-events", "fanout")
-    # ... trigger HTTP request ...
-    message = consumer.get_message()
-    consumer.close()
+then reads the message that arrived AFTER the action.
 """
 
 import json

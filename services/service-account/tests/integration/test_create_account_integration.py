@@ -24,10 +24,7 @@ class CreateAccountIntegrationTests(TransactionTestCase):
             "type": "savings",
         }
 
-    # ------------------------------------------------------------------
     # Database side effects
-    # ------------------------------------------------------------------
-
     def test_creates_account_and_detail_row_in_postgres(self):
         response = self.client.post(
             self.url,
@@ -56,9 +53,7 @@ class CreateAccountIntegrationTests(TransactionTestCase):
         data = json.loads(response.content)
         self.assertIn("account_guid", data)
 
-    # ------------------------------------------------------------------
     # RabbitMQ side effects – message actually published to the exchange
-    # ------------------------------------------------------------------
 
     def test_publishes_to_account_exchange_events(self):
         # Bind a temp queue to the exchange BEFORE the request so we catch the message
@@ -99,9 +94,7 @@ class CreateAccountIntegrationTests(TransactionTestCase):
         finally:
             consumer.close()
 
-    # ------------------------------------------------------------------
     # Duplicate check – enforced at the database level
-    # ------------------------------------------------------------------
 
     def test_duplicate_returns_409_and_only_one_row_in_postgres(self):
         self.client.post(
@@ -141,9 +134,7 @@ class CreateAccountIntegrationTests(TransactionTestCase):
         finally:
             consumer.close()
 
-    # ------------------------------------------------------------------
     # Different owners / names are not blocked
-    # ------------------------------------------------------------------
 
     def test_different_owners_can_have_same_name_and_type(self):
         body_a = {**self.valid_body, "owner_id": "owner-aaa"}
