@@ -184,7 +184,7 @@
       "response": []
     },
     {
-      "name": "FreezeAccont",
+      "name": "FreezeAccount",
       "event": [
         {
           "listen": "test",
