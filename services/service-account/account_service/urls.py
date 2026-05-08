@@ -6,5 +6,5 @@ Root-level routing that delegates /accounts/ to the accounts app.
 from django.urls import include, path  # type: ignore[import-untyped]
 
 urlpatterns = [
-    path("accounts/", include("accounts.urls")),
+    path("v1/accounts/", include("accounts.urls")),
 ]
