@@ -11,7 +11,7 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
     volumes:
       - postgres-account-data:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -45,7 +45,7 @@ services:
     volumes:
       - postgres-transaction-data:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -57,7 +57,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
-    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all" ]
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
       test: >
         mongosh --quiet --eval " try {
@@ -94,7 +94,7 @@ services:
   service-account-app:
     build:
       context: ../../services/service-account
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: Dockerfile
     working_dir: /app
     volumes:
       - ../../services/service-account:/app:cached
@@ -119,7 +119,7 @@ services:
   service-account-consumer:
     build:
       context: ../../services/service-account
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: Dockerfile
     working_dir: /app
     volumes:
       - ../../services/service-account:/app:cached
@@ -201,7 +201,8 @@ services:
       dockerfile: Dockerfile
       target: build
     working_dir: /src
-    command: [ "dotnet", "watch", "run", "--project", "service-synchronize.csproj" ]
+    command:
+      ["dotnet", "watch", "run", "--project", "service-synchronize.csproj"]
     environment:
       MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
       RABBITMQ_HOST: rabbitmq
