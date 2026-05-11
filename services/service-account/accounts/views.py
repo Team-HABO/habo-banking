@@ -17,6 +17,7 @@ from accounts.serializers import (
     TransactionSerializer,
     UpdateAccountSerializer,
 )
+from accounts.services import DuplicateAccountError
 from django.http import JsonResponse  # type: ignore[import-untyped]
 from django.views.decorators.csrf import csrf_exempt  # type: ignore[import-untyped]
 from django.views.decorators.http import (  # type: ignore[import-untyped]
@@ -72,11 +73,14 @@ def _create_account(request):
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=400)
 
-    account = services.create_account(
-        owner_id=owner_id,
-        name=serializer.validated_data["name"],
-        account_type_name=serializer.validated_data["type"],
-    )
+    try:
+        account = services.create_account(
+            owner_id=owner_id,
+            name=serializer.validated_data["name"],
+            account_type_name=serializer.validated_data["type"],
+        )
+    except DuplicateAccountError as exc:
+        return JsonResponse({"error": str(exc)}, status=409)
 
     return JsonResponse(AccountResponseSerializer(account).data, status=201)
 

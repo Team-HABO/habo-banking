@@ -13,8 +13,13 @@ import logging
 
 from accounts import publishers
 from accounts.models import Account, AccountDetail, AccountType, DeletedAccount
+from django.db import transaction  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
+
+
+class DuplicateAccountError(Exception):
+    """Raised when an owner already has a live account with the same name and type."""
 
 
 # Queries
@@ -31,15 +36,44 @@ def get_account_by_guid(guid):
 # Contract 1 – Create Account
 
 
+def _has_duplicate_account(owner_id: str, name: str, account_type_name: str) -> bool:
+    """Return True if the owner already has a live account with this name and type.
+
+    Checks the *latest* AccountDetail per account so renamed accounts are not
+    counted against the original name.
+    """
+    deleted_ids = DeletedAccount.objects.values_list("account_id", flat=True)
+    active_accounts = (
+        Account.objects.select_for_update()
+        .filter(owner_id=owner_id)
+        .exclude(id__in=deleted_ids)
+    )
+    for account in active_accounts:
+        latest = account.details.order_by("-timestamp").first()
+        if (
+            latest
+            and latest.name == name
+            and latest.account_type.name == account_type_name
+        ):
+            return True
+    return False
+
+
 def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
     """Create Account + initial AccountDetail, then publish to RabbitMQ."""
-    account_type = AccountType.objects.get(name=account_type_name)
-    account = Account.objects.create(owner_id=owner_id)
-    detail = AccountDetail.objects.create(
-        account=account,
-        name=name,
-        account_type=account_type,
-    )
+    with transaction.atomic():
+        if _has_duplicate_account(owner_id, name, account_type_name):
+            raise DuplicateAccountError(
+                f"Account '{name}' of type '{account_type_name}' already exists for this owner."
+            )
+
+        account_type = AccountType.objects.get(name=account_type_name)
+        account = Account.objects.create(owner_id=owner_id)
+        detail = AccountDetail.objects.create(
+            account=account,
+            name=name,
+            account_type=account_type,
+        )
 
     publishers.publish_account_created(
         {
