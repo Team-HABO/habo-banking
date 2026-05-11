@@ -224,6 +224,20 @@ services:
 
   # ── Observability ──────────────────────────────────────────────
 
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-config.yaml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    depends_on:
+      - service-ai
+
   loki:
     image: grafana/loki:latest
     restart: unless-stopped
@@ -267,3 +281,4 @@ volumes:
   synchronize-nuget:
   loki-data:
   grafana-data:
+  prometheus-data:
