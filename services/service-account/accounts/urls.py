@@ -1,12 +1,12 @@
 """URL routing for accounts app.
 
 Maps HTTP endpoints to view functions following the contracts:
-  POST   /accounts              → create a new account (Contract 1)
-  PUT    /accounts/{guid}       → rename / change account type (Contract 3)
-  PATCH  /accounts/{guid}       → freeze or unfreeze account (Contract 2)
-  DELETE /accounts/{guid}       → soft-delete account (Contract 4)
-  POST   /accounts/{guid}/transactions → initiate bank transaction (Contract 5)
-    POST   /accounts/{guid}/exchanges    → initiate currency exchange (Contract 6)
+  POST   /v1/accounts/                         → create a new account (Contract 1)
+  PUT    /v1/accounts/{guid}/                  → rename / change account type (Contract 3)
+  PATCH  /v1/accounts/{guid}/                  → freeze or unfreeze account (Contract 2)
+  DELETE /v1/accounts/{guid}/                  → soft-delete account (Contract 4)
+  POST   /v1/accounts/{guid}/transactions/     → initiate bank transaction (Contract 5)
+  POST   /v1/accounts/{guid}/exchanges/        → initiate currency exchange (Contract 6)
 """
 
 from accounts import views
