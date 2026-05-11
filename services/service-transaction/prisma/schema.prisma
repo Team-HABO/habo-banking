@@ -15,7 +15,7 @@ datasource db {
 
 model Balance {
   id          Int    @id @default(autoincrement())
-  ownerId     String @unique
+  ownerId     String
   accountGuid String @unique
 
   balanceDetails       BalanceDetail[]

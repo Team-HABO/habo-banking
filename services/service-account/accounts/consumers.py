@@ -1,15 +1,9 @@
-"""RabbitMQ message consumers for the account service.
-
-Listens for compensating events from other services to maintain
-data consistency (saga pattern).
-"""
-
 import json
 import logging
 import os
 
 import pika  # type: ignore[import-untyped]
-from django.db import DatabaseError
+from django.db import DatabaseError # type: ignore[import-untyped]
 
 from accounts import services
 

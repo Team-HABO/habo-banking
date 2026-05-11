@@ -3,9 +3,9 @@ using service_synchronize.Models;
 
 namespace service_synchronize.tests.IntegrationDatabase
 {
-    public class UpdateAccountStatus : MongoDbIntegrationTestBase, IClassFixture<MongoDbFixture>
+    public class UpdateAccountStatusTests : MongoDbIntegrationTestBase, IClassFixture<MongoDbFixture>
     {
-        public UpdateAccountStatus(MongoDbFixture fixture)
+        public UpdateAccountStatusTests(MongoDbFixture fixture)
             : base(fixture)
         {
         }

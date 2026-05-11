@@ -1,0 +1,230 @@
+services:
+  # ── Infrastructure ─────────────────────────────────────────────
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-account:
+    image: postgres:18
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-account-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-transaction:
+    image: postgres:18
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: transaction_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-transaction-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all" ]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval " try {
+          if (rs.status().ok) {
+            quit(0);
+          }
+        } catch (e) {
+          rs.initiate({
+            _id: 'rs0',
+            members: [{ _id: 0, host: 'mongodb:27017' }]
+          });
+          quit(1);
+        }"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  compass:
+    image: haohanyang/compass-web
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - CW_MONGO_URI=mongodb://mongodb:27017
+      - CW_ENABLE_SHELL=true
+      - CW_MASTER_PASSWORD=changeme
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # ── Application Services ───────────────────────────────────────
+
+  service-account-app:
+    build:
+      context: ../../services/service-account
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../../services/service-account:/app:cached
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: postgres-account
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      postgres-account:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  service-account-consumer:
+    build:
+      context: ../../services/service-account
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../../services/service-account:/app:cached
+    command: python manage.py consume_events
+    environment:
+      POSTGRES_HOST: postgres-account
+      POSTGRES_DB: account_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      postgres-account:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  service-ai:
+    build:
+      context: ../../services/service-ai
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-notification:
+    build:
+      context: ../../services/service-notification
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-currency-exchange:
+    build:
+      context: ../../services/service-currency-exchange
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  service-transaction:
+    build:
+      context: ../../services/service-transaction
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-transaction:5432/transaction_db?schema=public
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres-transaction:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  service-synchronize:
+    build:
+      context: ../../services/service-synchronize
+      dockerfile: Dockerfile
+      target: build
+    working_dir: /src
+    command: [ "dotnet", "watch", "run", "--project", "service-synchronize.csproj" ]
+    environment:
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
+      RABBITMQ_HOST: rabbitmq
+    volumes:
+      - ../../services/service-synchronize/service-synchronize:/src
+      - synchronize-bin:/src/bin
+      - synchronize-obj:/src/obj
+      - synchronize-nuget:/root/.nuget/packages
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  postgres-account-data:
+  postgres-transaction-data:
+  mongodb-data:
+  synchronize-bin:
+  synchronize-obj:
+  synchronize-nuget:

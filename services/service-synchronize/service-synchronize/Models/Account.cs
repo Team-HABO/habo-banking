@@ -9,7 +9,7 @@ namespace service_synchronize.Models
         {
             Savings,
             Pension,
-            Main
+            Checking
         }
         [BsonElement("accountGuid")]
         public required string AccountGuid { get; set; }
