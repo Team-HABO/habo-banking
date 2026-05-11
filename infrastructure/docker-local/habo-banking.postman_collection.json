@@ -1,0 +1,466 @@
+{
+  "info": {
+    "_postman_id": "d03998e4-ef53-42bc-bdb0-6e307fc82b4b",
+    "name": "Account-service-positive-tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25638427",
+    "_collection_link": "https://go.postman.co/collection/25638427-d03998e4-ef53-42bc-bdb0-6e307fc82b4b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "CreateAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "const response = pm.response.json();\r",
+              "const account_guid = response.account_guid;\r",
+              "pm.collectionVariables.set(\"createdAccount\", account_guid);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"owner_id\": \"user-123\",\r\n   \"name\": \"My Savings\",\r\n   \"type\": \"savings\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CreateSecondAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "const response = pm.response.json();\r",
+              "const account_guid = response.account_guid;\r",
+              "pm.collectionVariables.set(\"secondAccount\", account_guid);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"owner_id\": \"user-123\",\r\n   \"name\": \"My Savings\",\r\n   \"type\": \"savings\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CreateAccountToDelete",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "const response = pm.response.json();\r",
+              "const account_guid = response.account_guid;\r",
+              "pm.collectionVariables.set(\"accountToDelete\", account_guid);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"owner_id\": \"user-123\",\r\n   \"name\": \"My account to delete\",\r\n   \"type\": \"savings\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UpdateAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"name\": \"Daily Account Updated\",\r\n   \"type\": \"checking\"\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "FreezeAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"freeze\": true\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deposit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 202\", function () {\r",
+              "    pm.response.to.have.status(202);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"amount\": \"500\",\r\n   \"transactionType\": \"DEPOSIT\",\r\n   \"messageId\": \"3be26991-2ee6-4b1c-b133-f536096ace0f\"\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/transactions/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            "transactions",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Withdraw",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 202\", function () {\r",
+              "    pm.response.to.have.status(202);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"amount\": \"50\",\r\n   \"transactionType\": \"WITHDRAW\",\r\n   \"messageId\": \"550e8400-e89b-41d4-a716-446655440000\"\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/transactions/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            "transactions",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Transfer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 202\", function () {\r",
+              "    pm.response.to.have.status(202);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"receiverAccountGuid\": \"{{secondAccount}}\",\r\n   \"amount\": \"50\",\r\n   \"transactionType\": \"TRANSFER\",\r\n   \"messageId\": \"0e70d4c5-cb87-462d-8f15-5d5dd6b02cfa\"\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/transactions/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            "transactions",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Exchange",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "pm.test(\"Status code is 202\", function () {\r",
+              "    pm.response.to.have.status(202);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n   \"amount\": \"100\",\r\n   \"currency\": \"EUR\",\r\n   \"messageId\": \"562dd5bc-239b-4ef2-9d4f-c02a5a93cffc\"\r\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{createdAccount}}/transactions/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{createdAccount}}",
+            "transactions",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/accounts/{{accountToDelete}}/",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "accounts",
+            "{{accountToDelete}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": ""
+    },
+    {
+      "key": "accountToDelete",
+      "value": ""
+    },
+    {
+      "key": "createdAccount",
+      "value": ""
+    },
+    {
+      "key": "secondAccount",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

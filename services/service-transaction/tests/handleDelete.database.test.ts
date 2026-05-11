@@ -8,17 +8,15 @@ import { v4 as uuidv4 } from "uuid";
 
 function makeDeletePayload(accountGuid = ACCOUNT_GUID): TAccountPayload {
 	return {
-		message: {
-			data: {
-				accountGuid,
-				ownerId: OWNER_ID,
-				timestamp: new Date().toISOString()
-			},
-			metadata: {
-				messageType: "ACCOUNT_DELETE",
-				messageTimestamp: new Date().toISOString(),
-				messageId: uuidv4()
-			}
+		data: {
+			accountGuid,
+			ownerId: OWNER_ID,
+			timestamp: new Date().toISOString()
+		},
+		metadata: {
+			messageType: "ACCOUNT_DELETE",
+			messageTimestamp: new Date().toISOString(),
+			messageId: uuidv4()
 		}
 	};
 }

@@ -43,7 +43,7 @@ export default async function handleDeposit(payload: TTransactionPayload) {
 						amount: updatedBalance.amount,
 						timestamp: updatedBalance.createdAt
 					},
-					audits: {
+					audit: {
 						receiver: data.account.name,
 						amount: data.amount,
 						type: data.transactionType.toUpperCase(),

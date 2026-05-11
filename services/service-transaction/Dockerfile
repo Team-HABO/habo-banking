@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --include=dev --ignore-scripts
+RUN npm ci --ignore-scripts
 
 COPY . .
 RUN npm run generate
