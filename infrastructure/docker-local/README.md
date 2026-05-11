@@ -35,10 +35,10 @@ docker compose ps
 |---|---|---|
 | service-account-app | Django (Python) | 8000 |
 | service-account-consumer | Django event consumer | — |
-| service-ai | Python | — |
-| service-notification | Python | — |
-| service-currency-exchange | Python | — |
-| service-transaction | Rust / Prisma | — |
+| service-ai | C# / .NET 9 | — |
+| service-notification | C# / .NET 9 | — |
+| service-currency-exchange | C# / .NET 9 | — |
+| service-transaction | TypeScript / Node.js (Prisma) | — |
 | service-synchronize | C# / .NET (hot-reload) | — |
 
 ---
