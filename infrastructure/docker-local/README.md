@@ -134,7 +134,7 @@ Loki stores log streams indexed by labels. It is configured for local developmen
 
 Config: [loki-config.yaml](loki-config.yaml)
 
-Logs are queried via Grafana's Explore view or through the pre-built dashboard. You can filter by the `container_name` or `compose_service` labels that Alloy attaches to every log line.
+Logs are queried via Grafana's Explore view or through the pre-built dashboard. You can filter by the `container` or `service` labels that Alloy attaches to every log line.
 
 ---
 
@@ -143,14 +143,14 @@ Logs are queried via Grafana's Explore view or through the pre-built dashboard. 
 Alloy runs as a sidecar that reads **all container logs** from the Docker socket and forwards them to Loki. No changes to application code are needed for log collection.
 
 Each log stream is labeled with:
-- `container_name` — the Docker container name
-- `compose_service` — the `docker-compose` service name
+- `container` — the Docker container name
+- `service` — the `docker-compose` service name
 
 Config: [alloy-config.alloy](alloy-config.alloy)
 
 This means you can query logs for a specific service in Grafana using:
 ```
-{compose_service="service-account-app"}
+{service="service-account-app"}
 ```
 
 ---
