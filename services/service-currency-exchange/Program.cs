@@ -1,4 +1,5 @@
 using MassTransit;
+using Prometheus;
 using Serilog;
 using service_currency_exchange.Consumers;
 using service_currency_exchange.Messages;
@@ -70,4 +71,9 @@ builder.Services.AddMassTransit(config =>
 });
 
 var host = builder.Build();
+
+// Expose Prometheus metrics on port 9093 at /metrics
+var metricServer = new MetricServer(port: 9093);
+metricServer.Start();
+
 host.Run();

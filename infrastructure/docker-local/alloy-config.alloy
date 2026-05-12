@@ -1,0 +1,38 @@
+// Discover all containers running on the local Docker daemon
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Relabel discovered targets: extract a clean container name and compose service name
+loki.relabel "containers" {
+  forward_to = []
+
+  // Strip the leading slash from the container name (e.g. /service-transaction → service-transaction)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Carry the Docker Compose service name as a label
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+// Tail stdout/stderr from all discovered containers and forward to Loki
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.write.local.receiver]
+
+  relabel_rules = loki.relabel.containers.rules
+}
+
+// Send log entries to the local Loki instance
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
