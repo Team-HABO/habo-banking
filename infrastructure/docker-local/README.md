@@ -31,27 +31,27 @@ docker compose ps
 
 ## Service Map
 
-| Service | Technology | Port(s) |
-|---|---|---|
-| service-account-app | Django (Python) | 8000 |
-| service-account-consumer | Django event consumer | — |
-| service-ai | C# / .NET 9 | — |
-| service-notification | C# / .NET 9 | — |
-| service-currency-exchange | C# / .NET 9 | — |
-| service-transaction | TypeScript / Node.js (Prisma) | — |
-| service-synchronize | C# / .NET (hot-reload) | — |
+| Service                   | Technology                    | Port(s) |
+|---------------------------|-------------------------------|---------|
+| service-account-app       | Django (Python)               | 8000    |
+| service-account-consumer  | Django event consumer         | —       |
+| service-ai                | C# / .NET 9                   | —       |
+| service-notification      | C# / .NET 9                   | —       |
+| service-currency-exchange | C# / .NET 9                   | —       |
+| service-transaction       | TypeScript / Node.js (Prisma) | —       |
+| service-synchronize       | C# / .NET (hot-reload)        | —       |
 
 ---
 
 ## Infrastructure Services
 
-| Service | Purpose | Port(s) |
-|---|---|---|
-| RabbitMQ | Message broker | 5672 (AMQP), 15672 (management UI) |
-| PostgreSQL (account) | Account service database | 5432 |
-| PostgreSQL (transaction) | Transaction service database | 5433 |
-| MongoDB | Document store (replica set) | 27017 |
-| Mongo Express | MongoDB web UI | 8081 |
+| Service                  | Purpose                      | Port(s)                            |
+|--------------------------|------------------------------|------------------------------------|
+| RabbitMQ                 | Message broker               | 5672 (AMQP), 15672 (management UI) |
+| PostgreSQL (account)     | Account service database     | 5432                               |
+| PostgreSQL (transaction) | Transaction service database | 5433                               |
+| MongoDB                  | Document store (replica set) | 27017                              |
+| Mongo Express            | MongoDB web UI               | 8081                               |
 
 **Credentials** (development only — see `.env`):
 - PostgreSQL: `postgres / postgres`
@@ -89,10 +89,10 @@ Application containers
 
 Central UI for both logs and metrics. Two datasources are pre-provisioned automatically at startup (no manual configuration needed):
 
-| Datasource | Type | URL (internal) |
-|---|---|---|
-| Loki (default) | Logs | `http://loki:3100` |
-| Prometheus | Metrics | `http://prometheus:9090` |
+| Datasource     | Type    | URL (internal)           |
+|----------------|---------|--------------------------|
+| Loki (default) | Logs    | `http://loki:3100`       |
+| Prometheus     | Metrics | `http://prometheus:9090` |
 
 A **Services dashboard** is also pre-provisioned and available immediately. It shows per-service panels for:
 - Service status (up/down)
@@ -112,11 +112,11 @@ Default Grafana credentials: `admin / admin`.
 
 Prometheus scrapes metrics from the three C# services that expose a `/metrics` endpoint:
 
-| Target | Metrics port |
-|---|---|
-| service-ai | 9091 |
-| service-notification | 9092 |
-| service-currency-exchange | 9093 |
+| Target                    | Metrics port |
+|---------------------------|--------------|
+| service-ai                | 9091         |
+| service-notification      | 9092         |
+| service-currency-exchange | 9093         |
 
 Config: [prometheus-config.yaml](prometheus-config.yaml)
 
@@ -175,14 +175,14 @@ To add a new dashboard, export it as JSON from Grafana and drop the file into `g
 
 ## Volumes
 
-| Volume | Used by |
-|---|---|
-| `postgres-account-data` | PostgreSQL (account) |
-| `postgres-transaction-data` | PostgreSQL (transaction) |
-| `mongodb-data` | MongoDB |
-| `loki-data` | Loki (log chunks) |
-| `prometheus-data` | Prometheus (TSDB) |
-| `grafana-data` | Grafana (state, user dashboards) |
+| Volume                      | Used by                                  |
+|-----------------------------|------------------------------------------|
+| `postgres-account-data`     | PostgreSQL (account)                     |
+| `postgres-transaction-data` | PostgreSQL (transaction)                 |
+| `mongodb-data`              | MongoDB                                  |
+| `loki-data`                 | Loki (log chunks)                        |
+| `prometheus-data`           | Prometheus (TSDB)                        |
+| `grafana-data`              | Grafana (state, user dashboards)         |
 | `synchronize-bin/obj/nuget` | .NET build cache for service-synchronize |
 
 Running `docker compose down -v` removes all volumes, giving you a clean slate. Omit `-v` to preserve data between restarts.
