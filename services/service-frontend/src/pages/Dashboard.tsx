@@ -16,32 +16,33 @@ export default function Dashboard() {
 
     return (
         <section className="dashboard">
-            <h1 className="dashboard-title">Dashboard</h1>
+            <div className="dashboard-header">
+                <h1 className="dashboard-title">Dashboard</h1>
+                <button className="dashboard-create-button" type="button" onClick={() => navigate("/accounts/new")}>
+                    + Create Account
+                </button>
+            </div>
             <div className="dashboard-table-wrap">
-            <table className="dashboard-table">
-                <thead>
-                    <tr>
-                        <th>Account Name</th>
-                        <th>Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {accounts.map((account) => (
-                        <tr key={account.id}>
-                            <td>
-                                <button
-                                    className="dashboard-account-link"
-                                    type="button"
-                                    onClick={() => handleAccountClick(account.id)}
-                                >
-                                    {account.name}
-                                </button>
-                            </td>
-                            <td className="dashboard-balance">{account.balance}</td>
+                <table className="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Account Name</th>
+                            <th>Balance</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {accounts.map((account) => (
+                            <tr key={account.id}>
+                                <td>
+                                    <button className="dashboard-account-link" type="button" onClick={() => handleAccountClick(account.id)}>
+                                        {account.name}
+                                    </button>
+                                </td>
+                                <td className="dashboard-balance">{account.balance}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </section>
     );

@@ -74,15 +74,17 @@ def _create_account(request):
         return JsonResponse({"errors": serializer.errors}, status=400)
 
     try:
-        account = services.create_account(
+        account, created = services.create_account(
             owner_id=owner_id,
             name=serializer.validated_data["name"],
             account_type_name=serializer.validated_data["type"],
+            account_guid=serializer.validated_data.get("accountGuid"),
         )
     except DuplicateAccountError as exc:
         return JsonResponse({"error": str(exc)}, status=409)
 
-    return JsonResponse(AccountResponseSerializer(account).data, status=201)
+    status = 201 if created else 200
+    return JsonResponse(AccountResponseSerializer(account).data, status=status)
 
 
 # /accounts/<guid>  (GET, PUT, PATCH, DELETE)

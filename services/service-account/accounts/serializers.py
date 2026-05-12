@@ -12,8 +12,9 @@ from rest_framework import serializers  # type: ignore[import-untyped]
 
 
 class CreateAccountSerializer(serializers.Serializer):
-    """POST /accounts – validate name + type."""
+    """POST /accounts – validate name + type, optionally accept accountGuid."""
 
+    accountGuid = serializers.UUIDField(required=False)
     name = serializers.CharField(max_length=255)
     type = serializers.CharField(max_length=255)
 

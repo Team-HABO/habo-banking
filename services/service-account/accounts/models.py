@@ -19,7 +19,7 @@ class Account(models.Model):
     """Model representing an account."""
 
     owner_id = models.CharField(max_length=255)
-    account_guid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    account_guid = models.UUIDField(default=uuid.uuid4, unique=True)
 
     class Meta:
         db_table = "accounts"
