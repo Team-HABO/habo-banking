@@ -33,7 +33,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "up{job=\"service-ai\"}", "legendFormat": "service-ai" },
@@ -102,7 +102,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "up{job=\"service-notification\"}", "legendFormat": "service-notification" },
@@ -171,7 +171,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "up{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" },
@@ -240,7 +240,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(process_cpu_seconds_total{job=\"service-ai\"}[1m])", "legendFormat": "service-ai", "range": true },
@@ -254,7 +254,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(process_cpu_seconds_total{job=\"service-notification\"}[1m])", "legendFormat": "service-notification", "range": true },
@@ -268,7 +268,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(process_cpu_seconds_total{job=\"service-currency-exchange\"}[1m])", "legendFormat": "service-currency-exchange", "range": true },
@@ -346,7 +346,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "process_working_set_bytes{job=\"service-ai\"}", "legendFormat": "service-ai" },
@@ -360,7 +360,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "process_working_set_bytes{job=\"service-notification\"}", "legendFormat": "service-notification" },
@@ -374,7 +374,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "process_working_set_bytes{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" },
@@ -452,7 +452,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-ai\"}[1m])", "legendFormat": "{{generation}} (ai)" },
@@ -466,7 +466,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-notification\"}[1m])", "legendFormat": "{{generation}} (notif)" },
@@ -480,7 +480,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-currency-exchange\"}[1m])", "legendFormat": "{{generation}} (exchange)" },
@@ -558,7 +558,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-ai\"}", "legendFormat": "service-ai" },
@@ -572,7 +572,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-notification\"}", "legendFormat": "service-notification" },
@@ -586,7 +586,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" },
@@ -664,7 +664,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-ai\"}", "legendFormat": "service-ai", "range": true },
@@ -678,7 +678,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-notification\"}", "legendFormat": "service-notification", "range": true },
@@ -692,7 +692,7 @@
                 "spec": {
                   "hidden": false,
                   "query": {
-                    "datasource": { "name": "PBFA97CFB590B2093" },
+                    "datasource": { "type": "prometheus", "uid": "prometheus" },
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange", "range": true },
