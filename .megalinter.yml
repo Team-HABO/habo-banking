@@ -11,4 +11,6 @@ DISABLE_LINTERS:
 
 PYTHON_PYLINT_CONFIG_FILE: services/service-account/.pylintrc
 
+YAML_V8R_FILTER_REGEX_EXCLUDE: "infrastructure/docker-local/grafana/|infrastructure/docker-local/loki-config\\.yaml|infrastructure/docker-local/prometheus-config\\.yaml"
+
 # COPYPASTE_JSCPD_CONFIG_FILE: ./configs/.jscpd.json
