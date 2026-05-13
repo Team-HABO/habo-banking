@@ -15,6 +15,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - messaging
 
   postgres-account:
     image: postgres:18
@@ -32,6 +34,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - db-account
 
   postgres-transaction:
     image: postgres:18
@@ -49,6 +53,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - db-transaction
 
   mongodb:
     image: mongo:7
@@ -75,6 +81,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 15s
+    networks:
+      - db-mongo
 
   compass:
     image: haohanyang/compass-web
@@ -85,6 +93,8 @@ services:
       - CW_MONGO_URI=mongodb://mongodb:27017
       - CW_ENABLE_SHELL=true
       - CW_MASTER_PASSWORD=changeme
+    networks:
+      - db-mongo
     depends_on:
       mongodb:
         condition: service_healthy
@@ -111,6 +121,9 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       CORS_ALLOWED_ORIGINS: http://localhost:3000
+    networks:
+      - db-account
+      - messaging
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -134,6 +147,9 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    networks:
+      - db-account
+      - messaging
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -149,6 +165,9 @@ services:
       RABBITMQ_USERNAME: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    networks:
+      - messaging
+      - monitoring
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -167,6 +186,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+    networks:
+      - messaging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -179,6 +200,8 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USERNAME: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    networks:
+      - messaging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -190,6 +213,9 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-transaction:5432/transaction_db?schema=public
       RABBITMQ_HOST: rabbitmq
+    networks:
+      - db-transaction
+      - messaging
     depends_on:
       postgres-transaction:
         condition: service_healthy
@@ -213,6 +239,9 @@ services:
       - synchronize-obj:/src/obj
       - synchronize-nuget:/root/.nuget/packages
     restart: unless-stopped
+    networks:
+      - db-mongo
+      - messaging
     depends_on:
       mongodb:
         condition: service_healthy
@@ -235,6 +264,9 @@ services:
       SERVER_PORT: 4000
       JWT_SECRET: ${SECRET_KEY_JWT}
     restart: unless-stopped
+    networks:
+      - db-mongo
+      - frontend
     depends_on:
       mongodb:
         condition: service_healthy
@@ -257,6 +289,8 @@ services:
       FrontendUrl: http://localhost:3000
       AccountServiceUrl: http://localhost:8000
       BalanceServiceUrl: http://localhost:4000
+    networks:
+      - frontend
     restart: unless-stopped
     deploy:
       resources:
@@ -273,6 +307,8 @@ services:
     ports:
       - "3000:80"
     restart: unless-stopped
+    networks:
+      - frontend
     depends_on:
       - service-auth
       - service-account-app
@@ -290,6 +326,8 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
+    networks:
+      - monitoring
     depends_on:
       - service-ai
 
@@ -302,6 +340,8 @@ services:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
 
   alloy:
     image: grafana/alloy:latest
@@ -310,6 +350,8 @@ services:
       - ./alloy-config.alloy:/etc/alloy/config.alloy
       - /var/run/docker.sock:/var/run/docker.sock
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    networks:
+      - monitoring
     depends_on:
       - loki
 
@@ -324,8 +366,24 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring
     depends_on:
       - loki
+
+networks:
+  db-account:
+    driver: bridge
+  db-transaction:
+    driver: bridge
+  db-mongo:
+    driver: bridge
+  messaging:
+    driver: bridge
+  monitoring:
+    driver: bridge
+  frontend:
+    driver: bridge
 
 volumes:
   postgres-account-data:
