@@ -124,6 +124,7 @@ services:
     networks:
       - db-account
       - messaging
+      - monitoring
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -150,6 +151,7 @@ services:
     networks:
       - db-account
       - messaging
+      - monitoring
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -188,6 +190,7 @@ services:
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
     networks:
       - messaging
+      - monitoring
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -202,6 +205,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     networks:
       - messaging
+      - monitoring
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -216,6 +220,7 @@ services:
     networks:
       - db-transaction
       - messaging
+      - monitoring
     depends_on:
       postgres-transaction:
         condition: service_healthy
@@ -242,6 +247,7 @@ services:
     networks:
       - db-mongo
       - messaging
+      - monitoring
     depends_on:
       mongodb:
         condition: service_healthy
@@ -267,6 +273,7 @@ services:
     networks:
       - db-mongo
       - frontend
+      - monitoring
     depends_on:
       mongodb:
         condition: service_healthy
@@ -291,6 +298,7 @@ services:
       BalanceServiceUrl: http://localhost:4000
     networks:
       - frontend
+      - monitoring
     restart: unless-stopped
     deploy:
       resources:
@@ -309,6 +317,7 @@ services:
     restart: unless-stopped
     networks:
       - frontend
+      - monitoring
     depends_on:
       - service-auth
       - service-account-app
