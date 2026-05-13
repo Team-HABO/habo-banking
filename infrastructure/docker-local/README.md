@@ -32,7 +32,7 @@ docker compose ps
 ## Service Map
 
 | Service                   | Technology                    | Port(s) |
-|---------------------------|-------------------------------|---------|
+| ------------------------- | ----------------------------- | ------- |
 | service-account-app       | Django (Python)               | 8000    |
 | service-account-consumer  | Django event consumer         | —       |
 | service-ai                | C# / .NET 9                   | —       |
@@ -43,10 +43,51 @@ docker compose ps
 
 ---
 
+## Docker Networks
+
+Services are isolated into purpose-specific bridge networks so that containers can only communicate with the services they need. This follows the principle of least privilege at the network level.
+
+| Network          | Purpose                     | Services                                                                                                                                                       |
+| ---------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `db-account`     | Account database access     | postgres-account, service-account-app, service-account-consumer                                                                                                |
+| `db-transaction` | Transaction database access | postgres-transaction, service-transaction                                                                                                                      |
+| `db-mongo`       | MongoDB access              | mongodb, compass, service-synchronize, service-view                                                                                                            |
+| `messaging`      | RabbitMQ message bus        | rabbitmq, service-account-app, service-account-consumer, service-ai, service-notification, service-currency-exchange, service-transaction, service-synchronize |
+| `monitoring`     | Observability stack         | prometheus, loki, alloy, grafana, service-ai                                                                                                                   |
+| `frontend`       | Externally-facing services  | service-frontend, service-auth, service-view                                                                                                                   |
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           messaging                                     │
+│  rabbitmq ←→ service-account-app, service-account-consumer,             │
+│              service-ai, service-notification,                          │
+│              service-currency-exchange, service-transaction,            │
+│              service-synchronize                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐  ┌──────────────────────┐  ┌────────────────────────┐
+│   db-account     │  │   db-transaction     │  │      db-mongo          │
+│  postgres-account│  │ postgres-transaction │  │  mongodb, compass,     │
+│  account-app     │  │ service-transaction  │  │  service-synchronize,  │
+│  account-consumer│  │                      │  │  service-view          │
+└──────────────────┘  └──────────────────────┘  └────────────────────────┘
+
+┌──────────────────────────┐  ┌──────────────────────────────────────────┐
+│        frontend          │  │             monitoring                    │
+│  service-frontend        │  │  prometheus, loki, alloy, grafana,       │
+│  service-auth            │  │  service-ai                              │
+│  service-view            │  │                                          │
+└──────────────────────────┘  └──────────────────────────────────────────┘
+```
+
+Services that span multiple concerns (e.g. `service-account-app` needs its database _and_ the message bus) are attached to multiple networks. A service **cannot** reach containers on networks it is not a member of.
+
+---
+
 ## Infrastructure Services
 
 | Service                  | Purpose                      | Port(s)                            |
-|--------------------------|------------------------------|------------------------------------|
+| ------------------------ | ---------------------------- | ---------------------------------- |
 | RabbitMQ                 | Message broker               | 5672 (AMQP), 15672 (management UI) |
 | PostgreSQL (account)     | Account service database     | 5432                               |
 | PostgreSQL (transaction) | Transaction service database | 5433                               |
@@ -54,6 +95,7 @@ docker compose ps
 | Mongo Express            | MongoDB web UI               | 8081                               |
 
 **Credentials** (development only — see `.env`):
+
 - PostgreSQL: `postgres / postgres`
 - RabbitMQ: `guest / guest`
 
@@ -90,11 +132,12 @@ Application containers
 Central UI for both logs and metrics. Two datasources are pre-provisioned automatically at startup (no manual configuration needed):
 
 | Datasource     | Type    | URL (internal)           |
-|----------------|---------|--------------------------|
+| -------------- | ------- | ------------------------ |
 | Loki (default) | Logs    | `http://loki:3100`       |
 | Prometheus     | Metrics | `http://prometheus:9090` |
 
 A **Services dashboard** is also pre-provisioned and available immediately. It shows per-service panels for:
+
 - Service status (up/down)
 - CPU usage
 - Working set memory
@@ -113,7 +156,7 @@ Default Grafana credentials: `admin / admin`.
 Prometheus scrapes metrics from the three C# services that expose a `/metrics` endpoint:
 
 | Target                    | Metrics port |
-|---------------------------|--------------|
+| ------------------------- | ------------ |
 | service-ai                | 9091         |
 | service-notification      | 9092         |
 | service-currency-exchange | 9093         |
@@ -143,12 +186,14 @@ Logs are queried via Grafana's Explore view or through the pre-built dashboard. 
 Alloy runs as a sidecar that reads **all container logs** from the Docker socket and forwards them to Loki. No changes to application code are needed for log collection.
 
 Each log stream is labeled with:
+
 - `container` — the Docker container name
 - `service` — the `docker-compose` service name
 
 Config: [alloy-config.alloy](alloy-config.alloy)
 
 This means you can query logs for a specific service in Grafana using:
+
 ```
 {service="service-account-app"}
 ```
@@ -176,7 +221,7 @@ To add a new dashboard, export it as JSON from Grafana and drop the file into `g
 ## Volumes
 
 | Volume                      | Used by                                  |
-|-----------------------------|------------------------------------------|
+| --------------------------- | ---------------------------------------- |
 | `postgres-account-data`     | PostgreSQL (account)                     |
 | `postgres-transaction-data` | PostgreSQL (transaction)                 |
 | `mongodb-data`              | MongoDB                                  |
