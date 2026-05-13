@@ -13,7 +13,7 @@ import logging
 
 from accounts import publishers
 from accounts.models import Account, AccountDetail, AccountType, DeletedAccount
-from django.db import transaction  # type: ignore[import-untyped]
+from django.db import IntegrityError, transaction  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,26 @@ def _has_duplicate_account(owner_id: str, name: str, account_type_name: str) -> 
     return False
 
 
-def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
-    """Create Account + initial AccountDetail, then publish to RabbitMQ."""
+def create_account(
+    owner_id: str,
+    name: str,
+    account_type_name: str,
+    account_guid: str | None = None,
+) -> tuple[Account, bool]:
+    """Create Account + initial AccountDetail, then publish to RabbitMQ.
+
+    Returns a tuple of (account, created) where *created* is False when
+    the account already existed (idempotent retry with the same GUID).
+    """
+    # Idempotency: if a GUID was supplied and already exists, return it.
+    if account_guid is not None:
+        try:
+            existing = Account.objects.get(account_guid=account_guid)
+            if not existing.deleted_records.exists():
+                return existing, False
+        except Account.DoesNotExist:
+            pass
+
     with transaction.atomic():
         if _has_duplicate_account(owner_id, name, account_type_name):
             raise DuplicateAccountError(
@@ -68,7 +86,18 @@ def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
             )
 
         account_type = AccountType.objects.get(name=account_type_name)
-        account = Account.objects.create(owner_id=owner_id)
+
+        create_kwargs: dict = {"owner_id": owner_id}
+        if account_guid is not None:
+            create_kwargs["account_guid"] = account_guid
+
+        try:
+            account = Account.objects.create(**create_kwargs)
+        except IntegrityError:
+            # Race condition: another request with the same GUID won.
+            account = Account.objects.get(account_guid=account_guid)
+            return account, False
+
         detail = AccountDetail.objects.create(
             account=account,
             name=name,
@@ -86,7 +115,7 @@ def create_account(owner_id: str, name: str, account_type_name: str) -> Account:
         }
     )
 
-    return account
+    return account, True
 
 
 # Contract 2 – Freeze / Unfreeze

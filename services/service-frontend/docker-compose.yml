@@ -5,8 +5,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_AUTH_API_URL: ${AuthServiceUrl}
+        VITE_ACCOUNT_API_URL: ${AccountServiceUrl}
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - .:/app
       - /app/node_modules

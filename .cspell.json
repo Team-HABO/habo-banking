@@ -99,6 +99,7 @@
     "notif",
     "percentunit",
     "rgba",
-    "threadpool"
+    "threadpool",
+    "webp"
   ]
 }
