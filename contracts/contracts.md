@@ -322,7 +322,7 @@ queue: `synchronize-transaction-queue`
                 "amount": "string",
                 "timestamp": "string"
             },
-            "audits": {
+            "audit": {
                 "receiver": "string (name, optional)",
                 "amount": "string",
                 "type": "TRANSFER/WITHDRAW/DEPOSIT",
@@ -335,7 +335,7 @@ queue: `synchronize-transaction-queue`
                 "amount": "string",
                 "timestamp": "string"
             },
-            "audits": {
+            "audit": {
                 "receiver": "string (name, optional)",
                 "amount": "string",
                 "type": "TRANSFER/WITHDRAW/DEPOSIT",
@@ -509,11 +509,12 @@ queue: `synchronize-transaction-queue`
     "data": {
         "ownerId": "string",
         "account": {
+            "guid": "string",
             "balance": {
                 "amount": "string",
                 "timestamp": "string"
             },
-            "audits": {
+            "audit": {
                 "amount": "string",
                 "type": "EXCHANGE",
                 "timestamp": "string"

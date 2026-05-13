@@ -1,18 +1,52 @@
 import { User } from '../mongoose/schema.js';
+import type { Context } from '../types/context.js';
+import { GraphQLError } from 'graphql';
 
 export const resolvers = {
   Query: {
-    getUserAccounts: async (_: any, { userId }: { userId: string }) => {
-      const user = await User.findById(userId);
+    getUserAccounts: async (
+      _: any,
+      __: any,
+      context: Context
+    ) => {
+      if (!context.userId) {
+        throw new GraphQLError('Unauthorized', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+          },
+        });
+      }
+
+      const user = await User.findById(context.userId);
+
       return user?.accounts || [];
     },
-    getAccountAudits: async (_: any, { userId, accountGuid }: any) => {
+
+    getAccountAudits: async (
+      _: any,
+      { accountGuid }: { accountGuid: string },
+      context: Context
+    ) => {
+      if (!context.userId) {
+        throw new GraphQLError('Unauthorized', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+          },
+        });
+      }
+
       const user = await User.findOne(
-        { _id: userId, "accounts.accountGuid": accountGuid },
-        { "accounts.$": 1 }
+        {
+          _id: context.userId,
+          'accounts.accountGuid': accountGuid,
+        },
+        {
+          'accounts.$': 1,
+        }
       );
+
       return user?.accounts?.[0]?.audits || [];
-    }
+    },
   },
   Account: {
     // This converts the MongoDB Decimal128 to a readable string

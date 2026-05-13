@@ -17,7 +17,7 @@ export const typeDefs = `#graphql
   }
 
   type Query {
-    getUserAccounts(userId: ID!): [Account]
-    getAccountAudits(userId: ID!, accountGuid: ID!): [Audit]
+    getUserAccounts: [Account]
+    getAccountAudits(accountGuid: ID!): [Audit]
   }
 `;
