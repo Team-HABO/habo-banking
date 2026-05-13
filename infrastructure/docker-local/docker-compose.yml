@@ -110,6 +110,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -221,6 +222,60 @@ services:
       resources:
         limits:
           memory: 512M
+
+  service-view:
+    build:
+      context: ../../services/service-view
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017/HABO_DB?replicaSet=rs0&directConnection=true
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 4000
+      JWT_SECRET: ${SECRET_KEY_JWT}
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  service-auth:
+    build:
+      context: ../../services/service-auth
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+      SecretKeyJwt: ${SECRET_KEY_JWT}
+      AuthServiceUrl: http://localhost:8080
+      FrontendUrl: http://localhost:3000
+      AccountServiceUrl: http://localhost:8000
+      BalanceServiceUrl: http://localhost:4000
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  service-frontend:
+    build:
+      context: ../../services/service-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_AUTH_API_URL: http://localhost:8080
+        VITE_ACCOUNT_API_URL: http://localhost:8000
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - service-auth
+      - service-account-app
 
   # ── Observability ──────────────────────────────────────────────
 
