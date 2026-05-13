@@ -18,6 +18,7 @@ on:
 jobs:
   run-tests:
     uses: ./.github/workflows/service-view-tests.yml
+    secrets: inherit
 
   dockerize:
     needs: run-tests

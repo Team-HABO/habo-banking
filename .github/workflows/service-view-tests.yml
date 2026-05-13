@@ -4,9 +4,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,10 +21,8 @@ jobs:
 
     env:
       MONGODB_CONNECTION_STRING: mongodb://localhost:27018/HABO_DB?directConnection=true
-      SERVER_HOST: 0.0.0.0
       BASE_URL: http://127.0.0.1:4000
-      POSTMAN_USER_ID: test-user-id
-      POSTMAN_ACCOUNT_GUID: test-account-guid
+      JWT_SECRET: ${{ secrets.JWT_SECRET_API_KEY }}
 
     steps:
       - uses: actions/checkout@v6
@@ -65,12 +60,16 @@ jobs:
         working-directory: services/service-view
         run: npm test -- tests/resolvers.test.ts
 
+      - name: Seed MongoDB
+        working-directory: services/service-view
+        run: npm run seed
+
       - name: Run Newman tests
         run: |
-          npx -y newman run "services/service-view/postman/service-view GraphQL.postman_collection.json" \
-            --env-var "baseUrl=$BASE_URL" \
-            --env-var "userId=$POSTMAN_USER_ID" \
-            --env-var "accountGuid=$POSTMAN_ACCOUNT_GUID"
+          npx -y newman run "services/service-view/postman/service-view-GraphQL.postman_collection.json" \
+          -e "services/service-view/postman/habo-banking-view.postman_environment.json" \
+          --env-var "jwt_token=${{ secrets.OAUTH_TEST_JWT_TOKEN }}"
+
 
       - name: Report Coverage
         if: always()
@@ -84,4 +83,3 @@ jobs:
           if [ -f /tmp/service-view.log ]; then
             cat /tmp/service-view.log
           fi
-
