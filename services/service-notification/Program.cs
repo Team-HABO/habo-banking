@@ -1,5 +1,6 @@
 using DotNetEnv;
 using MassTransit;
+using Prometheus;
 using Serilog;
 using service_notification.Consumers;
 using service_notification.Settings;
@@ -96,4 +97,9 @@ builder.Services.AddMassTransit(config =>
 });
 
 var host = builder.Build();
+
+// Expose Prometheus metrics on port 9092 at /metrics
+var metricServer = new MetricServer(port: 9092);
+metricServer.Start();
+
 host.Run();
