@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { initiateExchange } from "../services/accountService";
+import client from "@/services/apolloClient";
+import { GET_USER_ACCOUNTS, GET_ACCOUNT_AUDITS } from "@/services/viewService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -28,6 +30,7 @@ export default function ExchangePage() {
 
         try {
             await initiateExchange(id!, { amount, currency, messageId });
+            await client.refetchQueries({ include: [GET_USER_ACCOUNTS, GET_ACCOUNT_AUDITS] });
             setSuccess(true);
             setMessageId(crypto.randomUUID());
             setAmount("");

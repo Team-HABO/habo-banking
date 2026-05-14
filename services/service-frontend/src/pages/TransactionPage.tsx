@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { initiateTransaction } from "../services/accountService";
+import client from "@/services/apolloClient";
+import { GET_USER_ACCOUNTS, GET_ACCOUNT_AUDITS } from "@/services/viewService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -38,6 +40,7 @@ export default function TransactionPage() {
                 messageId,
                 ...(transactionType === "TRANSFER" ? { receiverAccountGuid } : {}),
             });
+            await client.refetchQueries({ include: [GET_USER_ACCOUNTS, GET_ACCOUNT_AUDITS] });
             setSuccess(true);
             setMessageId(crypto.randomUUID());
             setAmount("");

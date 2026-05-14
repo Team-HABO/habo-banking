@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { useQuery } from "@apollo/client/react";
 import { freezeAccount, updateAccount, deleteAccount } from "../services/accountService";
+import { GET_USER_ACCOUNTS, GET_ACCOUNT_AUDITS } from "@/services/viewService";
+import type { Account, Audit } from "@/types/graphql";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -11,26 +14,59 @@ import { ArrowDown, ArrowUp, ArrowLeftRight, DollarSign } from "lucide-react";
 
 const ACCOUNT_TYPES = ["savings", "checking", "pension"];
 
-// Mock accounts matching the Dashboard data until the view-service is integrated.
-const MOCK_ACCOUNTS = [
-    { guid: "11111111-1111-1111-1111-111111111111", name: "Konto", type: "checking", isFrozen: false },
-    { guid: "22222222-2222-2222-2222-222222222222", name: "Opsparing", type: "savings", isFrozen: false },
-    { guid: "33333333-3333-3333-3333-333333333333", name: "Pension", type: "pension", isFrozen: true },
-];
-
 export default function SeeAccount() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const mock = MOCK_ACCOUNTS.find((a) => a.guid === id);
 
-    const [name, setName] = useState(mock?.name ?? "");
-    const [type, setType] = useState(mock?.type ?? ACCOUNT_TYPES[0]);
-    const [isFrozen, setIsFrozen] = useState(mock?.isFrozen ?? false);
+    const {
+        data: accountsData,
+        loading: accountsLoading,
+        error: accountsError,
+        refetch: refetchAccounts,
+    } = useQuery<{ getUserAccounts: Account[] }>(GET_USER_ACCOUNTS);
+    const {
+        data: auditsData,
+        loading: auditsLoading,
+    } = useQuery<{ getAccountAudits: Audit[] }>(GET_ACCOUNT_AUDITS, {
+        variables: { accountGuid: id },
+        skip: !id,
+    });
+
+    const account = accountsData?.getUserAccounts?.find((a: Account) => a.accountGuid === id);
+    const audits = auditsData?.getAccountAudits ?? [];
+
+    const [name, setName] = useState("");
+    const [type, setType] = useState(ACCOUNT_TYPES[0]);
+    const [isFrozen, setIsFrozen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    if (!mock) {
+    useEffect(() => {
+        if (account) {
+            setName(account.name);
+            setType(account.type);
+            setIsFrozen(account.isFrozen);
+        }
+    }, [account]);
+
+    if (accountsLoading) {
+        return (
+            <section className="space-y-4">
+                <p className="text-sm text-muted-foreground">Loading account…</p>
+            </section>
+        );
+    }
+
+    if (accountsError) {
+        return (
+            <section className="space-y-4">
+                <p className="text-sm text-destructive">Failed to load account: {accountsError.message}</p>
+            </section>
+        );
+    }
+
+    if (!account) {
         return (
             <section className="space-y-4">
                 <h1 className="text-2xl font-semibold tracking-tight">Account not found</h1>
@@ -52,8 +88,9 @@ export default function SeeAccount() {
         setError(null);
         setLoading("freeze");
         try {
-            await freezeAccount(mock.guid, !isFrozen);
+            await freezeAccount(account.accountGuid, !isFrozen);
             setIsFrozen(!isFrozen);
+            await refetchAccounts();
         } catch (err) {
             handleError(err);
         } finally {
@@ -66,8 +103,9 @@ export default function SeeAccount() {
         setError(null);
         setLoading("update");
         try {
-            await updateAccount(mock.guid, { name, type });
+            await updateAccount(account.accountGuid, { name, type });
             setIsEditing(false);
+            await refetchAccounts();
         } catch (err) {
             handleError(err);
         } finally {
@@ -80,7 +118,7 @@ export default function SeeAccount() {
         setError(null);
         setLoading("delete");
         try {
-            await deleteAccount(mock.guid);
+            await deleteAccount(account.accountGuid);
             navigate("/dashboard");
         } catch (err) {
             handleError(err);
@@ -142,6 +180,45 @@ export default function SeeAccount() {
                 </CardContent>
             </Card>
 
+            {/* Audit History Section */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Transaction History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {auditsLoading && <p className="text-sm text-muted-foreground">Loading history…</p>}
+                    {!auditsLoading && audits.length === 0 && <p className="text-sm text-muted-foreground">No transactions yet.</p>}
+                    {audits.length > 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-border">
+                                        <th className="pb-3 text-left font-medium text-muted-foreground">Type</th>
+                                        <th className="pb-3 text-right font-medium text-muted-foreground">Amount</th>
+                                        <th className="pb-3 text-left font-medium text-muted-foreground">From</th>
+                                        <th className="pb-3 text-left font-medium text-muted-foreground">To</th>
+                                        <th className="pb-3 text-left font-medium text-muted-foreground">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {audits.map((audit) => (
+                                        <tr key={audit.auditId} className="border-b border-border last:border-0">
+                                            <td className="py-3 capitalize">{audit.type?.toLowerCase()}</td>
+                                            <td className="py-3 text-right tabular-nums">{audit.amount}</td>
+                                            <td className="py-3">{audit.sender ?? "—"}</td>
+                                            <td className="py-3">{audit.receiver ?? "—"}</td>
+                                            <td className="py-3 text-muted-foreground">
+                                                {audit.timestamp ? new Date(audit.timestamp).toLocaleDateString() : "—"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
             {/* Account Management Section */}
             <Card>
                 <CardHeader>
@@ -187,8 +264,8 @@ export default function SeeAccount() {
                                     variant="ghost"
                                     onClick={() => {
                                         setIsEditing(false);
-                                        setName(mock.name);
-                                        setType(mock.type);
+                                        setName(account.name);
+                                        setType(account.type);
                                     }}
                                 >
                                     Cancel

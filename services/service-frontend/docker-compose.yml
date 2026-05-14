@@ -6,6 +6,7 @@ services:
       args:
         VITE_AUTH_API_URL: ${AuthServiceUrl}
         VITE_ACCOUNT_API_URL: ${AccountServiceUrl}
+        VITE_VIEW_API_URL: ${ViewServiceUrl}
     ports:
       - "80:80"
     volumes:

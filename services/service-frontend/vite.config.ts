@@ -22,7 +22,6 @@ export default defineConfig({
     test: {
         environment: "jsdom",
         include: ["src/**/*.test.{ts,tsx}"],
-        setupFiles: ["src/test-setup.ts"],
         clearMocks: true,
         restoreMocks: true,
         coverage: {
@@ -33,6 +32,7 @@ export default defineConfig({
         env: {
             VITE_AUTH_API_URL: "http://localhost:5000",
             VITE_ACCOUNT_API_URL: "http://localhost:8000",
+            VITE_VIEW_API_URL: "http://localhost:4000",
         },
     },
 });
