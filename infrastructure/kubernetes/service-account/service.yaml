@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-account
+  namespace: habo-banking
+spec:
+  selector:
+    app: service-account
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30009 # Access at http://localhost:30009

@@ -2,18 +2,24 @@ NAMESPACE   := habo-banking
 DIR         := .
 SECRETS_DIR := secrets
 
-.PHONY: help install-keda apply-secrets deploy teardown status logs rabbitmq-ui keda-status
+.PHONY: help install-keda apply-secrets deploy deploy-infra deploy-services deploy-observability \
+        teardown status logs rabbitmq-ui grafana-ui prometheus-ui keda-status
 
 help: ## Show available commands
 	$(info Available commands:)
-	$(info   install-keda        Install KEDA into the cluster via Helm)
-	$(info   apply-secrets       Apply secrets (copy *.example.yaml -> *.yaml and fill in values first))
-	$(info   deploy              Deploy the full stack -- run apply-secrets first)
-	$(info   teardown            Delete the habo-banking namespace and all its resources)
-	$(info   status              Show pod status across the namespace)
-	$(info   logs                Tail logs for a service -- usage: make logs service=service-ai)
-	$(info   rabbitmq-ui         Port-forward RabbitMQ management UI -> http://localhost:15672)
-	$(info   keda-status         Show KEDA ScaledObjects and their current replica counts)
+	$(info   install-keda          Install KEDA into the cluster via Helm)
+	$(info   apply-secrets         Apply secrets (copy *.example.yaml -> *.yaml and fill in values first))
+	$(info   deploy                Deploy the full stack -- run apply-secrets first)
+	$(info   deploy-infra          Deploy infrastructure only (databases, message broker))
+	$(info   deploy-services       Deploy application services only)
+	$(info   deploy-observability  Deploy observability stack only (Prometheus, Loki, Alloy, Grafana))
+	$(info   teardown              Delete the habo-banking namespace and all its resources)
+	$(info   status                Show pod status across the namespace)
+	$(info   logs                  Tail logs for a service -- usage: make logs service=service-ai)
+	$(info   rabbitmq-ui           Port-forward RabbitMQ management UI -> http://localhost:15672)
+	$(info   grafana-ui            Port-forward Grafana -> http://localhost:3030  (admin/admin))
+	$(info   prometheus-ui         Port-forward Prometheus -> http://localhost:9090)
+	$(info   keda-status           Show KEDA ScaledObjects and their current replica counts)
 	@echo ""
 
 install-keda: ## Install KEDA into the cluster via Helm
@@ -24,23 +30,50 @@ install-keda: ## Install KEDA into the cluster via Helm
 apply-secrets: ## Apply secrets (copy *.example.yaml → *.yaml and fill in values first)
 	kubectl apply -f "$(SECRETS_DIR)/rabbitmq-secret.yaml"
 	kubectl apply -f "$(SECRETS_DIR)/postgresql-transaction-secret.yaml"
+	kubectl apply -f "$(SECRETS_DIR)/postgresql-account-secret.yaml"
 	kubectl apply -f "$(SECRETS_DIR)/ai-secret.yaml"
 	kubectl apply -f "$(SECRETS_DIR)/smtp-secret.yaml"
+	kubectl apply -f "$(SECRETS_DIR)/auth-secret.yaml"
 
-deploy: ## Deploy the full stack — run apply-secrets first
+deploy-infra: ## Deploy infrastructure only (databases, message broker)
 	kubectl apply -f "$(DIR)/namespace.yaml"
 	kubectl apply -f "$(DIR)/configmaps/"
 	kubectl apply -f "$(DIR)/rabbitmq/"
 	kubectl apply -f "$(DIR)/postgresql-transaction/"
+	kubectl apply -f "$(DIR)/postgresql-account/"
+	kubectl apply -f "$(DIR)/mongodb/"
+
+deploy-services: ## Deploy application services only (run deploy-infra first)
 	@kubectl get crd scaledobjects.keda.sh > /dev/null 2>&1 || (echo "KEDA CRDs not found - run 'make install-keda' first" && exit 1)
 	kubectl apply -f "$(DIR)/service-currency-exchange/"
 	kubectl apply -f "$(DIR)/service-ai/"
 	kubectl apply -f "$(DIR)/service-notification/"
 	kubectl apply -f "$(DIR)/service-transaction/"
+	kubectl apply -f "$(DIR)/service-account/"
+	kubectl apply -f "$(DIR)/service-account-consumer/"
+	kubectl apply -f "$(DIR)/service-synchronize/"
+	kubectl apply -f "$(DIR)/service-view/"
+	kubectl apply -f "$(DIR)/service-auth/"
+	kubectl apply -f "$(DIR)/service-frontend/"
 	kubectl apply -f "$(DIR)/keda/"
+
+deploy-observability: ## Deploy observability stack only (Prometheus, Loki, Alloy, Grafana)
+	kubectl apply -f "$(DIR)/observability/alloy/serviceaccount.yaml"
+	kubectl apply -f "$(DIR)/observability/alloy/rbac.yaml"
+	kubectl apply -f "$(DIR)/observability/loki/"
+	kubectl apply -f "$(DIR)/observability/alloy/"
+	kubectl apply -f "$(DIR)/observability/prometheus/"
+	kubectl apply -f "$(DIR)/observability/grafana/"
+
+deploy: ## Deploy the full stack — run apply-secrets first
+	$(MAKE) deploy-infra
+	$(MAKE) deploy-services
+	$(MAKE) deploy-observability
 
 teardown: ## Delete the habo-banking namespace and all its resources
 	kubectl delete namespace $(NAMESPACE)
+	kubectl delete clusterrole alloy-log-reader --ignore-not-found
+	kubectl delete clusterrolebinding alloy-log-reader --ignore-not-found
 
 status: ## Show pod status across the namespace
 	kubectl get pods -n $(NAMESPACE) -o wide
@@ -50,6 +83,12 @@ logs: ## Tail logs for a service — usage: make logs service=service-ai
 
 rabbitmq-ui: ## Port-forward RabbitMQ management UI → http://localhost:15672
 	kubectl port-forward svc/rabbitmq 15672:15672 -n $(NAMESPACE)
+
+grafana-ui: ## Port-forward Grafana → http://localhost:3030 (admin/admin)
+	kubectl port-forward svc/grafana 3030:3000 -n $(NAMESPACE)
+
+prometheus-ui: ## Port-forward Prometheus → http://localhost:9090
+	kubectl port-forward svc/prometheus 9090:9090 -n $(NAMESPACE)
 
 keda-status: ## Show KEDA ScaledObjects and their current replica counts
 	kubectl get scaledobjects,hpa -n $(NAMESPACE)

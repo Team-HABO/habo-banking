@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-ai
+  name: service-view
   namespace: habo-banking
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: service-ai
+      app: service-view
   template:
     metadata:
       labels:
-        app: service-ai
+        app: service-view
     spec:
       automountServiceAccountToken: false
       initContainers:
-        - name: wait-for-rabbitmq
+        - name: wait-for-mongodb
           image: busybox:1.37
           command:
             [
               "sh",
               "-c",
-              "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done",
+              "until nc -z mongodb 27017; do echo 'waiting for mongodb...'; sleep 2; done",
             ]
           resources:
             requests:
@@ -33,32 +33,26 @@ spec:
               memory: "32Mi"
               ephemeral-storage: "32Mi"
       containers:
-        - name: service-ai
-          image: forkeh/habo-bank-service-ai:latest
+        - name: service-view
+          image: olli4/habo-bank-service-view:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 9091 # Prometheus metrics
+            - containerPort: 4000
           env:
-            - name: RABBITMQ_HOST
+            - name: MONGODB_CONNECTION_STRING
               valueFrom:
                 configMapKeyRef:
                   name: app-config
-                  key: RABBITMQ_HOST
-            - name: RABBITMQ_USERNAME
+                  key: MONGODB_CONNECTION_STRING
+            - name: SERVER_HOST
+              value: "0.0.0.0"
+            - name: SERVER_PORT
+              value: "4000"
+            - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_PASSWORD
-            - name: OPENROUTER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ai-secret
-                  key: OPENROUTER_API_KEY
+                  name: auth-secret
+                  key: SECRET_KEY_JWT
           resources:
             requests:
               cpu: "100m"
@@ -66,5 +60,5 @@ spec:
               ephemeral-storage: "256Mi"
             limits:
               cpu: "500m"
-              memory: "256Mi"
+              memory: "512Mi"
               ephemeral-storage: "512Mi"

@@ -9,3 +9,11 @@ data:
   SMTP_PORT: "587"
   SMTP_FROM_EMAIL: notification@habo-bank.com
   SMTP_FROM_NAME: HABO-Bank
+  # MongoDB — replica set required by service-view for change streams
+  MONGODB_CONNECTION_STRING: mongodb://mongodb.habo-banking.svc.cluster.local:27017/HABO_DB?replicaSet=rs0&directConnection=true
+  # Public-facing service URLs used by service-auth to redirect browsers.
+  # Replace localhost with your cluster node IP or LoadBalancer hostname if needed.
+  AUTH_SERVICE_URL: http://localhost:30010
+  ACCOUNT_SERVICE_URL: http://localhost:30009
+  VIEW_SERVICE_URL: http://localhost:30011
+  FRONTEND_URL: http://localhost:30012
