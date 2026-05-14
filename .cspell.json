@@ -102,6 +102,7 @@
     "threadpool",
     "webp",
     "nameid",
-    "corsheaders"
+    "corsheaders",
+    "nums"
   ]
 }

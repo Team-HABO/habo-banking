@@ -1,37 +1,43 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createAccount } from "../services/accountService";
+import { useParams, useNavigate } from "react-router-dom";
+import { initiateExchange } from "../services/accountService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const ACCOUNT_TYPES = ["savings", "checking", "pension"];
+const CURRENCIES = ["USD", "EUR", "GBP", "NOK", "SEK", "CHF", "JPY", "CAD", "AUD"];
 
-export default function NewAccount() {
+export default function ExchangePage() {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [accountGuid] = useState(() => crypto.randomUUID());
-    const [name, setName] = useState("");
-    const [type, setType] = useState(ACCOUNT_TYPES[0]);
+
+    const [messageId, setMessageId] = useState(() => crypto.randomUUID());
+    const [amount, setAmount] = useState("");
+    const [currency, setCurrency] = useState(CURRENCIES[0]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setSuccess(false);
         setIsLoading(true);
 
         try {
-            await createAccount({ accountGuid, name, type });
-            navigate("/dashboard");
+            await initiateExchange(id!, { amount, currency, messageId });
+            setSuccess(true);
+            setMessageId(crypto.randomUUID());
+            setAmount("");
         } catch (err) {
             if (typeof err === "object" && err !== null && "response" in err && typeof (err as { response: { data: unknown } }).response?.data === "object") {
                 const respData = (err as { response: { data: Record<string, unknown> } }).response.data;
                 const message = typeof respData.error === "string" ? respData.error : JSON.stringify(respData.errors ?? respData);
                 setError(message);
             } else {
-                setError("Failed to create account. Please try again.");
+                setError("Failed to initiate exchange. Please try again.");
             }
         } finally {
             setIsLoading(false);
@@ -40,46 +46,47 @@ export default function NewAccount() {
 
     return (
         <section className="mx-auto max-w-lg space-y-6">
-            <h1 className="text-2xl font-semibold tracking-tight">Create New Account</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Currency Exchange</h1>
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Account Details</CardTitle>
+                    <CardTitle className="text-lg">Exchange Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
-                            <Label htmlFor="account-name">Account Name</Label>
+                            <Label htmlFor="exchange-amount">Amount (DKK)</Label>
                             <Input
-                                id="account-name"
+                                id="exchange-amount"
                                 type="text"
                                 required
-                                maxLength={255}
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. My Savings"
+                                maxLength={50}
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="e.g. 500.00"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="account-type">Account Type</Label>
-                            <Select id="account-type" value={type} onChange={(e) => setType(e.target.value)}>
-                                {ACCOUNT_TYPES.map((t) => (
-                                    <option key={t} value={t}>
-                                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                            <Label htmlFor="exchange-currency">Exchange To</Label>
+                            <Select id="exchange-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                                {CURRENCIES.map((c) => (
+                                    <option key={c} value={c}>
+                                        {c}
                                     </option>
                                 ))}
                             </Select>
                         </div>
 
                         {error && <p className="text-sm text-destructive">{error}</p>}
+                        {success && <p className="text-sm text-success">Exchange initiated successfully.</p>}
 
                         <div className="flex gap-3 pt-2">
-                            <Button type="submit" disabled={isLoading || !name.trim()}>
-                                {isLoading ? "Creating…" : "Create Account"}
+                            <Button type="submit" disabled={isLoading || !amount.trim()}>
+                                {isLoading ? "Processing…" : "Exchange Currency"}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
-                                Cancel
+                            <Button type="button" variant="outline" onClick={() => navigate(`/accounts/${id}`)}>
+                                Back
                             </Button>
                         </div>
                     </form>
