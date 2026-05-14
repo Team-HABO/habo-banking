@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-frontend
+  namespace: habo-banking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-frontend
+  template:
+    metadata:
+      labels:
+        app: service-frontend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: service-frontend
+          image: olli4/habo-bank-service-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+              ephemeral-storage: "256Mi"

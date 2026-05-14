@@ -1,20 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-ai
+  name: service-synchronize
   namespace: habo-banking
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: service-ai
+      app: service-synchronize
   template:
     metadata:
       labels:
-        app: service-ai
+        app: service-synchronize
     spec:
       automountServiceAccountToken: false
       initContainers:
+        - name: wait-for-mongodb
+          image: busybox:1.37
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z mongodb 27017; do echo 'waiting for mongodb...'; sleep 2; done",
+            ]
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+              ephemeral-storage: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
+              ephemeral-storage: "32Mi"
         - name: wait-for-rabbitmq
           image: busybox:1.37
           command:
@@ -33,32 +50,20 @@ spec:
               memory: "32Mi"
               ephemeral-storage: "32Mi"
       containers:
-        - name: service-ai
-          image: forkeh/habo-bank-service-ai:latest
+        - name: service-synchronize
+          image: olli4/habo-bank-service-synchronize:latest
           imagePullPolicy: Always
-          ports:
-            - containerPort: 9091 # Prometheus metrics
           env:
+            - name: MONGODB_CONNECTION_STRING
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MONGODB_CONNECTION_STRING
             - name: RABBITMQ_HOST
               valueFrom:
                 configMapKeyRef:
                   name: app-config
                   key: RABBITMQ_HOST
-            - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_PASSWORD
-            - name: OPENROUTER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ai-secret
-                  key: OPENROUTER_API_KEY
           resources:
             requests:
               cpu: "100m"
@@ -66,5 +71,5 @@ spec:
               ephemeral-storage: "256Mi"
             limits:
               cpu: "500m"
-              memory: "256Mi"
+              memory: "512Mi"
               ephemeral-storage: "512Mi"

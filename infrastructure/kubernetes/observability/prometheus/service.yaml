@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: habo-banking
+spec:
+  selector:
+    app: prometheus
+  type: NodePort
+  ports:
+    - port: 9090
+      targetPort: 9090
+      nodePort: 30013 # Access at http://localhost:30013

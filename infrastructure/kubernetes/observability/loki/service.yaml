@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: habo-banking
+spec:
+  selector:
+    app: loki
+  type: ClusterIP # Internal only — Alloy and Grafana reach Loki cluster-internally
+  ports:
+    - port: 3100
+      targetPort: 3100

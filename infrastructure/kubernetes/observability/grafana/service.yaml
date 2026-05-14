@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: habo-banking
+spec:
+  selector:
+    app: grafana
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30014 # Access at http://localhost:30014 (admin/admin)

@@ -38,6 +38,8 @@ spec:
         - name: service-currency-exchange
           image: forkeh/habo-bank-service-currency-exchange:latest
           imagePullPolicy: Always
+          ports:
+            - containerPort: 9093 # Prometheus metrics
           env:
             - name: RABBITMQ_HOST
               valueFrom:

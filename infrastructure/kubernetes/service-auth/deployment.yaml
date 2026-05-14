@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-auth
+  namespace: habo-banking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-auth
+  template:
+    metadata:
+      labels:
+        app: service-auth
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: service-auth
+          image: olli4/habo-bank-service-auth:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: Authentication__Google__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: GOOGLE_CLIENT_ID
+            - name: Authentication__Google__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: GOOGLE_CLIENT_SECRET
+            - name: SecretKeyJwt
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: SECRET_KEY_JWT
+            - name: AuthServiceUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AUTH_SERVICE_URL
+            - name: FrontendUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: FRONTEND_URL
+            - name: AccountServiceUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ACCOUNT_SERVICE_URL
+            - name: BalanceServiceUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: VIEW_SERVICE_URL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+              ephemeral-storage: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+              ephemeral-storage: "512Mi"

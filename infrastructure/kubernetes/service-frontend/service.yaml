@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-frontend
+  namespace: habo-banking
+spec:
+  selector:
+    app: service-frontend
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30012 # Access at http://localhost:30012
