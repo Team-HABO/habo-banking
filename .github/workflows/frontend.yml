@@ -28,7 +28,7 @@ jobs:
     with:
       docker-image-name: service-frontend
       build-args: |
-        VITE_AUTH_API_URL=http://localhost:30010
+        VITE_AUTH_API_URL=http://localhost:8080
         VITE_ACCOUNT_API_URL=http://localhost:30009
     secrets:
       DOCKER_USERNAME: ${{ secrets.ALI_DOCKER_USERNAME }}
