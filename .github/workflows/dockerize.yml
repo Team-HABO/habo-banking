@@ -6,6 +6,11 @@ on:
         description: "The name of the docker image to push"
         required: true
         type: string
+      build-args:
+        description: "Build args to pass to docker build (multiline KEY=VALUE)"
+        required: false
+        type: string
+        default: ""
     secrets:
       DOCKER_USERNAME:
         description: "The docker username to use for pushing the image"
@@ -43,5 +48,6 @@ jobs:
           tags: |
             docker.io/${{ env.DOCKER_USERNAME }}/habo-bank-${{ env.IMAGE_NAME }}:latest
             docker.io/${{ env.DOCKER_USERNAME }}/habo-bank-${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: ${{ inputs.build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
