@@ -31,8 +31,9 @@ spec:
                 - --eval
                 - "db.adminCommand('ping').ok"
             initialDelaySeconds: 15
+            timeoutSeconds: 5
             periodSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 12
           resources:
             requests:
               cpu: "100m"
@@ -66,11 +67,11 @@ spec:
           resources:
             requests:
               cpu: "10m"
-              memory: "32Mi"
+              memory: "128Mi"
               ephemeral-storage: "16Mi"
             limits:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: "100m"
+              memory: "256Mi"
               ephemeral-storage: "32Mi"
       volumes:
         - name: mongodb-data

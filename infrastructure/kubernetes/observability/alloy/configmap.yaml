@@ -46,7 +46,7 @@ data:
     }
 
     // Stream logs from all discovered pods to Loki
-    loki.source.kubernetes_logs "pods" {
+    loki.source.kubernetes "pods" {
       targets    = discovery.relabel.pods.output
       forward_to = [loki.write.local.receiver]
     }

@@ -16,7 +16,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: service-frontend
-          image: olli4/habo-bank-service-frontend:latest
+          image: alihmohammad/habo-bank-service-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
