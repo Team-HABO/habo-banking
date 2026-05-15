@@ -14,6 +14,6 @@ data:
   # Public-facing service URLs used by service-auth to redirect browsers.
   # Replace localhost with your cluster node IP or LoadBalancer hostname if needed.
   AUTH_SERVICE_URL: http://localhost:8080
-  ACCOUNT_SERVICE_URL: http://localhost:30009
-  VIEW_SERVICE_URL: http://localhost:30011
-  FRONTEND_URL: http://localhost:30012
+  ACCOUNT_SERVICE_URL: http://localhost:8000
+  VIEW_SERVICE_URL: http://localhost:4000
+  FRONTEND_URL: http://localhost:3000
