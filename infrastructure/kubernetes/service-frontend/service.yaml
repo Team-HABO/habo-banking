@@ -6,8 +6,7 @@ metadata:
 spec:
   selector:
     app: service-frontend
-  type: NodePort
+  type: LoadBalancer
   ports:
-    - port: 80
+    - port: 3000
       targetPort: 80
-      nodePort: 30012 # Access at http://localhost:30012

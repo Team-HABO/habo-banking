@@ -6,8 +6,7 @@ metadata:
 spec:
   selector:
     app: service-account
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30009 # Access at http://localhost:30009

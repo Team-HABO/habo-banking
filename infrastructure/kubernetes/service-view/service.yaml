@@ -6,8 +6,7 @@ metadata:
 spec:
   selector:
     app: service-view
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 4000
       targetPort: 4000
-      nodePort: 30011 # Access at http://localhost:30011
