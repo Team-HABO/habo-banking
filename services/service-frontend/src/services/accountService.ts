@@ -30,3 +30,16 @@ export async function deleteAccount(guid: string) {
     const { data } = await axios.delete(`${getBaseUrl()}/v1/accounts/${guid}/`, { withCredentials: true });
     return data;
 }
+
+export async function initiateTransaction(
+    guid: string,
+    payload: { receiverAccountGuid?: string; amount: string; transactionType: "TRANSFER" | "WITHDRAW" | "DEPOSIT"; messageId: string },
+) {
+    const { data } = await axios.post(`${getBaseUrl()}/v1/accounts/${guid}/transactions/`, payload, { withCredentials: true });
+    return data;
+}
+
+export async function initiateExchange(guid: string, payload: { amount: string; currency: string; messageId: string }) {
+    const { data } = await axios.post(`${getBaseUrl()}/v1/accounts/${guid}/exchanges/`, payload, { withCredentials: true });
+    return data;
+}

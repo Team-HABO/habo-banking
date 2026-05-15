@@ -5,6 +5,7 @@
     "**/node_modules/**",
     "**/vscode-extension/**",
     "**/.git/**",
+    
     "**/.pnpm-lock.json",
     ".vscode",
     "package-lock.json",
@@ -26,7 +27,8 @@
     ".github/workflows/**",
     "**/mypy.ini",
     "**/requirements.txt",
-    "systems-tests/**"
+    "systems-tests/**",
+    "services/service-frontend/dist/**"
   ],
   "words": [
     "habo",
@@ -102,6 +104,7 @@
     "threadpool",
     "webp",
     "nameid",
-    "corsheaders"
+    "corsheaders",
+    "nums"
   ]
 }

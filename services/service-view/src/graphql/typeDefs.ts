@@ -13,6 +13,7 @@ export const typeDefs = `#graphql
     type: String
     name: String
     balance: String
+    isFrozen: Boolean
     audits: [Audit]
   }
 
