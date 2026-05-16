@@ -6,8 +6,8 @@ metadata:
 spec:
   selector:
     app: grafana
-  type: NodePort
+  type: LoadBalancer
   ports:
-    - port: 3000
+    - port: 13000
       targetPort: 3000
-      nodePort: 30014 # Access at http://localhost:30014 (admin/admin)
+      # Access at http://localhost:13000 (admin/admin) — Docker Desktop maps LoadBalancer to localhost
