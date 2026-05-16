@@ -18,6 +18,7 @@ data:
 
       - name: Loki
         type: loki
+        uid: loki
         access: proxy
         url: http://loki.habo-banking.svc.cluster.local:3100
         isDefault: true
@@ -37,957 +38,394 @@ data:
 
   services.json: |
     {
-      "annotations": [
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
         {
-          "kind": "AnnotationQuery",
-          "spec": {
-            "builtIn": true,
-            "enable": true,
-            "hide": true,
-            "iconColor": "rgba(0, 211, 255, 1)",
-            "name": "Annotations & Alerts",
-            "query": {
-              "datasource": { "name": "-- Grafana --" },
-              "group": "grafana",
-              "kind": "DataQuery",
-              "spec": {},
-              "version": "v0"
-            }
+          "type": "row",
+          "title": "Service Status",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "panels": []
+        },
+        {
+          "type": "stat",
+          "title": "service-ai",
+          "id": 2,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
+          "targets": [
+            { "refId": "A", "expr": "up{job=\"service-ai\"}", "legendFormat": "service-ai" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": { "color": "red", "index": 1, "text": "DOWN" },
+                    "1": { "color": "green", "index": 0, "text": "UP" }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto",
+            "wideLayout": true
+          }
+        },
+        {
+          "type": "stat",
+          "title": "service-notification",
+          "id": 3,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+          "targets": [
+            { "refId": "A", "expr": "up{job=\"service-notification\"}", "legendFormat": "service-notification" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": { "color": "red", "index": 1, "text": "DOWN" },
+                    "1": { "color": "green", "index": 0, "text": "UP" }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto",
+            "wideLayout": true
+          }
+        },
+        {
+          "type": "stat",
+          "title": "service-currency-exchange",
+          "id": 4,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+          "targets": [
+            { "refId": "A", "expr": "up{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": { "color": "red", "index": 1, "text": "DOWN" },
+                    "1": { "color": "green", "index": 0, "text": "UP" }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto",
+            "wideLayout": true
+          }
+        },
+        {
+          "type": "row",
+          "title": "CPU & Memory",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+          "id": 101,
+          "panels": []
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU Usage",
+          "id": 6,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "targets": [
+            { "refId": "A", "expr": "rate(process_cpu_seconds_total{job=\"service-ai\"}[1m])", "legendFormat": "service-ai" },
+            { "refId": "B", "expr": "rate(process_cpu_seconds_total{job=\"service-notification\"}[1m])", "legendFormat": "service-notification" },
+            { "refId": "C", "expr": "rate(process_cpu_seconds_total{job=\"service-currency-exchange\"}[1m])", "legendFormat": "service-currency-exchange" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "percentunit"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "none" }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Working Set Memory",
+          "id": 7,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "targets": [
+            { "refId": "A", "expr": "process_working_set_bytes{job=\"service-ai\"}", "legendFormat": "service-ai" },
+            { "refId": "B", "expr": "process_working_set_bytes{job=\"service-notification\"}", "legendFormat": "service-notification" },
+            { "refId": "C", "expr": "process_working_set_bytes{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "none" }
+          }
+        },
+        {
+          "type": "row",
+          "title": "GC & Thread Pool",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+          "id": 102,
+          "panels": []
+        },
+        {
+          "type": "timeseries",
+          "title": "GC Collections / sec",
+          "id": 9,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 15 },
+          "targets": [
+            { "refId": "A", "expr": "rate(dotnet_collection_count_total{job=\"service-ai\"}[1m])", "legendFormat": "{{generation}} (ai)" },
+            { "refId": "B", "expr": "rate(dotnet_collection_count_total{job=\"service-notification\"}[1m])", "legendFormat": "{{generation}} (notif)" },
+            { "refId": "C", "expr": "rate(dotnet_collection_count_total{job=\"service-currency-exchange\"}[1m])", "legendFormat": "{{generation}} (exchange)" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "none" }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Thread Pool Threads",
+          "id": 10,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 15 },
+          "targets": [
+            { "refId": "A", "expr": "system_runtime_threadpool_thread_count{job=\"service-ai\"}", "legendFormat": "service-ai" },
+            { "refId": "B", "expr": "system_runtime_threadpool_thread_count{job=\"service-notification\"}", "legendFormat": "service-notification" },
+            { "refId": "C", "expr": "system_runtime_threadpool_thread_count{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "none" }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Thread Pool Queue Length",
+          "id": 11,
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 },
+          "targets": [
+            { "refId": "A", "expr": "system_runtime_threadpool_queue_length{job=\"service-ai\"}", "legendFormat": "service-ai" },
+            { "refId": "B", "expr": "system_runtime_threadpool_queue_length{job=\"service-notification\"}", "legendFormat": "service-notification" },
+            { "refId": "C", "expr": "system_runtime_threadpool_queue_length{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "none" }
+          }
+        },
+        {
+          "type": "row",
+          "title": "Logs",
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+          "id": 103,
+          "panels": []
+        },
+        {
+          "type": "logs",
+          "title": "service-ai Logs",
+          "id": 13,
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
+          "targets": [
+            { "refId": "A", "expr": "{app=\"service-ai\"}", "datasource": { "type": "loki", "uid": "loki" } }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        },
+        {
+          "type": "logs",
+          "title": "service-notification Logs",
+          "id": 14,
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 34 },
+          "targets": [
+            { "refId": "A", "expr": "{app=\"service-notification\"}", "datasource": { "type": "loki", "uid": "loki" } }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        },
+        {
+          "type": "logs",
+          "title": "service-currency-exchange Logs",
+          "id": 15,
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 44 },
+          "targets": [
+            { "refId": "A", "expr": "{app=\"service-currency-exchange\"}", "datasource": { "type": "loki", "uid": "loki" } }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
           }
         }
       ],
-      "cursorSync": "Off",
-      "editable": true,
-      "elements": {
-        "panel-2": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "up{job=\"service-ai\"}",
-                          "legendFormat": "service-ai"
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 2,
-            "links": [],
-            "title": "service-ai",
-            "vizConfig": {
-              "group": "stat",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "thresholds" },
-                    "mappings": [
-                      {
-                        "options": {
-                          "0": { "color": "red", "index": 1, "text": "DOWN" },
-                          "1": { "color": "green", "index": 0, "text": "UP" }
-                        },
-                        "type": "value"
-                      }
-                    ],
-                    "thresholds": {
-                      "mode": "absolute",
-                      "steps": [
-                        { "color": "red", "value": 0 },
-                        { "color": "green", "value": 1 }
-                      ]
-                    }
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "colorMode": "background",
-                  "graphMode": "none",
-                  "justifyMode": "center",
-                  "orientation": "auto",
-                  "percentChangeColorMode": "standard",
-                  "reduceOptions": {
-                    "calcs": ["lastNotNull"],
-                    "fields": "",
-                    "values": false
-                  },
-                  "showPercentChange": false,
-                  "textMode": "auto",
-                  "wideLayout": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-3": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "up{job=\"service-notification\"}",
-                          "legendFormat": "service-notification"
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 3,
-            "links": [],
-            "title": "service-notification",
-            "vizConfig": {
-              "group": "stat",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "thresholds" },
-                    "mappings": [
-                      {
-                        "options": {
-                          "0": { "color": "red", "index": 1, "text": "DOWN" },
-                          "1": { "color": "green", "index": 0, "text": "UP" }
-                        },
-                        "type": "value"
-                      }
-                    ],
-                    "thresholds": {
-                      "mode": "absolute",
-                      "steps": [
-                        { "color": "red", "value": 0 },
-                        { "color": "green", "value": 1 }
-                      ]
-                    }
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "colorMode": "background",
-                  "graphMode": "none",
-                  "justifyMode": "center",
-                  "orientation": "auto",
-                  "percentChangeColorMode": "standard",
-                  "reduceOptions": {
-                    "calcs": ["lastNotNull"],
-                    "fields": "",
-                    "values": false
-                  },
-                  "showPercentChange": false,
-                  "textMode": "auto",
-                  "wideLayout": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-4": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "up{job=\"service-currency-exchange\"}",
-                          "legendFormat": "service-currency-exchange"
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 4,
-            "links": [],
-            "title": "service-currency-exchange",
-            "vizConfig": {
-              "group": "stat",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "thresholds" },
-                    "mappings": [
-                      {
-                        "options": {
-                          "0": { "color": "red", "index": 1, "text": "DOWN" },
-                          "1": { "color": "green", "index": 0, "text": "UP" }
-                        },
-                        "type": "value"
-                      }
-                    ],
-                    "thresholds": {
-                      "mode": "absolute",
-                      "steps": [
-                        { "color": "red", "value": 0 },
-                        { "color": "green", "value": 1 }
-                      ]
-                    }
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "colorMode": "background",
-                  "graphMode": "none",
-                  "justifyMode": "center",
-                  "orientation": "auto",
-                  "percentChangeColorMode": "standard",
-                  "reduceOptions": {
-                    "calcs": ["lastNotNull"],
-                    "fields": "",
-                    "values": false
-                  },
-                  "showPercentChange": false,
-                  "textMode": "auto",
-                  "wideLayout": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-6": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "rate(process_cpu_seconds_total{job=\"service-ai\"}[1m])",
-                          "legendFormat": "service-ai",
-                          "range": true
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "rate(process_cpu_seconds_total{job=\"service-notification\"}[1m])",
-                          "legendFormat": "service-notification",
-                          "range": true
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "B"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": {
-                          "expr": "rate(process_cpu_seconds_total{job=\"service-currency-exchange\"}[1m])",
-                          "legendFormat": "service-currency-exchange",
-                          "range": true
-                        },
-                        "version": "v0"
-                      },
-                      "refId": "C"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 6,
-            "links": [],
-            "title": "CPU Usage",
-            "vizConfig": {
-              "group": "timeseries",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "palette-classic" },
-                    "custom": {
-                      "axisBorderShow": false,
-                      "axisCenteredZero": false,
-                      "axisColorMode": "text",
-                      "axisLabel": "",
-                      "axisPlacement": "auto",
-                      "barAlignment": 0,
-                      "barWidthFactor": 0.6,
-                      "drawStyle": "line",
-                      "fillOpacity": 10,
-                      "gradientMode": "none",
-                      "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                      "insertNulls": false,
-                      "lineInterpolation": "smooth",
-                      "lineWidth": 2,
-                      "pointSize": 5,
-                      "scaleDistribution": { "type": "linear" },
-                      "showPoints": "never",
-                      "showValues": false,
-                      "spanNulls": false,
-                      "stacking": { "group": "A", "mode": "none" },
-                      "thresholdsStyle": { "mode": "off" }
-                    },
-                    "thresholds": {
-                      "mode": "absolute",
-                      "steps": [
-                        { "color": "green", "value": 0 },
-                        { "color": "red", "value": 80 }
-                      ]
-                    },
-                    "unit": "percentunit"
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "annotations": { "clustering": -1, "multiLane": false },
-                  "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "hideZeros": false, "mode": "multi", "sort": "none" }
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-7": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "process_working_set_bytes{job=\"service-ai\"}", "legendFormat": "service-ai" },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "process_working_set_bytes{job=\"service-notification\"}", "legendFormat": "service-notification" },
-                        "version": "v0"
-                      },
-                      "refId": "B"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "process_working_set_bytes{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" },
-                        "version": "v0"
-                      },
-                      "refId": "C"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 7,
-            "links": [],
-            "title": "Working Set Memory",
-            "vizConfig": {
-              "group": "timeseries",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "palette-classic" },
-                    "custom": {
-                      "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text",
-                      "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "barWidthFactor": 0.6,
-                      "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none",
-                      "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                      "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2,
-                      "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never",
-                      "showValues": false, "spanNulls": false, "stacking": { "group": "A", "mode": "none" },
-                      "thresholdsStyle": { "mode": "off" }
-                    },
-                    "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 80 }] },
-                    "unit": "bytes"
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "annotations": { "clustering": -1, "multiLane": false },
-                  "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "hideZeros": false, "mode": "multi", "sort": "none" }
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-9": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-ai\"}[1m])", "legendFormat": "{{generation}} (ai)" },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-notification\"}[1m])", "legendFormat": "{{generation}} (notif)" },
-                        "version": "v0"
-                      },
-                      "refId": "B"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "rate(dotnet_collection_count_total{job=\"service-currency-exchange\"}[1m])", "legendFormat": "{{generation}} (exchange)" },
-                        "version": "v0"
-                      },
-                      "refId": "C"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 9,
-            "links": [],
-            "title": "GC Collections / sec",
-            "vizConfig": {
-              "group": "timeseries",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "palette-classic" },
-                    "custom": {
-                      "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text",
-                      "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "barWidthFactor": 0.6,
-                      "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none",
-                      "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                      "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2,
-                      "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never",
-                      "showValues": false, "spanNulls": false, "stacking": { "group": "A", "mode": "none" },
-                      "thresholdsStyle": { "mode": "off" }
-                    },
-                    "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 80 }] },
-                    "unit": "ops"
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "annotations": { "clustering": -1, "multiLane": false },
-                  "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "hideZeros": false, "mode": "multi", "sort": "none" }
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-10": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-ai\"}", "legendFormat": "service-ai" },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-notification\"}", "legendFormat": "service-notification" },
-                        "version": "v0"
-                      },
-                      "refId": "B"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_thread_count{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange" },
-                        "version": "v0"
-                      },
-                      "refId": "C"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 10,
-            "links": [],
-            "title": "Thread Pool Threads",
-            "vizConfig": {
-              "group": "timeseries",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "palette-classic" },
-                    "custom": {
-                      "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text",
-                      "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "barWidthFactor": 0.6,
-                      "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none",
-                      "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                      "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2,
-                      "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never",
-                      "showValues": false, "spanNulls": false, "stacking": { "group": "A", "mode": "none" },
-                      "thresholdsStyle": { "mode": "off" }
-                    },
-                    "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 80 }] },
-                    "unit": "short"
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "annotations": { "clustering": -1, "multiLane": false },
-                  "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "hideZeros": false, "mode": "multi", "sort": "none" }
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-11": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-ai\"}", "legendFormat": "service-ai", "range": true },
-                        "version": "v0"
-                      },
-                      "refId": "A"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-notification\"}", "legendFormat": "service-notification", "range": true },
-                        "version": "v0"
-                      },
-                      "refId": "B"
-                    }
-                  },
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": {
-                        "datasource": { "type": "prometheus", "uid": "prometheus" },
-                        "group": "prometheus",
-                        "kind": "DataQuery",
-                        "spec": { "expr": "system_runtime_threadpool_queue_length{job=\"service-currency-exchange\"}", "legendFormat": "service-currency-exchange", "range": true },
-                        "version": "v0"
-                      },
-                      "refId": "C"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 11,
-            "links": [],
-            "title": "Thread Pool Queue Length",
-            "vizConfig": {
-              "group": "timeseries",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": {
-                  "defaults": {
-                    "color": { "mode": "palette-classic" },
-                    "custom": {
-                      "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text",
-                      "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "barWidthFactor": 0.6,
-                      "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none",
-                      "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                      "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2,
-                      "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never",
-                      "showValues": false, "spanNulls": false, "stacking": { "group": "A", "mode": "none" },
-                      "thresholdsStyle": { "mode": "off" }
-                    },
-                    "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 80 }] },
-                    "unit": "short"
-                  },
-                  "overrides": []
-                },
-                "options": {
-                  "annotations": { "clustering": -1, "multiLane": false },
-                  "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "hideZeros": false, "mode": "multi", "sort": "none" }
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-13": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": { "group": "", "kind": "DataQuery", "spec": { "expr": "{app=\"service-ai\"}" }, "version": "v0" },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 13,
-            "links": [],
-            "title": "service-ai Logs",
-            "vizConfig": {
-              "group": "logs",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": { "defaults": {}, "overrides": [] },
-                "options": {
-                  "dedupStrategy": "none", "enableInfiniteScrolling": false, "enableLogDetails": true,
-                  "prettifyLogMessage": false, "showCommonLabels": false, "showControls": false,
-                  "showFieldSelector": false, "showLabels": false, "showLevel": true, "showTime": true,
-                  "sortOrder": "Descending", "timestampResolution": "ms", "unwrappedColumns": false,
-                  "wrapLogMessage": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-14": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": { "group": "", "kind": "DataQuery", "spec": { "expr": "{app=\"service-notification\"}" }, "version": "v0" },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 14,
-            "links": [],
-            "title": "service-notification Logs",
-            "vizConfig": {
-              "group": "logs",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": { "defaults": {}, "overrides": [] },
-                "options": {
-                  "dedupStrategy": "none", "enableInfiniteScrolling": false, "enableLogDetails": true,
-                  "prettifyLogMessage": false, "showCommonLabels": false, "showControls": false,
-                  "showFieldSelector": false, "showLabels": false, "showLevel": true, "showTime": true,
-                  "sortOrder": "Descending", "timestampResolution": "ms", "unwrappedColumns": false,
-                  "wrapLogMessage": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        },
-        "panel-15": {
-          "kind": "Panel",
-          "spec": {
-            "data": {
-              "kind": "QueryGroup",
-              "spec": {
-                "queries": [
-                  {
-                    "kind": "PanelQuery",
-                    "spec": {
-                      "hidden": false,
-                      "query": { "group": "", "kind": "DataQuery", "spec": { "expr": "{app=\"service-currency-exchange\"}" }, "version": "v0" },
-                      "refId": "A"
-                    }
-                  }
-                ],
-                "queryOptions": {},
-                "transformations": []
-              }
-            },
-            "description": "",
-            "id": 15,
-            "links": [],
-            "title": "service-currency-exchange Logs",
-            "vizConfig": {
-              "group": "logs",
-              "kind": "VizConfig",
-              "spec": {
-                "fieldConfig": { "defaults": {}, "overrides": [] },
-                "options": {
-                  "dedupStrategy": "none", "enableInfiniteScrolling": false, "enableLogDetails": true,
-                  "prettifyLogMessage": false, "showCommonLabels": false, "showControls": false,
-                  "showFieldSelector": false, "showLabels": false, "showLevel": true, "showTime": true,
-                  "sortOrder": "Descending", "timestampResolution": "ms", "unwrappedColumns": false,
-                  "wrapLogMessage": true
-                }
-              },
-              "version": "13.0.1"
-            }
-          }
-        }
-      },
-      "layout": {
-        "kind": "RowsLayout",
-        "spec": {
-          "rows": [
-            {
-              "kind": "RowsLayoutRow",
-              "spec": {
-                "collapse": false,
-                "layout": {
-                  "kind": "GridLayout",
-                  "spec": {
-                    "items": [
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-2" }, "height": 4, "width": 8, "x": 0, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-3" }, "height": 4, "width": 8, "x": 8, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-4" }, "height": 4, "width": 8, "x": 16, "y": 0 } }
-                    ]
-                  }
-                },
-                "title": "Service Status"
-              }
-            },
-            {
-              "kind": "RowsLayoutRow",
-              "spec": {
-                "collapse": false,
-                "layout": {
-                  "kind": "GridLayout",
-                  "spec": {
-                    "items": [
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-6" }, "height": 8, "width": 12, "x": 0, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-7" }, "height": 8, "width": 12, "x": 12, "y": 0 } }
-                    ]
-                  }
-                },
-                "title": "CPU & Memory"
-              }
-            },
-            {
-              "kind": "RowsLayoutRow",
-              "spec": {
-                "collapse": false,
-                "layout": {
-                  "kind": "GridLayout",
-                  "spec": {
-                    "items": [
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-9" }, "height": 8, "width": 8, "x": 0, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-10" }, "height": 8, "width": 8, "x": 8, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-11" }, "height": 8, "width": 8, "x": 16, "y": 0 } }
-                    ]
-                  }
-                },
-                "title": "GC & Thread Pool"
-              }
-            },
-            {
-              "kind": "RowsLayoutRow",
-              "spec": {
-                "collapse": false,
-                "layout": {
-                  "kind": "GridLayout",
-                  "spec": {
-                    "items": [
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-13" }, "height": 10, "width": 24, "x": 0, "y": 0 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-14" }, "height": 10, "width": 24, "x": 0, "y": 10 } },
-                      { "kind": "GridLayoutItem", "spec": { "element": { "kind": "ElementReference", "name": "panel-15" }, "height": 10, "width": 24, "x": 0, "y": 20 } }
-                    ]
-                  }
-                },
-                "title": "Logs"
-              }
-            }
-          ]
-        }
-      },
-      "links": [],
-      "liveNow": false,
-      "preload": false,
+      "refresh": "30s",
+      "schemaVersion": 39,
       "tags": ["habo-banking"],
-      "timeSettings": {
-        "autoRefresh": "30s",
-        "autoRefreshIntervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
-        "fiscalYearStartMonth": 0,
-        "from": "now-1h",
-        "hideTimepicker": false,
-        "timezone": "browser",
-        "to": "now"
-      },
+      "templating": { "list": [] },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
       "title": "habo-banking — Services",
-      "variables": []
+      "uid": "habo-banking-services",
+      "version": 1,
+      "weekStart": ""
     }
