@@ -15,9 +15,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: account_db
       POSTGRES_USER: testuser
       POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: account_db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testuser"]
       interval: 5s
@@ -28,9 +28,6 @@ services:
     build:
       context: ../services/service-account
       dockerfile: Dockerfile
-    working_dir: /app
-    volumes:
-      - ../services/service-account:/app:cached
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
@@ -54,9 +51,6 @@ services:
     build:
       context: ../services/service-account
       dockerfile: Dockerfile
-    working_dir: /app
-    volumes:
-      - ../services/service-account:/app:cached
     command: python manage.py consume_events
     environment:
       POSTGRES_HOST: postgres-account
@@ -68,8 +62,8 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
     depends_on:
-      postgres-account:
-        condition: service_healthy
+      service-account-app:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     restart: on-failure

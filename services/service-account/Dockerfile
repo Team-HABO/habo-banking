@@ -8,3 +8,5 @@ WORKDIR /app
 COPY requirements.txt* /tmp/pip-tmp/
 RUN if [ -f "/tmp/pip-tmp/requirements.txt" ]; then pip install --no-cache-dir -r /tmp/pip-tmp/requirements.txt; fi \
     && rm -rf /tmp/pip-tmp
+
+COPY . .
