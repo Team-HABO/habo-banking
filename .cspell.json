@@ -105,6 +105,8 @@
     "webp",
     "nameid",
     "corsheaders",
-    "nums"
+    "nums",
+    "testuser",
+    "testpassword"
   ]
 }
