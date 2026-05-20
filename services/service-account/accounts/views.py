@@ -6,7 +6,9 @@ the *services* layer for business logic, and return a JSON response.
 
 import json
 import logging
+import os
 
+import jwt  # type: ignore[import-untyped]
 from accounts import services
 from accounts.models import Account
 from accounts.serializers import (
@@ -49,6 +51,41 @@ def _get_client_ip(request):
     return request.META.get("REMOTE_ADDR", "")
 
 
+def _get_owner_id_from_jwt(request):
+    """Extract the owner ID (Google user ID) from the auth_token cookie.
+
+    Returns nameid on success, or None if the token is
+    missing, malformed, or the signature is invalid.
+    """
+    # Prefer Authorization header; fall back to auth_token cookie
+    auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[len("Bearer ") :].strip()
+    else:
+        token = request.COOKIES.get("auth_token", "")
+
+    if not token:
+        logger.warning(
+            "JWT: no token found in Authorization header or auth_token cookie"
+        )
+        return None
+
+    secret = os.getenv("JWT_SECRET_KEY", "")
+    try:
+        payload = jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            options={"verify_aud": False},
+        )
+        owner_id = payload.get("nameid")
+        logger.info("JWT: decoded successfully, owner_id=%s", owner_id)
+        return owner_id
+    except jwt.PyJWTError as exc:
+        logger.warning("JWT: decode failed – %s", exc)
+        return None
+
+
 # /accounts  (POST create)
 
 
@@ -64,10 +101,9 @@ def _create_account(request):
     if body is None:
         return JsonResponse({"error": ERROR_INVALID_JSON}, status=400)
 
-    # owner_id currently comes from request body until JWT integration is added.
-    owner_id = body.get("owner_id")
+    owner_id = _get_owner_id_from_jwt(request)
     if not owner_id:
-        return JsonResponse({"error": "owner_id is required."}, status=400)
+        return JsonResponse({"error": "Unauthorized."}, status=401)
 
     serializer = CreateAccountSerializer(data=body)
     if not serializer.is_valid():
