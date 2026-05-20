@@ -74,7 +74,9 @@ class CreateAccountIntegrationTests(TransactionTestCase):
             self._post(self.valid_body)
 
             message = consumer.get_message()
-            self.assertIsNotNone(message, "No message arrived on account-exchange-events")
+            self.assertIsNotNone(
+                message, "No message arrived on account-exchange-events"
+            )
             self.assertEqual(message["data"]["ownerId"], self.owner_id)
             self.assertEqual(message["data"]["name"], "My Savings")
             self.assertEqual(message["data"]["type"], "savings")
@@ -105,9 +107,7 @@ class CreateAccountIntegrationTests(TransactionTestCase):
         response = self._post(self.valid_body)
 
         self.assertEqual(response.status_code, 409)
-        self.assertEqual(
-            Account.objects.filter(owner_id=self.owner_id).count(), 1
-        )
+        self.assertEqual(Account.objects.filter(owner_id=self.owner_id).count(), 1)
 
     def test_duplicate_publishes_only_once_to_rabbitmq(self):
         consumer = RabbitMQTestConsumer("account-exchange-events", "fanout")
@@ -121,7 +121,9 @@ class CreateAccountIntegrationTests(TransactionTestCase):
 
             # No second message should arrive
             second = consumer.get_message(timeout=1.0)
-            self.assertIsNone(second, "Duplicate request incorrectly published a second message")
+            self.assertIsNone(
+                second, "Duplicate request incorrectly published a second message"
+            )
         finally:
             consumer.close()
 

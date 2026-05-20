@@ -9,7 +9,6 @@ import logging
 import os
 
 import jwt  # type: ignore[import-untyped]
-
 from accounts import services
 from accounts.models import Account
 from accounts.serializers import (
@@ -61,12 +60,14 @@ def _get_owner_id_from_jwt(request):
     # Prefer Authorization header; fall back to auth_token cookie
     auth_header = request.META.get("HTTP_AUTHORIZATION", "")
     if auth_header.startswith("Bearer "):
-        token = auth_header[len("Bearer "):].strip()
+        token = auth_header[len("Bearer ") :].strip()
     else:
         token = request.COOKIES.get("auth_token", "")
 
     if not token:
-        logger.warning("JWT: no token found in Authorization header or auth_token cookie")
+        logger.warning(
+            "JWT: no token found in Authorization header or auth_token cookie"
+        )
         return None
 
     secret = os.getenv("JWT_SECRET_KEY", "")
