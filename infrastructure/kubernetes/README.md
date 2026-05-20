@@ -10,41 +10,41 @@ The stack consists of infrastructure, application services, and an observability
 
 ### Infrastructure
 
-| Component              | Type         | Port  |
-|------------------------|--------------|-------|
-| RabbitMQ               | LoadBalancer | 15672 (management UI) / 5672 (AMQP) |
-| PostgreSQL (transaction) | ClusterIP  | 5432  |
-| PostgreSQL (account)   | ClusterIP    | 5432  |
-| MongoDB (replica set)  | ClusterIP    | 27017 |
+| Component                | Type         | Port                                |
+| ------------------------ | ------------ | ----------------------------------- |
+| RabbitMQ                 | LoadBalancer | 15672 (management UI) / 5672 (AMQP) |
+| PostgreSQL (transaction) | ClusterIP    | 5432                                |
+| PostgreSQL (account)     | ClusterIP    | 5432                                |
+| MongoDB (replica set)    | ClusterIP    | 27017                               |
 
 ### Application services
 
-| Service                  | Language     | Port | Description                              |
-|--------------------------|--------------|------|------------------------------------------|
-| service-transaction      | C#/.NET      | —    | Processes transactions (KEDA worker)     |
-| service-currency-exchange | C#/.NET     | —    | Currency conversion (KEDA worker)        |
-| service-ai               | C#/.NET      | —    | Fraud detection (KEDA worker)            |
-| service-notification     | C#/.NET      | —    | Sends emails (KEDA worker)               |
-| service-account          | Python/Django | 8000 | Account management HTTP API              |
-| service-account-consumer | Python/Django | —    | Account event consumer (worker)          |
-| service-auth             | C#/.NET      | 8080 | Google OAuth2 + JWT issuance             |
-| service-synchronize      | C#/.NET      | —    | Syncs MongoDB from RabbitMQ events       |
-| service-view             | TypeScript   | 4000 | Read-model queries via MongoDB           |
-| service-frontend         | React SPA    | 3000 | Web UI                                   |
+| Service                   | Language      | Port | Description                          |
+| ------------------------- | ------------- | ---- | ------------------------------------ |
+| service-transaction       | C#/.NET       | —    | Processes transactions (KEDA worker) |
+| service-currency-exchange | C#/.NET       | —    | Currency conversion (KEDA worker)    |
+| service-ai                | C#/.NET       | —    | Fraud detection (KEDA worker)        |
+| service-notification      | C#/.NET       | —    | Sends emails (KEDA worker)           |
+| service-account           | Python/Django | 8000 | Account management HTTP API          |
+| service-account-consumer  | Python/Django | —    | Account event consumer (worker)      |
+| service-auth              | C#/.NET       | 8080 | Google OAuth2 + JWT issuance         |
+| service-synchronize       | C#/.NET       | —    | Syncs MongoDB from RabbitMQ events   |
+| service-view              | TypeScript    | 4000 | Read-model queries via MongoDB       |
+| service-frontend          | React SPA     | 3000 | Web UI                               |
 
 ### Observability
 
-| Component       | Port | Description                              |
-|-----------------|------|------------------------------------------|
-| Prometheus      | 9090 | Metrics scraping (ai, notification, currency-exchange) |
-| Loki            | ClusterIP | Log aggregation                     |
-| Grafana Alloy   | —    | Log collector (DaemonSet, K8s pod discovery) |
-| Grafana         | 13000 | Dashboards — `admin/admin`             |
+| Component     | Port      | Description                                            |
+| ------------- | --------- | ------------------------------------------------------ |
+| Prometheus    | 9090      | Metrics scraping (ai, notification, currency-exchange) |
+| Loki          | ClusterIP | Log aggregation                                        |
+| Grafana Alloy | —         | Log collector (DaemonSet, K8s pod discovery)           |
+| Grafana       | 13000     | Dashboards — `admin/admin`                             |
 
 ### Message flow
 
 | Event                     | Published by              | Consumed by               | Queue                              |
-|---------------------------|---------------------------|---------------------------|------------------------------------|
+| ------------------------- | ------------------------- | ------------------------- | ---------------------------------- |
 | Currency exchange request | service-transaction       | service-currency-exchange | `currency-exchange-requests-queue` |
 | Exchange result           | service-currency-exchange | service-transaction       | `currency-exchange-response-queue` |
 | Fraud check               | service-transaction       | service-ai                | `ai-transaction-queue`             |
@@ -148,7 +148,7 @@ infrastructure/kubernetes/
 ## Prerequisites
 
 | Tool                  | Purpose                    | Install                                                            |
-|-----------------------|----------------------------|--------------------------------------------------------------------|
+| --------------------- | -------------------------- | ------------------------------------------------------------------ |
 | `kubectl`             | Kubernetes CLI             | [docs.k8s.io/tasks/tools](https://kubernetes.io/docs/tasks/tools/) |
 | Kind / Docker Desktop | Local cluster              | [kind.sigs.k8s.io](https://kind.sigs.k8s.io/)                      |
 | `helm`                | Package manager (for KEDA) | [helm.sh/docs/intro/install](https://helm.sh/docs/intro/install/)  |
@@ -216,10 +216,10 @@ cp auth-secret.example.yaml                  auth-secret.yaml
 
 #### auth-secret fields
 
-| Key                    | Description                                                              |
-|------------------------|--------------------------------------------------------------------------|
-| `GOOGLE_CLIENT_ID`     | OAuth2 client ID from Google Cloud Console                               |
-| `GOOGLE_CLIENT_SECRET` | OAuth2 client secret from Google Cloud Console                           |
+| Key                    | Description                                                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | OAuth2 client ID from Google Cloud Console                                                                                                |
+| `GOOGLE_CLIENT_SECRET` | OAuth2 client secret from Google Cloud Console                                                                                            |
 | `SECRET_KEY_JWT`       | Symmetric JWT signing key — **minimum 32 characters**. Shared between `service-auth` (signs tokens) and `service-view` (verifies tokens). |
 
 ### 4. Pull Docker images locally
@@ -267,20 +267,20 @@ make deploy
 
 ### Application UIs
 
-| Service         | URL                      | Credentials                         |
-|-----------------|--------------------------|--------------------------------------|
-| Frontend        | http://localhost:3000    | Google login (via service-auth)      |
-| service-account | http://localhost:8000    | Internal API                         |
-| service-auth    | http://localhost:8080    | —                                    |
-| service-view    | http://localhost:4000    | JWT required                         |
+| Service         | URL                   | Credentials                     |
+| --------------- | --------------------- | ------------------------------- |
+| Frontend        | http://localhost:3000 | Google login (via service-auth) |
+| service-account | http://localhost:8000 | Internal API                    |
+| service-auth    | http://localhost:8080 | —                               |
+| service-view    | http://localhost:4000 | JWT required                    |
 
 ### Observability UIs
 
-| Service    | URL                       | Credentials  |
-|------------|---------------------------|--------------|
-| Grafana    | http://localhost:13000    | admin/admin  |
-| Prometheus | http://localhost:9090     | —            |
-| RabbitMQ   | http://localhost:15672    | —            |
+| Service    | URL                    | Credentials |
+| ---------- | ---------------------- | ----------- |
+| Grafana    | http://localhost:13000 | admin/admin |
+| Prometheus | http://localhost:9090  | —           |
+| RabbitMQ   | http://localhost:15672 | —           |
 
 All services use `LoadBalancer` type, so Docker Desktop maps them directly to `localhost` with no port-forwarding required.
 
@@ -321,19 +321,19 @@ make logs service=service-ai
 
 ## Makefile commands
 
-| Command                          | Description                                                      |
-|----------------------------------|------------------------------------------------------------------|
-| `make help`                      | Show all available commands                                      |
-| `make install-keda`              | Install KEDA into the cluster via Helm                           |
-| `make apply-secrets`             | Apply all secret files from `secrets/`                           |
-| `make deploy`                    | Deploy the full stack (infra + services + observability)         |
-| `make deploy-infra`              | Deploy infrastructure only (databases, RabbitMQ)                 |
-| `make deploy-services`           | Deploy application services only (requires KEDA)                 |
-| `make deploy-observability`      | Deploy Prometheus, Loki, Alloy, Grafana                          |
-| `make teardown`                  | Delete the namespace and cluster-scoped Alloy RBAC resources     |
-| `make status`                    | Show pod status with node assignment                             |
-| `make logs service=<name>`       | Tail logs for a service (e.g. `make logs service=service-ai`)    |
-| `make keda-status`               | Show KEDA ScaledObjects and current HPA replica counts           |
+| Command                     | Description                                                   |
+| --------------------------- | ------------------------------------------------------------- |
+| `make help`                 | Show all available commands                                   |
+| `make install-keda`         | Install KEDA into the cluster via Helm                        |
+| `make apply-secrets`        | Apply all secret files from `secrets/`                        |
+| `make deploy`               | Deploy the full stack (infra + services + observability)      |
+| `make deploy-infra`         | Deploy infrastructure only (databases, RabbitMQ)              |
+| `make deploy-services`      | Deploy application services only (requires KEDA)              |
+| `make deploy-observability` | Deploy Prometheus, Loki, Alloy, Grafana                       |
+| `make teardown`             | Delete the namespace and cluster-scoped Alloy RBAC resources  |
+| `make status`               | Show pod status with node assignment                          |
+| `make logs service=<name>`  | Tail logs for a service (e.g. `make logs service=service-ai`) |
+| `make keda-status`          | Show KEDA ScaledObjects and current HPA replica counts        |
 
 ---
 
@@ -352,7 +352,7 @@ KEDA extends Kubernetes with event-driven autoscaling. Instead of scaling on CPU
 ### Scaling parameters (per service)
 
 | Parameter         | Value | Meaning                                           |
-|-------------------|-------|---------------------------------------------------|
+| ----------------- | ----- | ------------------------------------------------- |
 | `minReplicaCount` | 1     | Always keep at least 1 pod running                |
 | `maxReplicaCount` | 5     | Never exceed 5 pods                               |
 | `pollingInterval` | 15s   | Check queue depth every 15 seconds                |
@@ -374,10 +374,10 @@ The KEDA RabbitMQ scaler supports two protocols:
 
 Scrapes metrics from the three C# worker services via dedicated ClusterIP services:
 
-| Job                     | Target                                              |
-|-------------------------|-----------------------------------------------------|
-| `service-ai`            | `service-ai-metrics.habo-banking.svc.cluster.local:9091` |
-| `service-notification`  | `service-notification-metrics.habo-banking.svc.cluster.local:9092` |
+| Job                         | Target                                                                  |
+| --------------------------- | ----------------------------------------------------------------------- |
+| `service-ai`                | `service-ai-metrics.habo-banking.svc.cluster.local:9091`                |
+| `service-notification`      | `service-notification-metrics.habo-banking.svc.cluster.local:9092`      |
 | `service-currency-exchange` | `service-currency-exchange-metrics.habo-banking.svc.cluster.local:9093` |
 
 ### Grafana Alloy
@@ -389,6 +389,7 @@ Alloy runs as a Deployment (one replica) and collects logs from all pods in the 
 ### Grafana
 
 Pre-provisioned with:
+
 - **Prometheus** datasource pointing to `http://prometheus.habo-banking.svc.cluster.local:9090`
 - **Loki** datasource pointing to `http://loki.habo-banking.svc.cluster.local:3100`
 - **Services dashboard** with metrics panels and log panels for each worker service
@@ -399,26 +400,26 @@ Default credentials: `admin` / `admin`.
 
 ## Kubernetes resource concepts used
 
-| Resource                  | Purpose                                                                    |
-|---------------------------|----------------------------------------------------------------------------|
-| `Namespace`               | Logical isolation — all habo-banking resources live in `habo-banking`      |
-| `Deployment`              | Declares the desired state for a set of pods (image, replicas, env)        |
-| `Service`                 | Stable DNS name and load balancer in front of a Deployment                 |
-| `ConfigMap`               | Non-sensitive key-value config injected as env vars                        |
-| `Secret`                  | Base64-encoded sensitive values (passwords, API keys) injected as env vars |
-| `PersistentVolumeClaim`   | Request for durable storage that survives pod restarts                     |
-| `ServiceAccount`          | Identity for a pod, used to grant it API access (Alloy)                    |
-| `ClusterRole`             | Cluster-wide permission set (Alloy needs pod/log read access)              |
-| `ClusterRoleBinding`      | Binds a ClusterRole to a ServiceAccount                                    |
-| `ScaledObject`            | KEDA resource that links a Deployment to a scaling trigger                 |
-| `TriggerAuthentication`   | KEDA resource that securely provides credentials to a scaler               |
+| Resource                | Purpose                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `Namespace`             | Logical isolation — all habo-banking resources live in `habo-banking`      |
+| `Deployment`            | Declares the desired state for a set of pods (image, replicas, env)        |
+| `Service`               | Stable DNS name and load balancer in front of a Deployment                 |
+| `ConfigMap`             | Non-sensitive key-value config injected as env vars                        |
+| `Secret`                | Base64-encoded sensitive values (passwords, API keys) injected as env vars |
+| `PersistentVolumeClaim` | Request for durable storage that survives pod restarts                     |
+| `ServiceAccount`        | Identity for a pod, used to grant it API access (Alloy)                    |
+| `ClusterRole`           | Cluster-wide permission set (Alloy needs pod/log read access)              |
+| `ClusterRoleBinding`    | Binds a ClusterRole to a ServiceAccount                                    |
+| `ScaledObject`          | KEDA resource that links a Deployment to a scaling trigger                 |
+| `TriggerAuthentication` | KEDA resource that securely provides credentials to a scaler               |
 
 ### Service types
 
-| Type        | Accessible from                         | Use case                                            |
-|-------------|-----------------------------------------|-----------------------------------------------------|
-| `ClusterIP` | Inside cluster only                     | Databases, Loki, internal metrics endpoints         |
-| `NodePort`  | Host machine via `localhost:<nodePort>` | Application services and observability UIs          |
+| Type        | Accessible from                         | Use case                                    |
+| ----------- | --------------------------------------- | ------------------------------------------- |
+| `ClusterIP` | Inside cluster only                     | Databases, Loki, internal metrics endpoints |
+| `NodePort`  | Host machine via `localhost:<nodePort>` | Application services and observability UIs  |
 
 ### Init containers
 
@@ -426,9 +427,9 @@ Services use `initContainers` to wait for their dependencies before the main con
 
 ```yaml
 initContainers:
-  - name: wait-for-rabbitmq
-    image: busybox:1.37
-    command: ['sh', '-c', 'until nc -z rabbitmq 5672; do sleep 2; done']
+    - name: wait-for-rabbitmq
+      image: busybox:1.37
+      command: ['sh', '-c', 'until nc -z rabbitmq 5672; do sleep 2; done']
 ```
 
 ### MongoDB replica set
