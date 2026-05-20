@@ -66,6 +66,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# JWT
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+
 # RabbitMQ
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))

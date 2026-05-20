@@ -121,6 +121,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       CORS_ALLOWED_ORIGINS: http://localhost:3000
+      JWT_SECRET_KEY: ${SECRET_KEY_JWT}
     networks:
       - db-account
       - messaging
