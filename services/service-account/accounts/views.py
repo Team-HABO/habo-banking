@@ -53,7 +53,7 @@ def _get_client_ip(request):
 
 
 def _get_owner_id_from_jwt(request):
-    """Extract the owner ID (Google user ID) from the auth_token cookie or Bearer header.
+    """Extract the owner ID (Google user ID) from the auth_token cookie.
 
     Returns the nameidentifier claim (nameid) on success, or None if the token is
     missing, malformed, or the signature is invalid.
