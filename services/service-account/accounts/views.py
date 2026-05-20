@@ -55,7 +55,7 @@ def _get_client_ip(request):
 def _get_owner_id_from_jwt(request):
     """Extract the owner ID (Google user ID) from the auth_token cookie or Bearer header.
 
-    Returns the nameidentifier claim on success, or None if the token is
+    Returns the nameidentifier claim (nameid) on success, or None if the token is
     missing, malformed, or the signature is invalid.
     """
     # Prefer Authorization header; fall back to auth_token cookie
@@ -66,6 +66,7 @@ def _get_owner_id_from_jwt(request):
         token = request.COOKIES.get("auth_token", "")
 
     if not token:
+        logger.warning("JWT: no token found in Authorization header or auth_token cookie")
         return None
 
     secret = os.getenv("JWT_SECRET_KEY", "")
@@ -76,11 +77,11 @@ def _get_owner_id_from_jwt(request):
             algorithms=["HS256"],
             options={"verify_aud": False},
         )
-        # Auth service stores the Google user ID under the nameidentifier claim
-        return payload.get(
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-        )
-    except jwt.PyJWTError:
+        owner_id = payload.get("nameid")
+        logger.info("JWT: decoded successfully, owner_id=%s", owner_id)
+        return owner_id
+    except jwt.PyJWTError as exc:
+        logger.warning("JWT: decode failed – %s", exc)
         return None
 
 
