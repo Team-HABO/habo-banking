@@ -1,0 +1,80 @@
+name: SAGA Tests
+
+on:
+    workflow_call:
+    workflow_dispatch:
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build and start services
+              run: docker compose -f saga-tests/docker-compose.yml up -d --build
+
+            - name: Wait for service-account to be ready
+              run: |
+                  echo "Waiting for service-account HTTP API..."
+                  for i in $(seq 1 30); do
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v1/accounts/ 2>/dev/null || echo "000")
+                    # 405 = Method Not Allowed (GET on POST-only endpoint) means the server is up
+                    if [ "$STATUS" = "200" ] || [ "$STATUS" = "405" ] || [ "$STATUS" = "400" ]; then
+                      echo "service-account is ready (HTTP $STATUS)"
+                      exit 0
+                    fi
+                    echo "Attempt $i/30 — not ready yet (HTTP $STATUS), retrying in 2s..."
+                    sleep 2
+                  done
+                  echo "Timed out waiting for service-account to be ready"
+                  docker compose -f saga-tests/docker-compose.yml logs
+                  exit 1
+
+            - name: Wait for compensation consumer to connect
+              run: |
+                  echo "Waiting for account-create-failed-queue to exist..."
+                  for i in $(seq 1 30); do
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u guest:guest http://localhost:15672/api/queues/%2F/account-create-failed-queue)
+                    if [ "$STATUS" = "200" ]; then
+                      echo "Compensation consumer is ready (queue found)"
+                      exit 0
+                    fi
+                    echo "Attempt $i/30 — queue not ready yet (HTTP $STATUS), retrying in 2s..."
+                    sleep 2
+                  done
+                  echo "Timed out waiting for compensation consumer"
+                  docker compose -f saga-tests/docker-compose.yml logs
+                  exit 1
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: saga-tests/package-lock.json
+
+            - name: Install dependencies
+              working-directory: saga-tests
+              run: npm ci
+
+            - name: Run SAGA tests
+              working-directory: saga-tests
+              env:
+                  RABBITMQ_URL: amqp://localhost
+                  ACCOUNT_API_URL: http://localhost:8000/v1
+                  POSTGRES_HOST: localhost
+                  POSTGRES_PORT: "5432"
+                  POSTGRES_DB: account_db
+                  POSTGRES_USER: testuser
+                  POSTGRES_PASSWORD: testpassword
+              run: npm test
+
+            - name: Tear down services
+              if: always()
+              run: docker compose -f saga-tests/docker-compose.yml down
