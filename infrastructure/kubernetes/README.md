@@ -1,6 +1,7 @@
 # Kubernetes — HABO Banking
 
 Deployment guide for the full habo-banking microservices stack on Kubernetes.
+Deployment guide for the full habo-banking microservices stack on Kubernetes.
 
 ---
 
@@ -63,12 +64,17 @@ infrastructure/kubernetes/
 ├── namespace.yaml
 ├── configmaps/
 │   └── app-config.yaml               ← Non-sensitive env vars (hosts, ports, URLs)
+│   └── app-config.yaml               ← Non-sensitive env vars (hosts, ports, URLs)
 ├── secrets/
 │   ├── .gitignore                    ← Ignores *-secret.yaml (actual secrets)
 │   ├── rabbitmq-secret.example.yaml
+│   ├── rabbitmq-secret.example.yaml
 │   ├── postgresql-transaction-secret.example.yaml
 │   ├── postgresql-account-secret.example.yaml
+│   ├── postgresql-account-secret.example.yaml
 │   ├── ai-secret.example.yaml
+│   ├── smtp-secret.example.yaml
+│   └── auth-secret.example.yaml      ← Google OAuth + JWT secret
 │   ├── smtp-secret.example.yaml
 │   └── auth-secret.example.yaml      ← Google OAuth + JWT secret
 ├── rabbitmq/
@@ -87,16 +93,29 @@ infrastructure/kubernetes/
 │   ├── deployment.yaml               ← mongo:7 with rs0 replica set sidecar init
 │   ├── service.yaml                  ← ClusterIP :27017
 │   └── pvc.yaml
+│   ├── service.yaml                  ← ClusterIP :5432
+│   └── pvc.yaml
+├── postgresql-account/
+│   ├── deployment.yaml
+│   ├── service.yaml                  ← ClusterIP :5432
+│   └── pvc.yaml
+├── mongodb/
+│   ├── deployment.yaml               ← mongo:7 with rs0 replica set sidecar init
+│   ├── service.yaml                  ← ClusterIP :27017
+│   └── pvc.yaml
 ├── service-currency-exchange/
 │   ├── deployment.yaml
+│   ├── service.yaml                  ← ClusterIP :9093 (Prometheus scrape target)
 │   ├── service.yaml                  ← ClusterIP :9093 (Prometheus scrape target)
 │   └── scaledobject.yaml
 ├── service-ai/
 │   ├── deployment.yaml
 │   ├── service.yaml                  ← ClusterIP :9091 (Prometheus scrape target)
+│   ├── service.yaml                  ← ClusterIP :9091 (Prometheus scrape target)
 │   └── scaledobject.yaml
 ├── service-notification/
 │   ├── deployment.yaml
+│   ├── service.yaml                  ← ClusterIP :9092 (Prometheus scrape target)
 │   ├── service.yaml                  ← ClusterIP :9092 (Prometheus scrape target)
 │   └── scaledobject.yaml
 ├── service-transaction/
@@ -208,6 +227,12 @@ cp postgresql-account-secret.example.yaml    postgresql-account-secret.yaml
 cp ai-secret.example.yaml                    ai-secret.yaml
 cp smtp-secret.example.yaml                  smtp-secret.yaml
 cp auth-secret.example.yaml                  auth-secret.yaml
+cp rabbitmq-secret.example.yaml              rabbitmq-secret.yaml
+cp postgresql-transaction-secret.example.yaml postgresql-transaction-secret.yaml
+cp postgresql-account-secret.example.yaml    postgresql-account-secret.yaml
+cp ai-secret.example.yaml                    ai-secret.yaml
+cp smtp-secret.example.yaml                  smtp-secret.yaml
+cp auth-secret.example.yaml                  auth-secret.yaml
 
 # Edit each file with your actual credentials
 ```
@@ -230,16 +255,26 @@ If your cluster node cannot reach Docker Hub at pull time (e.g. network restrict
 docker pull rabbitmq:3-management
 docker pull postgres:15-alpine
 docker pull mongo:7
+docker pull mongo:7
 docker pull busybox:1.37
+docker pull prom/prometheus:latest
+docker pull grafana/loki:latest
+docker pull grafana/alloy:latest
+docker pull grafana/grafana:latest
 docker pull prom/prometheus:latest
 docker pull grafana/loki:latest
 docker pull grafana/alloy:latest
 docker pull grafana/grafana:latest
 docker pull alihmohammad/habo-bank-service-transaction:latest
 docker pull alihmohammad/habo-bank-service-frontend:latest
+docker pull alihmohammad/habo-bank-service-frontend:latest
 docker pull forkeh/habo-bank-service-currency-exchange:latest
 docker pull forkeh/habo-bank-service-notification:latest
 docker pull forkeh/habo-bank-service-ai:latest
+docker pull han9salman/habo-bank-service-account:latest
+docker pull olli4/habo-bank-service-auth:latest
+docker pull olli4/habo-bank-service-synchronize:latest
+docker pull olli4/habo-bank-service-view:latest
 docker pull han9salman/habo-bank-service-account:latest
 docker pull olli4/habo-bank-service-auth:latest
 docker pull olli4/habo-bank-service-synchronize:latest
@@ -256,8 +291,11 @@ kubectl apply -f namespace.yaml
 make apply-secrets
 
 # Deploy everything
+# Deploy everything
 make deploy
 ```
+
+`make deploy` runs three sub-targets in order: `deploy-infra` → `deploy-services` → `deploy-observability`.
 
 `make deploy` runs three sub-targets in order: `deploy-infra` → `deploy-services` → `deploy-observability`.
 
@@ -305,6 +343,8 @@ nc -zv rabbitmq 5672
 
 # Test connectivity to MongoDB
 nc -zv mongodb 27017
+# Test connectivity to MongoDB
+nc -zv mongodb 27017
 ```
 
 To tail live logs without exec-ing in:
@@ -314,6 +354,7 @@ To tail live logs without exec-ing in:
 kubectl logs -f <pod-name> -n habo-banking
 
 # All pods for a service (useful when KEDA has scaled to >1)
+make logs service=service-ai
 make logs service=service-ai
 ```
 
@@ -339,6 +380,7 @@ make logs service=service-ai
 
 ## KEDA — Kubernetes Event-Driven Autoscaling
 
+KEDA extends Kubernetes with event-driven autoscaling. Instead of scaling on CPU/memory, it scales pods based on **external event sources** — in this project, RabbitMQ queue depth.
 KEDA extends Kubernetes with event-driven autoscaling. Instead of scaling on CPU/memory, it scales pods based on **external event sources** — in this project, RabbitMQ queue depth.
 
 ### How it works
@@ -424,13 +466,18 @@ Default credentials: `admin` / `admin`.
 ### Init containers
 
 Services use `initContainers` to wait for their dependencies before the main container starts. This avoids bundling wait scripts inside images.
+Services use `initContainers` to wait for their dependencies before the main container starts. This avoids bundling wait scripts inside images.
 
 ```yaml
 initContainers:
-    - name: wait-for-rabbitmq
-      image: busybox:1.37
-      command: ['sh', '-c', 'until nc -z rabbitmq 5672; do sleep 2; done']
+  - name: wait-for-rabbitmq
+    image: busybox:1.37
+    command: ['sh', '-c', 'until nc -z rabbitmq 5672; do sleep 2; done']
 ```
+
+### MongoDB replica set
+
+`service-view` uses MongoDB change streams, which require a replica set. The MongoDB Deployment uses a sidecar container that waits for MongoDB to become ready, then calls `rs.initiate()` once. The replica set name is `rs0` and is reflected in the connection string in `configmaps/app-config.yaml`.
 
 ### MongoDB replica set
 
@@ -510,6 +557,16 @@ kubectl port-forward svc/prometheus 9090:9090 -n habo-banking
 kubectl port-forward svc/postgresql-account 5433:5432 -n habo-banking
 
 # PostgreSQL (transaction) → localhost:5432
+# Grafana → http://localhost:3030
+kubectl port-forward svc/grafana 3030:3000 -n habo-banking
+
+# Prometheus → http://localhost:9090
+kubectl port-forward svc/prometheus 9090:9090 -n habo-banking
+
+# PostgreSQL (account) → localhost:5433 (useful with a DB GUI like TablePlus)
+kubectl port-forward svc/postgresql-account 5433:5432 -n habo-banking
+
+# PostgreSQL (transaction) → localhost:5432
 kubectl port-forward svc/postgresql-transaction 5432:5432 -n habo-banking
 ```
 
@@ -559,6 +616,7 @@ kubectl rollout status deployment/service-ai -n habo-banking
 # Delete a single resource
 kubectl delete deployment service-ai -n habo-banking
 
+# Delete everything (irreversible — deletes PVCs and cluster-scoped Alloy RBAC too)
 # Delete everything (irreversible — deletes PVCs and cluster-scoped Alloy RBAC too)
 make teardown
 ```
