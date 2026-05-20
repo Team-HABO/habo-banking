@@ -44,6 +44,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: services/${{ env.IMAGE_NAME }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             docker.io/${{ env.DOCKER_USERNAME }}/habo-bank-${{ env.IMAGE_NAME }}:latest
