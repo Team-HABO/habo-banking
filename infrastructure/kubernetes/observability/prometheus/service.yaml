@@ -6,8 +6,8 @@ metadata:
 spec:
   selector:
     app: prometheus
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 9090
       targetPort: 9090
-      nodePort: 30013 # Access at http://localhost:30013
+      # Access at http://localhost:9090

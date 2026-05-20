@@ -3,7 +3,7 @@ DIR         := .
 SECRETS_DIR := secrets
 
 .PHONY: help install-keda apply-secrets deploy deploy-infra deploy-services deploy-observability \
-        teardown status logs rabbitmq-ui grafana-ui prometheus-ui keda-status
+        teardown status logs keda-status
 
 help: ## Show available commands
 	$(info Available commands:)
@@ -16,9 +16,6 @@ help: ## Show available commands
 	$(info   teardown              Delete the habo-banking namespace and all its resources)
 	$(info   status                Show pod status across the namespace)
 	$(info   logs                  Tail logs for a service -- usage: make logs service=service-ai)
-	$(info   rabbitmq-ui           Port-forward RabbitMQ management UI -> http://localhost:15672)
-	$(info   grafana-ui            Port-forward Grafana -> http://localhost:3030  (admin/admin))
-	$(info   prometheus-ui         Port-forward Prometheus -> http://localhost:9090)
 	$(info   keda-status           Show KEDA ScaledObjects and their current replica counts)
 	@echo ""
 
@@ -80,15 +77,6 @@ status: ## Show pod status across the namespace
 
 logs: ## Tail logs for a service — usage: make logs service=service-ai
 	kubectl logs -f -l app="$(service)" -n $(NAMESPACE) --tail=100
-
-rabbitmq-ui: ## Port-forward RabbitMQ management UI → http://localhost:15672
-	kubectl port-forward svc/rabbitmq 15672:15672 -n $(NAMESPACE)
-
-grafana-ui: ## Port-forward Grafana → http://localhost:3030 (admin/admin)
-	kubectl port-forward svc/grafana 3030:3000 -n $(NAMESPACE)
-
-prometheus-ui: ## Port-forward Prometheus → http://localhost:9090
-	kubectl port-forward svc/prometheus 9090:9090 -n $(NAMESPACE)
 
 keda-status: ## Show KEDA ScaledObjects and their current replica counts
 	kubectl get scaledobjects,hpa -n $(NAMESPACE)

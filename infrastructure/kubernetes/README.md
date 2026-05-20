@@ -10,36 +10,36 @@ The stack consists of infrastructure, application services, and an observability
 
 ### Infrastructure
 
-| Component              | Type       | Port  |
-|------------------------|------------|-------|
-| RabbitMQ               | NodePort   | 30008 (management UI) / 5672 (AMQP) |
-| PostgreSQL (transaction) | ClusterIP | 5432  |
-| PostgreSQL (account)   | ClusterIP  | 5432  |
-| MongoDB (replica set)  | ClusterIP  | 27017 |
+| Component              | Type         | Port  |
+|------------------------|--------------|-------|
+| RabbitMQ               | LoadBalancer | 15672 (management UI) / 5672 (AMQP) |
+| PostgreSQL (transaction) | ClusterIP  | 5432  |
+| PostgreSQL (account)   | ClusterIP    | 5432  |
+| MongoDB (replica set)  | ClusterIP    | 27017 |
 
 ### Application services
 
-| Service                  | Language     | NodePort | Description                              |
-|--------------------------|--------------|----------|------------------------------------------|
-| service-transaction      | C#/.NET      | —        | Processes transactions (KEDA worker)     |
-| service-currency-exchange | C#/.NET     | —        | Currency conversion (KEDA worker)        |
-| service-ai               | C#/.NET      | —        | Fraud detection (KEDA worker)            |
-| service-notification     | C#/.NET      | —        | Sends emails (KEDA worker)               |
-| service-account          | Python/Django | 30009   | Account management HTTP API              |
-| service-account-consumer | Python/Django | —       | Account event consumer (worker)          |
-| service-auth             | C#/.NET      | 30010    | Google OAuth2 + JWT issuance             |
-| service-synchronize      | C#/.NET      | —        | Syncs MongoDB from RabbitMQ events       |
-| service-view             | TypeScript   | 30011    | Read-model queries via MongoDB           |
-| service-frontend         | React SPA    | 30012    | Web UI                                   |
+| Service                  | Language     | Port | Description                              |
+|--------------------------|--------------|------|------------------------------------------|
+| service-transaction      | C#/.NET      | —    | Processes transactions (KEDA worker)     |
+| service-currency-exchange | C#/.NET     | —    | Currency conversion (KEDA worker)        |
+| service-ai               | C#/.NET      | —    | Fraud detection (KEDA worker)            |
+| service-notification     | C#/.NET      | —    | Sends emails (KEDA worker)               |
+| service-account          | Python/Django | 8000 | Account management HTTP API              |
+| service-account-consumer | Python/Django | —    | Account event consumer (worker)          |
+| service-auth             | C#/.NET      | 8080 | Google OAuth2 + JWT issuance             |
+| service-synchronize      | C#/.NET      | —    | Syncs MongoDB from RabbitMQ events       |
+| service-view             | TypeScript   | 4000 | Read-model queries via MongoDB           |
+| service-frontend         | React SPA    | 3000 | Web UI                                   |
 
 ### Observability
 
-| Component       | NodePort | Description                              |
-|-----------------|----------|------------------------------------------|
-| Prometheus      | 30013    | Metrics scraping (ai, notification, currency-exchange) |
-| Loki            | ClusterIP | Log aggregation                         |
-| Grafana Alloy   | —        | Log collector (DaemonSet, K8s pod discovery) |
-| Grafana         | 30014    | Dashboards — `admin/admin`              |
+| Component       | Port | Description                              |
+|-----------------|------|------------------------------------------|
+| Prometheus      | 9090 | Metrics scraping (ai, notification, currency-exchange) |
+| Loki            | ClusterIP | Log aggregation                     |
+| Grafana Alloy   | —    | Log collector (DaemonSet, K8s pod discovery) |
+| Grafana         | 13000 | Dashboards — `admin/admin`             |
 
 ### Message flow
 
@@ -73,7 +73,7 @@ infrastructure/kubernetes/
 │   └── auth-secret.example.yaml      ← Google OAuth + JWT secret
 ├── rabbitmq/
 │   ├── deployment.yaml
-│   ├── service.yaml                  ← NodePort 30008 for management UI
+│   ├── service.yaml                  ← LoadBalancer :15672 (management UI) / 5672 (AMQP)
 │   └── pvc.yaml
 ├── postgresql-transaction/
 │   ├── deployment.yaml
@@ -104,25 +104,25 @@ infrastructure/kubernetes/
 │   └── scaledobject.yaml
 ├── service-account/
 │   ├── deployment.yaml               ← Runs migrations + Django server
-│   └── service.yaml                  ← NodePort 30009
+│   └── service.yaml                  ← LoadBalancer :8000
 ├── service-account-consumer/
 │   └── deployment.yaml               ← Runs `python manage.py consume_events`
 ├── service-auth/
 │   ├── deployment.yaml               ← Google OAuth2, issues JWTs
-│   └── service.yaml                  ← NodePort 30010
+│   └── service.yaml                  ← LoadBalancer :8080
 ├── service-synchronize/
 │   └── deployment.yaml               ← RabbitMQ → MongoDB sync worker
 ├── service-view/
 │   ├── deployment.yaml               ← Reads from MongoDB change streams
-│   └── service.yaml                  ← NodePort 30011
+│   └── service.yaml                  ← LoadBalancer :4000
 ├── service-frontend/
 │   ├── deployment.yaml
-│   └── service.yaml                  ← NodePort 30012
+│   └── service.yaml                  ← LoadBalancer :3000
 ├── observability/
 │   ├── prometheus/
 │   │   ├── configmap.yaml            ← Static scrape config (K8s DNS targets)
 │   │   ├── deployment.yaml
-│   │   ├── service.yaml              ← NodePort 30013
+│   │   ├── service.yaml              ← LoadBalancer :9090
 │   │   └── pvc.yaml
 │   ├── loki/
 │   │   ├── configmap.yaml
@@ -137,7 +137,7 @@ infrastructure/kubernetes/
 │   └── grafana/
 │       ├── configmap.yaml            ← Datasources + dashboard provisioning
 │       ├── deployment.yaml
-│       ├── service.yaml              ← NodePort 30014
+│       ├── service.yaml              ← LoadBalancer :13000
 │       └── pvc.yaml
 └── keda/
     └── rabbitmq-trigger-auth.yaml    ← TriggerAuthentication (management API URL)
@@ -267,28 +267,22 @@ make deploy
 
 ### Application UIs
 
-| Service         | URL                       | Credentials                         |
-|-----------------|---------------------------|--------------------------------------|
-| Frontend        | http://localhost:30012    | Google login (via service-auth)      |
-| service-account | http://localhost:30009    | Internal API                         |
-| service-auth    | http://localhost:30010    | —                                    |
-| service-view    | http://localhost:30011    | JWT required                         |
+| Service         | URL                      | Credentials                         |
+|-----------------|--------------------------|--------------------------------------|
+| Frontend        | http://localhost:3000    | Google login (via service-auth)      |
+| service-account | http://localhost:8000    | Internal API                         |
+| service-auth    | http://localhost:8080    | —                                    |
+| service-view    | http://localhost:4000    | JWT required                         |
 
 ### Observability UIs
 
-```bash
-make grafana-ui      # → http://localhost:3030  (admin / admin)
-make prometheus-ui   # → http://localhost:9090
-make rabbitmq-ui     # → http://localhost:15672
-```
+| Service    | URL                       | Credentials  |
+|------------|---------------------------|--------------|
+| Grafana    | http://localhost:13000    | admin/admin  |
+| Prometheus | http://localhost:9090     | —            |
+| RabbitMQ   | http://localhost:15672    | —            |
 
-Or with kubectl directly:
-
-```bash
-kubectl port-forward svc/grafana    3030:3000  -n habo-banking
-kubectl port-forward svc/prometheus 9090:9090  -n habo-banking
-kubectl port-forward svc/rabbitmq   15672:15672 -n habo-banking
-```
+All services use `LoadBalancer` type, so Docker Desktop maps them directly to `localhost` with no port-forwarding required.
 
 ### Exec into a service pod
 
@@ -339,9 +333,6 @@ make logs service=service-ai
 | `make teardown`                  | Delete the namespace and cluster-scoped Alloy RBAC resources     |
 | `make status`                    | Show pod status with node assignment                             |
 | `make logs service=<name>`       | Tail logs for a service (e.g. `make logs service=service-ai`)    |
-| `make rabbitmq-ui`               | Port-forward RabbitMQ management UI to `http://localhost:15672`  |
-| `make grafana-ui`                | Port-forward Grafana to `http://localhost:3030`                  |
-| `make prometheus-ui`             | Port-forward Prometheus to `http://localhost:9090`               |
 | `make keda-status`               | Show KEDA ScaledObjects and current HPA replica counts           |
 
 ---
