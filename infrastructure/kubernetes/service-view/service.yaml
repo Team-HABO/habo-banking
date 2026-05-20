@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-view
+  namespace: habo-banking
+spec:
+  selector:
+    app: service-view
+  type: LoadBalancer
+  ports:
+    - port: 4000
+      targetPort: 4000

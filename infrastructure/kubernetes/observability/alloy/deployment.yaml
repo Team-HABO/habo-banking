@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alloy
+  namespace: habo-banking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alloy
+  template:
+    metadata:
+      labels:
+        app: alloy
+    spec:
+      serviceAccountName: alloy # Needs ClusterRole to read pod logs via K8s API
+      containers:
+        - name: alloy
+          image: grafana/alloy:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - --server.http.listen-addr=0.0.0.0:12345
+            - /etc/alloy/config.alloy
+          ports:
+            - containerPort: 12345
+          volumeMounts:
+            - name: alloy-config
+              mountPath: /etc/alloy
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+              ephemeral-storage: "256Mi"
+      volumes:
+        - name: alloy-config
+          configMap:
+            name: alloy-config

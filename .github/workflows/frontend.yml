@@ -27,6 +27,10 @@ jobs:
     uses: ./.github/workflows/dockerize.yml
     with:
       docker-image-name: service-frontend
+      build-args: |
+        VITE_AUTH_API_URL=http://localhost:8080
+        VITE_ACCOUNT_API_URL=http://localhost:8000
+        VITE_VIEW_API_URL=http://localhost:4000
     secrets:
       DOCKER_USERNAME: ${{ secrets.ALI_DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.ALI_DOCKER_PASSWORD }}

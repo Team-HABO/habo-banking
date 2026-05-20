@@ -36,6 +36,8 @@ spec:
         - name: service-notification
           image: forkeh/habo-bank-service-notification:latest
           imagePullPolicy: Always
+          ports:
+            - containerPort: 9092 # Prometheus metrics
           env:
             - name: RABBITMQ_HOST
               valueFrom:

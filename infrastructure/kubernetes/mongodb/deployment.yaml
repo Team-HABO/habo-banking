@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mongodb
+    namespace: habo-banking
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mongodb
+    strategy:
+        type: Recreate # Required for stateful workloads with PVCs
+    template:
+        metadata:
+            labels:
+                app: mongodb
+        spec:
+            automountServiceAccountToken: false
+            containers:
+                - name: mongodb
+                  image: mongo:7
+                  imagePullPolicy: IfNotPresent
+                  args: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+                  ports:
+                      - containerPort: 27017
+                  readinessProbe:
+                      exec:
+                          command:
+                              - mongosh
+                              - --quiet
+                              - --eval
+                              - "try { rs.status().myState === 1 } catch(e) { false }"
+                      initialDelaySeconds: 5
+                      timeoutSeconds: 5
+                      periodSeconds: 5
+                      failureThreshold: 24
+                  resources:
+                      requests:
+                          cpu: "100m"
+                          memory: "256Mi"
+                          ephemeral-storage: "256Mi"
+                      limits:
+                          cpu: "500m"
+                          memory: "512Mi"
+                          ephemeral-storage: "512Mi"
+                  volumeMounts:
+                      - name: mongodb-data
+                        mountPath: /data/db
+                # Sidecar that initialises the replica set once MongoDB is ready.
+                # It runs rs.initiate() and then idles; restarts are harmless because
+                # rs.initiate() is a no-op if the set is already initialised.
+                - name: mongodb-rs-init
+                  image: mongo:7
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          until mongosh --quiet --eval "db.adminCommand('ping').ok" > /dev/null 2>&1; do
+                            echo "waiting for mongodb..."; sleep 2
+                          done
+                          mongosh --quiet --eval "
+                            try { rs.status(); print('replica set already initialised'); }
+                            catch(e) { rs.initiate({_id:'rs0', members:[{_id:0, host:'mongodb.habo-banking.svc.cluster.local:27017'}]}); print('replica set initiated'); }
+                          "
+                          # Keep container alive so Kubernetes does not restart the pod
+                          tail -f /dev/null
+                  resources:
+                      requests:
+                          cpu: "10m"
+                          memory: "128Mi"
+                          ephemeral-storage: "16Mi"
+                      limits:
+                          cpu: "100m"
+                          memory: "256Mi"
+                          ephemeral-storage: "32Mi"
+            volumes:
+                - name: mongodb-data
+                  persistentVolumeClaim:
+                      claimName: mongodb-pvc
