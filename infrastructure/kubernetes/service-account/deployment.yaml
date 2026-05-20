@@ -1,107 +1,107 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-account
-  namespace: habo-banking
+    name: service-account
+    namespace: habo-banking
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: service-account
-  template:
-    metadata:
-      labels:
-        app: service-account
-    spec:
-      automountServiceAccountToken: false
-      initContainers:
-        - name: wait-for-postgresql-account
-          image: busybox:1.37
-          command:
-            [
-              "sh",
-              "-c",
-              "until nc -z postgresql-account 5432; do echo 'waiting for postgresql-account...'; sleep 2; done",
-            ]
-          resources:
-            requests:
-              cpu: "10m"
-              memory: "16Mi"
-              ephemeral-storage: "16Mi"
-            limits:
-              cpu: "50m"
-              memory: "32Mi"
-              ephemeral-storage: "32Mi"
-        - name: wait-for-rabbitmq
-          image: busybox:1.37
-          command:
-            [
-              "sh",
-              "-c",
-              "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done",
-            ]
-          resources:
-            requests:
-              cpu: "10m"
-              memory: "16Mi"
-              ephemeral-storage: "16Mi"
-            limits:
-              cpu: "50m"
-              memory: "32Mi"
-              ephemeral-storage: "32Mi"
-      containers:
-        - name: service-account
-          image: han9salman/habo-bank-service-account:latest
-          imagePullPolicy: Always
-          command: ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
-          ports:
-            - containerPort: 8000
-          env:
-            - name: POSTGRES_HOST
-              value: postgresql-account
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: postgresql-account-secret
-                  key: POSTGRES_DB
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgresql-account-secret
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgresql-account-secret
-                  key: POSTGRES_PASSWORD
-            - name: RABBITMQ_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: RABBITMQ_HOST
-            - name: RABBITMQ_PORT
-              value: "5672"
-            - name: RABBITMQ_USER
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: RABBITMQ_PASSWORD
-            - name: CORS_ALLOWED_ORIGINS
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: FRONTEND_URL
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-              ephemeral-storage: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-              ephemeral-storage: "512Mi"
+    replicas: 1
+    selector:
+        matchLabels:
+            app: service-account
+    template:
+        metadata:
+            labels:
+                app: service-account
+        spec:
+            automountServiceAccountToken: false
+            initContainers:
+                - name: wait-for-postgresql-account
+                  image: busybox:1.37
+                  command:
+                      [
+                          'sh',
+                          '-c',
+                          "until nc -z postgresql-account 5432; do echo 'waiting for postgresql-account...'; sleep 2; done",
+                      ]
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '16Mi'
+                          ephemeral-storage: '16Mi'
+                      limits:
+                          cpu: '50m'
+                          memory: '32Mi'
+                          ephemeral-storage: '32Mi'
+                - name: wait-for-rabbitmq
+                  image: busybox:1.37
+                  command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo 'waiting for rabbitmq...'; sleep 2; done"]
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '16Mi'
+                          ephemeral-storage: '16Mi'
+                      limits:
+                          cpu: '50m'
+                          memory: '32Mi'
+                          ephemeral-storage: '32Mi'
+            containers:
+                - name: service-account
+                  image: han9salman/habo-bank-service-account:latest
+                  imagePullPolicy: Always
+                  command: ['sh', '-c', 'python manage.py migrate && python manage.py runserver 0.0.0.0:8000']
+                  ports:
+                      - containerPort: 8000
+                  env:
+                      - name: POSTGRES_HOST
+                        value: postgresql-account
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgresql-account-secret
+                                key: POSTGRES_DB
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgresql-account-secret
+                                key: POSTGRES_USER
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgresql-account-secret
+                                key: POSTGRES_PASSWORD
+                      - name: RABBITMQ_HOST
+                        valueFrom:
+                            configMapKeyRef:
+                                name: app-config
+                                key: RABBITMQ_HOST
+                      - name: RABBITMQ_PORT
+                        value: '5672'
+                      - name: RABBITMQ_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: rabbitmq-secret
+                                key: RABBITMQ_USERNAME
+                      - name: RABBITMQ_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: rabbitmq-secret
+                                key: RABBITMQ_PASSWORD
+                      - name: CORS_ALLOWED_ORIGINS
+                        valueFrom:
+                            configMapKeyRef:
+                                name: app-config
+                                key: FRONTEND_URL
+                      - name: JWT_SECRET_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: auth-secret
+                                key: SECRET_KEY_JWT
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                          ephemeral-storage: '256Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '512Mi'
+                          ephemeral-storage: '512Mi'
