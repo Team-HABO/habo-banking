@@ -40,6 +40,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
+      JWT_SECRET_KEY: test-secret-key-for-saga-tests-xxxxxxxxx
     depends_on:
       postgres-account:
         condition: service_healthy
@@ -61,6 +62,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
+      JWT_SECRET_KEY: test-secret-key-for-saga-tests-xxxxxxxxx
     depends_on:
       service-account-app:
         condition: service_started
