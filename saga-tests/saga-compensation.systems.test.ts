@@ -1,4 +1,5 @@
 import * as amqp from "amqplib";
+import jwt from "jsonwebtoken";
 import pg from "pg";
 import { v4 as uuidv4 } from "uuid";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -14,6 +15,13 @@ const PG_CONFIG: pg.PoolConfig = {
     user: process.env.POSTGRES_USER ?? "postgres",
     password: process.env.POSTGRES_PASSWORD ?? "postgres",
 };
+
+const JWT_SECRET = process.env.JWT_SECRET_KEY ?? "test-secret-key-for-saga-tests-xxxxxxxxx";
+
+/** Generate a signed JWT for the given owner ID. */
+function generateToken(ownerId: string): string {
+    return jwt.sign({ nameid: ownerId }, JWT_SECRET, { algorithm: "HS256" });
+}
 
 // ── RabbitMQ topology (must match service-transaction producer) ──────────────
 const COMPENSATION_EXCHANGE = "account-create-response";
@@ -31,11 +39,14 @@ let pgPool: pg.Pool;
 
 /** Create an account via the HTTP API and return its GUID. */
 async function createAccount(accountGuid: string, ownerId: string): Promise<void> {
+    const token = generateToken(ownerId);
     const res = await fetch(`${ACCOUNT_API_URL}/accounts/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-            owner_id: ownerId,
             name: `saga-test-${accountGuid.slice(0, 8)}`,
             type: "savings",
             accountGuid,

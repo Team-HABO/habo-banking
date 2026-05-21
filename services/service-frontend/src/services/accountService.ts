@@ -2,8 +2,6 @@ import axios from "axios";
 
 const accountApiUrl = import.meta.env.VITE_ACCOUNT_API_URL;
 
-const OWNER_ID = "test-owner-1"; // Hardcoded until JWT integration
-
 function getBaseUrl(): string {
     if (!accountApiUrl) {
         throw new Error("Missing VITE_ACCOUNT_API_URL in environment variables.");
@@ -12,7 +10,7 @@ function getBaseUrl(): string {
 }
 
 export async function createAccount(payload: { accountGuid: string; name: string; type: string }) {
-    const { data } = await axios.post(`${getBaseUrl()}/v1/accounts/`, { ...payload, owner_id: OWNER_ID }, { withCredentials: true });
+    const { data } = await axios.post(`${getBaseUrl()}/v1/accounts/`, payload, { withCredentials: true });
     return data;
 }
 

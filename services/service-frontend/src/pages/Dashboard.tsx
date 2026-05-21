@@ -56,8 +56,9 @@ export default function Dashboard() {
                                                 >
                                                     {account.name}
                                                 </button>
+                                                <p className="text-xs text-muted-foreground">{account.accountGuid}</p>
                                             </td>
-                                            <td className="py-3 text-right tabular-nums">{account.balance}</td>
+                                            <td className="py-3 text-right tabular-nums">{account.balance} DKK</td>
                                         </tr>
                                     ))}
                                 </tbody>
