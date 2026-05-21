@@ -24,16 +24,13 @@ export default function SeeAccount() {
         error: accountsError,
         refetch: refetchAccounts,
     } = useQuery<{ getUserAccounts: Account[] }>(GET_USER_ACCOUNTS);
-    const {
-        data: auditsData,
-        loading: auditsLoading,
-    } = useQuery<{ getAccountAudits: Audit[] }>(GET_ACCOUNT_AUDITS, {
+    const { data: auditsData, loading: auditsLoading } = useQuery<{ getAccountAudits: Audit[] }>(GET_ACCOUNT_AUDITS, {
         variables: { accountGuid: id },
         skip: !id,
     });
 
     const account = accountsData?.getUserAccounts?.find((a: Account) => a.accountGuid === id);
-    const audits = auditsData?.getAccountAudits ?? [];
+    const audits = [...(auditsData?.getAccountAudits ?? [])].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     const [name, setName] = useState("");
     const [type, setType] = useState(ACCOUNT_TYPES[0]);
@@ -132,6 +129,7 @@ export default function SeeAccount() {
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
+                    <p className="text-xs text-muted-foreground">{account.accountGuid}</p>
                     <div className="flex gap-2">
                         <Badge variant="secondary">{type}</Badge>
                         <Badge variant={isFrozen ? "destructive" : "success"}>{isFrozen ? "Frozen" : "Active"}</Badge>
@@ -193,21 +191,21 @@ export default function SeeAccount() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-border">
-                                        <th className="pb-3 text-left font-medium text-muted-foreground">Type</th>
-                                        <th className="pb-3 text-right font-medium text-muted-foreground">Amount</th>
-                                        <th className="pb-3 text-left font-medium text-muted-foreground">From</th>
-                                        <th className="pb-3 text-left font-medium text-muted-foreground">To</th>
-                                        <th className="pb-3 text-left font-medium text-muted-foreground">Date</th>
+                                        <th className="px-3 pb-3 text-left font-medium text-muted-foreground">Type</th>
+                                        <th className="px-3 pb-3 text-right font-medium text-muted-foreground">Amount</th>
+                                        <th className="px-3 pb-3 text-left font-medium text-muted-foreground">From</th>
+                                        <th className="px-3 pb-3 text-left font-medium text-muted-foreground">To</th>
+                                        <th className="px-3 pb-3 text-left font-medium text-muted-foreground">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {audits.map((audit) => (
                                         <tr key={audit.auditId} className="border-b border-border last:border-0">
-                                            <td className="py-3 capitalize">{audit.type?.toLowerCase()}</td>
-                                            <td className="py-3 text-right tabular-nums">{audit.amount}</td>
-                                            <td className="py-3">{audit.sender ?? "—"}</td>
-                                            <td className="py-3">{audit.receiver ?? "—"}</td>
-                                            <td className="py-3 text-muted-foreground">
+                                            <td className="px-3 py-3 capitalize">{audit.type?.toLowerCase()}</td>
+                                            <td className="px-3 py-3 text-right tabular-nums">{audit.amount} DKK</td>
+                                            <td className="px-3 py-3">{audit.sender ?? "—"}</td>
+                                            <td className="px-3 py-3">{audit.receiver ?? "—"}</td>
+                                            <td className="px-3 py-3 text-muted-foreground">
                                                 {audit.timestamp ? new Date(audit.timestamp).toLocaleDateString() : "—"}
                                             </td>
                                         </tr>
