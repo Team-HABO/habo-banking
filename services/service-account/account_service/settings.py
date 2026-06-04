@@ -15,6 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "accounts",
 ]
 
@@ -67,6 +68,30 @@ CORS_ALLOWED_ORIGINS = [
     if origin
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# OpenAPI / Swagger
+SPECTACULAR_SETTINGS = {
+    "TITLE": "HABO Banking – Account Service API",
+    "DESCRIPTION": "Manages bank accounts: create, update, freeze, delete, transactions and currency exchanges.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SECURITY": [{"BearerAuth": []}],
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": [],
+}
 
 # JWT
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")

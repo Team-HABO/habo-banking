@@ -2,120 +2,157 @@
 
 Django microservice responsible for account commands (create, update, freeze, delete, transaction start, exchange start).
 
-This service uses:
-- PostgreSQL for persistence
-- RabbitMQ for publishing events to other services
+**Stack:** Python 3.12 · Django 5.0.1 · Django REST Framework · PostgreSQL · RabbitMQ · PyJWT
+
+---
 
 ## Architecture
 
-- `accounts/views.py`: HTTP handlers
-- `accounts/serializers.py`: request validation + response shaping
-- `accounts/services.py`: business logic
-- `accounts/publishers.py`: RabbitMQ publishing
-- `accounts/models.py`: ORM models
+| File | Responsibility |
+|---|---|
+| `accounts/views.py` | HTTP handlers, JWT extraction |
+| `accounts/serializers.py` | Request validation + response shaping |
+| `accounts/services.py` | Business logic, duplicate guard |
+| `accounts/publishers.py` | RabbitMQ event publishing |
+| `accounts/models.py` | ORM models (`Account`, `AccountDetail`, `AccountType`, `DeletedAccount`) |
+| `account_service/urls.py` | Root routing — mounts endpoints under `/v1/accounts/` |
+| `account_service/settings.py` | Django settings, JWT config, Swagger config |
 
-Root routing is defined in `account_service/urls.py` and mounts all endpoints under `/accounts/`.
+---
 
 ## Endpoints
 
-All endpoints are rooted at `/accounts/`.
+All endpoints are rooted at `/v1/accounts/`.
 
-| Method | Endpoint                         | Purpose                            |
-|--------|----------------------------------|------------------------------------|
-| POST   | `/accounts/`                     | Create account                     |
-| PUT    | `/accounts/{guid}/`              | Rename / change account type       |
-| PATCH  | `/accounts/{guid}/`              | Freeze/unfreeze                    |
-| DELETE | `/accounts/{guid}/`              | Soft delete                        |
-| POST   | `/accounts/{guid}/transactions/` | Initiate transfer/withdraw/deposit |
-| POST   | `/accounts/{guid}/exchanges/`    | Initiate currency exchange         |
+| Method | Endpoint | Contract | Auth |
+|---|---|---|---|
+| POST | `/v1/accounts/` | 1 – Create account | JWT required |
+| PATCH | `/v1/accounts/{guid}/` | 2 – Freeze / unfreeze | None |
+| PUT | `/v1/accounts/{guid}/` | 3 – Rename / change type | None |
+| DELETE | `/v1/accounts/{guid}/` | 4 – Soft delete | None |
+| POST | `/v1/accounts/{guid}/transactions/` | 5 – Initiate transaction | None |
+| POST | `/v1/accounts/{guid}/exchanges/` | 6 – Initiate currency exchange | None |
+
+### Swagger UI / OpenAPI
+
+A live Swagger UI is served at `/api/docs/` and the raw OpenAPI 3.0 schema at `/api/schema/`.
+
+---
+
+## Authentication
+
+`POST /v1/accounts/` reads `owner_id` exclusively from a JWT. The token is expected either as:
+- `Authorization: Bearer <token>` header, or
+- `auth_token` cookie (set by `service-auth`)
+
+The JWT must be signed with HS256 using the secret in `JWT_SECRET_KEY`. The `nameid` claim is used as `owner_id`.
+
+---
 
 ## Example request bodies
 
-Create account:
-
+**Create account** (`POST /v1/accounts/`)
 ```json
 {
-   "owner_id": "user-123",
-   "name": "My Savings",
-   "type": "savings"
+  "name": "My Savings",
+  "type": "savings"
 }
 ```
 
-Freeze/unfreeze:
-
+**Freeze / unfreeze** (`PATCH /v1/accounts/{guid}/`)
 ```json
 {
-   "freeze": true
+  "freeze": true
 }
 ```
 
-Rename/change type:
-
+**Rename / change type** (`PUT /v1/accounts/{guid}/`)
 ```json
 {
-   "name": "Daily Account",
-   "type": "checking"
+  "name": "Daily Account",
+  "type": "checking"
 }
 ```
 
-Transaction:
-
+**Transaction** (`POST /v1/accounts/{guid}/transactions/`)
 ```json
 {
-   "amount": "500",
-   "transactionType": "DEPOSIT",
-   "messageId": "550e8400-e29b-41d4-a716-446655440000"
+  "amount": "500",
+  "transactionType": "DEPOSIT",
+  "messageId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+> `transactionType` must be one of: `DEPOSIT`, `WITHDRAW`, `TRANSFER`.  
+> `receiverAccountGuid` is required when `transactionType` is `TRANSFER`.
+
+**Exchange** (`POST /v1/accounts/{guid}/exchanges/`)
+```json
+{
+  "amount": "100",
+  "currency": "EUR",
+  "messageId": "40ff6f1a-3b84-43a6-b440-d15918f5bc64"
 }
 ```
 
-Exchange:
-
-```json
-{
-   "amount": "100",
-   "currency": "EUR",
-   "messageId": "40ff6f1a-3b84-43a6-b440-d15918f5bc64"
-}
-```
+---
 
 ## RabbitMQ publishing
 
-The service publishes events to these exchanges:
+| Exchange | Type | Routing key | Published on |
+|---|---|---|---|
+| `account-exchange-events` | fanout | — | Create, Delete |
+| `synchronize-events` | direct | `synchronize-account-queue` | Create, Freeze, Update, Delete |
+| `ai-service-transaction` | fanout | — | Transaction, Exchange |
 
-- `account-exchange-events` (fanout): account create/delete events
-- `synchronize-events` (direct): account state sync events
-- `ai-service-transaction` (fanout): fraud-check requests for transactions/exchanges
+---
 
-Default routing key used for synchronize events:
+## Database model
 
-- `synchronize-account-queue`
+The service uses an **immutable history pattern** — rows are never mutated or hard-deleted:
 
-## Run locally (dev container)
+- Every state change (rename, freeze) creates a new `AccountDetail` row
+- Deletes create a `DeletedAccount` row; the `Account` row is preserved
+- The current state of an account is always the latest `AccountDetail` by timestamp
 
-1. Reopen the folder in dev container
-2. Run migrations
-3. Start server
+**Tables:** `accounts` · `account_types` · `account_details` · `deleted_accounts`
 
-```bash
-python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
-```
-
-RabbitMQ management UI is available at `http://localhost:15672`.
-
-## Database notes
-
-The service uses immutable account history:
-
-- Updates create a new row in `account_details`
-- Deletes create a row in `deleted_accounts`
-- Rows in `accounts` are not hard-deleted
-
-Useful SQL checks:
-
+Useful SQL:
 ```sql
 SELECT * FROM accounts;
 SELECT * FROM account_types;
 SELECT * FROM account_details ORDER BY timestamp DESC;
 SELECT * FROM deleted_accounts ORDER BY timestamp DESC;
 ```
+
+---
+
+## Running locally (dev container)
+
+1. Open the folder in VS Code and select **Reopen in Container**
+2. In the devcontainer terminal:
+
+```bash
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+```
+
+Port `8000` is forwarded automatically. Open:
+- API: `http://localhost:8000/v1/accounts/`
+- Swagger UI: `http://localhost:8000/api/docs/`
+- RabbitMQ UI: `http://localhost:15672`
+
+---
+
+## Environment variables
+
+| Variable | Description |
+|---|---|
+| `POSTGRES_DB` | Database name |
+| `POSTGRES_USER` | Database user |
+| `POSTGRES_PASSWORD` | Database password |
+| `POSTGRES_HOST` | Database host (default: `db`) |
+| `RABBITMQ_HOST` | RabbitMQ host (default: `localhost`) |
+| `RABBITMQ_PORT` | RabbitMQ port (default: `5672`) |
+| `RABBITMQ_USER` | RabbitMQ user (default: `guest`) |
+| `RABBITMQ_PASSWORD` | RabbitMQ password |
+| `JWT_SECRET_KEY` | HS256 secret used to verify `auth_token` JWTs |
