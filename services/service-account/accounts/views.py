@@ -21,10 +21,9 @@ from accounts.serializers import (
 )
 from accounts.services import DuplicateAccountError
 from django.http import JsonResponse  # type: ignore[import-untyped]
-from django.views.decorators.csrf import csrf_exempt  # type: ignore[import-untyped]
-from django.views.decorators.http import (  # type: ignore[import-untyped]
-    require_http_methods,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema  # type: ignore[import-untyped]
+from rest_framework.decorators import api_view  # type: ignore[import-untyped]
+from rest_framework.request import Request  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -89,9 +88,19 @@ def _get_owner_id_from_jwt(request):
 # /accounts  (POST create)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def account_list(request):
+@extend_schema(
+    summary="Create a new bank account (Contract 1)",
+    request=CreateAccountSerializer,
+    responses={
+        201: AccountResponseSerializer,
+        200: AccountResponseSerializer,
+        400: OpenApiResponse(description="Validation error or invalid JSON"),
+        401: OpenApiResponse(description="Missing or invalid JWT"),
+        409: OpenApiResponse(description="Duplicate account (same owner, name and type)"),
+    },
+)
+@api_view(["POST"])
+def account_list(request: Request):
     """Create a new account (POST)."""
     return _create_account(request)
 
@@ -126,9 +135,36 @@ def _create_account(request):
 # /accounts/<guid>  (GET, PUT, PATCH, DELETE)
 
 
-@csrf_exempt
-@require_http_methods(["PUT", "PATCH", "DELETE"])
-def account_detail(request, guid):
+@extend_schema(
+    methods=["PUT"],
+    summary="Rename or change account type (Contract 3)",
+    request=UpdateAccountSerializer,
+    responses={
+        200: AccountResponseSerializer,
+        400: OpenApiResponse(description="Validation error or invalid JSON"),
+        404: OpenApiResponse(description="Account not found"),
+    },
+)
+@extend_schema(
+    methods=["PATCH"],
+    summary="Freeze or unfreeze an account (Contract 2)",
+    request=FreezeAccountSerializer,
+    responses={
+        200: AccountResponseSerializer,
+        400: OpenApiResponse(description="Validation error or invalid JSON"),
+        404: OpenApiResponse(description="Account not found"),
+    },
+)
+@extend_schema(
+    methods=["DELETE"],
+    summary="Soft-delete an account (Contract 4)",
+    responses={
+        200: OpenApiResponse(description="Account deleted"),
+        404: OpenApiResponse(description="Account not found"),
+    },
+)
+@api_view(["PUT", "PATCH", "DELETE"])
+def account_detail(request: Request, guid):
     """Single-account operations dispatched by HTTP method."""
     try:
         account = services.get_account_by_guid(guid)
@@ -185,9 +221,17 @@ def _delete_account(account):
 # /accounts/<guid>/transactions  (POST)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def account_transactions(request, guid):
+@extend_schema(
+    summary="Initiate a bank transaction (Contract 5)",
+    request=TransactionSerializer,
+    responses={
+        202: OpenApiResponse(description="Transaction initiated"),
+        400: OpenApiResponse(description="Validation error or invalid JSON"),
+        404: OpenApiResponse(description="Account not found"),
+    },
+)
+@api_view(["POST"])
+def account_transactions(request: Request, guid):
     """Initiate a bank transaction (Contract 5)."""
     try:
         account = services.get_account_by_guid(guid)
@@ -221,9 +265,17 @@ def account_transactions(request, guid):
 # /accounts/<guid>/exchanges  (POST)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def account_exchanges(request, guid):
+@extend_schema(
+    summary="Initiate a currency exchange (Contract 6)",
+    request=ExchangeSerializer,
+    responses={
+        202: OpenApiResponse(description="Exchange initiated"),
+        400: OpenApiResponse(description="Validation error or invalid JSON"),
+        404: OpenApiResponse(description="Account not found"),
+    },
+)
+@api_view(["POST"])
+def account_exchanges(request: Request, guid):
     """Initiate a currency exchange request (Contract 6)."""
     try:
         account = services.get_account_by_guid(guid)
