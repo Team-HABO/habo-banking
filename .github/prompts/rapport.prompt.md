@@ -35,10 +35,9 @@ Map your writing to these areas. You don't need to cover all of them — focus o
 1. **ALWAYS Search the codebase first** — find concrete files, configs, code snippets, and architecture decisions that relate to the topic. If unsure, ask for clarification.
 2. **Write in a Danglish student voice** — this is YOUR report, not a textbook. Be specific about what YOU did and learned
 3. **Always connect theory to practice** — don't just explain what a SAGA pattern is, show how it's implemented in this project with file references
-4. **Use the curriculum keywords** — the censor is checking that you hit the learning goals, so be explicit: "This demonstrates _viden_ about designing interfaces between subsystems because..."
-5. **Include code snippets or file references** when they strengthen the argument
-6. **Be honest about trade-offs** — the censor likes when you reflect on what could be better
-7. **Structure each section with**: context → what we did → how it maps to the curriculum → reflection
+4. **Include file references** when they strengthen the argument
+5. **Be honest about trade-offs** — the censor likes when you reflect on what could be better
+6. **Structure each section with**: context → what we did → reflection
 
 ## Format
 
