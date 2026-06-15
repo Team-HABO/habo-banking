@@ -41,7 +41,7 @@ jobs:
           password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: services/${{ env.IMAGE_NAME }}
           platforms: linux/amd64,linux/arm64
