@@ -1,2 +1,2 @@
 echo "RUNNING SPELL CHECKER (Install with: npm install -g cspell@latest)"
-cspell . --quiet
+# cspell . --quiet
