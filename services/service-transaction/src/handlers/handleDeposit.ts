@@ -2,7 +2,7 @@ import { prisma } from "../../prisma/prisma";
 import type { TSynchronizeTransactionPayload, TTransactionPayload } from "../events/transaction";
 import { produceSynchronization } from "../producer";
 import { createAudit, getLatestBalance, updateBalance } from "../repository";
-import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
+import { isTransactionAlreadyProcessed } from "../utils/helper";
 
 export default async function handleDeposit(payload: TTransactionPayload) {
 	console.log("Handling deposit:", payload);
@@ -11,10 +11,6 @@ export default async function handleDeposit(payload: TTransactionPayload) {
 	const message = await prisma.$transaction(async (tx) => {
 		const latestBalance = await getLatestBalance(tx, data.account.guid);
 		if (!latestBalance) return;
-
-		if (isOlderEvent(latestBalance.createdAt, new Date(metadata.messageTimestamp))) {
-			return;
-		}
 
 		// Idempotency
 		if (await isTransactionAlreadyProcessed(metadata.messageId)) {

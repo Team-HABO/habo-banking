@@ -11,9 +11,6 @@ export default async function handleWithdraw(payload: TTransactionPayload) {
 		const latestBalance = await getLatestBalance(tx, data.account.guid);
 		if (!latestBalance) return;
 
-		// If old event, discard.
-		if (latestBalance.createdAt >= new Date(metadata.messageTimestamp)) return;
-
 		// Idempotency, if already processed, discard.
 		const alreadyProcessed = await tx.transactionAudit.findUnique({
 			where: { transactionId: metadata.messageId }

@@ -2,7 +2,7 @@ import { prisma } from "../../prisma/prisma";
 import type { TSynchronizeTransactionPayload, TExchangeProcessedPayload } from "../events/transaction";
 import { produceNotification, produceSynchronization } from "../producer";
 import { createAudit, getLatestBalance, updateBalance } from "../repository";
-import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
+import { isTransactionAlreadyProcessed } from "../utils/helper";
 
 export default async function handleExchange(payload: TExchangeProcessedPayload) {
 	console.log("Handling exchange request from currency service:", payload);
@@ -19,10 +19,6 @@ export default async function handleExchange(payload: TExchangeProcessedPayload)
 	const message = await prisma.$transaction(async (tx) => {
 		const latestBalance = await getLatestBalance(tx, data.accountGuid);
 		if (!latestBalance) return;
-
-		if (isOlderEvent(latestBalance.createdAt, new Date(metadata.messageTimestamp))) {
-			return;
-		}
 
 		// Idempotency
 		if (await isTransactionAlreadyProcessed(metadata.messageId)) {

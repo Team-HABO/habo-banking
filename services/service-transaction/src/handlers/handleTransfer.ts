@@ -2,7 +2,7 @@ import { prisma } from "../../prisma/prisma";
 import type { TSynchronizeTransactionPayload, TTransactionPayload } from "../events/transaction";
 import { produceNotification, produceSynchronization } from "../producer";
 import { createAudit, getLatestBalance, updateBalance } from "../repository";
-import { isTransactionAlreadyProcessed, isOlderEvent } from "../utils/helper";
+import { isTransactionAlreadyProcessed } from "../utils/helper";
 
 export default async function handleTransfer(payload: TTransactionPayload) {
 	console.log("Handling transfer:", payload);
@@ -18,14 +18,6 @@ export default async function handleTransfer(payload: TTransactionPayload) {
 
 		const receiverBalance = await getLatestBalance(tx, data.receiver!.guid);
 		if (!receiverBalance) return;
-
-		// If old event, discard.
-		if (isOlderEvent(senderBalance.createdAt, new Date(metadata.messageTimestamp))) {
-			return;
-		}
-		if (isOlderEvent(receiverBalance.createdAt, new Date(metadata.messageTimestamp))) {
-			return;
-		}
 
 		// Idempotency
 		if (await isTransactionAlreadyProcessed(metadata.messageId)) {
