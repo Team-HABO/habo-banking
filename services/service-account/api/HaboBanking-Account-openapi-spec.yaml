@@ -1,0 +1,637 @@
+openapi: 3.0.3
+
+info:
+    title: HaboBanking Account API
+    version: 1.0.0
+    description: |
+        Command surface for the HaboBanking retail banking platform.
+
+        This is the only inbound path by which an Account Owner changes state. Every operation
+        here either changes an Account directly, or submits an instruction that is screened and
+        executed asynchronously elsewhere in the platform.
+
+        **Asynchronous semantics.** The transaction and exchange operations return `202 Accepted`.
+        Acceptance means the instruction was received and will be screened — it does **not** mean
+        money moved. The outcome is only observable through the query surface (`service-view`)
+        once the Read Model has been updated, or through a Notification if the instruction was
+        refused. Clients must not present acceptance to a customer as completion.
+
+        **Eventual consistency.** Reading back an Account immediately after a successful command
+        may return the previous state. The authoritative record is updated synchronously; the
+        customer-visible projection follows.
+
+        Terminology follows HaboBanking-domain-terms.md. Schemas derive from
+        HaboBanking-domain-concepts.md and HaboBanking-Account-container-architecture.md.
+
+    contact:
+        name: HaboBanking
+    license:
+        name: ISC
+
+    x-status: Draft
+    x-system: HaboBanking
+    x-container: service-account
+    x-domain-path: habobanking.account
+    x-related-documents:
+        user-requirements: HaboBanking-user-requirements.md
+        solution-architecture: HaboBanking-solution-architecture.md
+        container-architecture: HaboBanking-Account-container-architecture.md
+        domain-concepts: HaboBanking-domain-concepts.md
+        domain-terms: HaboBanking-domain-terms.md
+
+    x-conformance-gap: |
+        This specification defines the INTENDED contract. The current implementation deviates
+        from it in ways that are security-critical. Every deviation below is a defect in the
+        implementation, not a defect in this specification.
+
+          1. Six operations declare `sessionCookie` security here but perform NO authentication
+             and NO ownership check in the implementation: update-account, set-account-frozen-state,
+             close-account, initiate-transaction, initiate-exchange. An unauthenticated caller who
+             knows an Account Guid can act on another person's Account, including transferring
+             money out of it. See AR-1 in HaboBanking-solution-architecture.md and CR-ACC-1 in
+             HaboBanking-Account-container-architecture.md.
+          2. `403 Forbidden` is specified on every owned-resource operation but is never returned,
+             because ownership is never evaluated.
+          3. A frozen Account is specified to refuse money movement (`409 Conflict`). The rule is
+             recorded and projected but enforced nowhere. See AR-12.
+          4. Closing an Account holding funds is specified to be refused (`409 Conflict`). The
+             implementation permits it and the funds are stranded. See CR-ACC-4.
+
+servers:
+    - url: http://localhost:8000
+      description: Local development
+    - url: http://service-account.habo-banking.svc.cluster.local:8000
+      description: In-cluster
+
+tags:
+    - name: Accounts
+      description: Account lifecycle — opening, changing and closing an Account
+    - name: Money Movement
+      description: Instructions that move money, submitted for screening and asynchronous execution
+
+security:
+    - sessionCookie: []
+
+paths:
+    /v1/accounts/:
+        post:
+            operationId: open-account
+            summary: Open an Account
+            description: |
+                Brings a new Account into existence for the authenticated Account Owner, with a Balance
+                of zero. The Account is immediately usable.
+
+                **Idempotent.** The client generates the Account Guid before submitting. Re-submitting
+                the same Account Guid returns the original Account rather than opening a second one,
+                so a retried request is safe.
+
+                **Distributed operation.** The Account and its Balance are established by two separate
+                authorities. If the Balance cannot be created the Account is automatically closed by
+                Compensation, and the Account Owner will simply never see it. No Notification is raised
+                in that case.
+            tags: [Accounts]
+            x-use-case: UC-AO-002
+            x-component: habobanking.account.accountlifecycleservice
+            x-action: OpenAccount
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OpenAccountRequest'
+            responses:
+                '201':
+                    description: Account opened
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Account'
+                '200':
+                    description: |
+                        Account already exists with this Account Guid. The original Account is returned
+                        unchanged — this is the idempotent repeat path, not an error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Account'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '409':
+                    description: |
+                        The Account Owner already holds a live Account with both the same name and the
+                        same Account Type. Such Accounts would be indistinguishable to the owner.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+    /v1/accounts/{accountGuid}/:
+        parameters:
+            - $ref: '#/components/parameters/AccountGuid'
+
+        put:
+            operationId: update-account
+            summary: Rename or reclassify an Account
+            description: |
+                Changes the Account's name, its Account Type, or both. Identity, Balance and Audit
+                history are all preserved, and the previous state is retained in the Account's history.
+
+                The same duplicate rule as opening applies: the resulting name and Account Type
+                combination must not collide with another live Account of the same owner.
+            tags: [Accounts]
+            x-use-case: [UC-AO-003, UC-AO-004]
+            x-component: habobanking.account.accountlifecycleservice
+            x-action: [RenameAccount, ReclassifyAccount]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateAccountRequest'
+            responses:
+                '200':
+                    description: Account updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Account'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/AccountNotFound'
+                '409':
+                    description: The change would collide with another live Account of the same name and Account Type.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+        patch:
+            operationId: set-account-frozen-state
+            summary: Freeze or unfreeze an Account
+            description: |
+                Sets whether the Account is immobilised. Freezing signals that money should not move
+                through the Account; it is reversible and preserves the Balance and all history.
+
+                Setting the state it already holds is accepted and has no further effect.
+            tags: [Accounts]
+            x-use-case: [UC-AO-005, UC-AO-006]
+            x-component: habobanking.account.accountlifecycleservice
+            x-action: SetFrozenState
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SetFrozenStateRequest'
+            responses:
+                '200':
+                    description: Frozen state updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Account'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/AccountNotFound'
+
+        delete:
+            operationId: close-account
+            summary: Close an Account
+            description: |
+                Ends the Account's usable life. The Account disappears from the Account Owner's view,
+                but every Account Detail, Balance Detail and Audit is permanently retained — nothing
+                is physically erased.
+
+                **Irreversible.** A closed Account cannot be reopened, renamed or refrozen.
+
+                An Account still holding funds must not be closed, since the platform has no path to
+                return stranded money.
+            tags: [Accounts]
+            x-use-case: UC-AO-007
+            x-component: habobanking.account.accountlifecycleservice
+            x-action: CloseAccount
+            responses:
+                '204':
+                    description: Account closed. Closing an already-closed Account also returns this.
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/AccountNotFound'
+                '409':
+                    description: The Account still holds a non-zero Balance and cannot be closed.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+    /v1/accounts/{accountGuid}/transactions/:
+        parameters:
+            - $ref: '#/components/parameters/AccountGuid'
+        post:
+            operationId: initiate-transaction
+            summary: Initiate a Deposit, Withdrawal or Transfer
+            description: |
+                Submits an instruction to move money. The instruction is screened for fraud before it
+                can affect any Balance, then executed asynchronously.
+
+                **This returns `202 Accepted`, not a result.** Acceptance means the instruction was
+                received and will be screened. It may still be blocked as fraudulent, or refused for
+                insufficient funds. Neither outcome is reported through this response — the customer
+                learns of a refusal by Notification, and of success by the Balance changing in the
+                query surface.
+
+                **Idempotent downstream.** The client generates the Message Id before submitting.
+                Re-submitting the same Message Id causes the money to move exactly once, so a retried
+                request is safe.
+
+                A Transfer requires a receiver Account. A Deposit and a Withdrawal must not name one.
+            tags: [Money Movement]
+            x-use-case: [UC-AO-008, UC-AO-009, UC-AO-010]
+            x-component: habobanking.account.transactionintentservice
+            x-action: InitiateTransaction
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TransactionRequest'
+            responses:
+                '202':
+                    description: |
+                        Instruction accepted for screening and execution. This is not confirmation that
+                        money moved.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InstructionAccepted'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    description: The Account, or the named receiver Account, does not exist.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+                '409':
+                    description: The Account is frozen and money must not move through it.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+    /v1/accounts/{accountGuid}/exchanges/:
+        parameters:
+            - $ref: '#/components/parameters/AccountGuid'
+        post:
+            operationId: initiate-exchange
+            summary: Initiate a Currency Exchange
+            description: |
+                Submits an instruction to convert an amount of the Account's Balance from the Base
+                Currency into a Target Currency, at whatever rate prevails at the moment of conversion.
+
+                As with a Transaction, this returns `202 Accepted` and the outcome is asynchronous. The
+                exchange may still be blocked as fraudulent, refused for insufficient funds, or fail
+                because no rate could be obtained for the requested Target Currency.
+
+                **The platform holds no list of supported currencies.** Whether a Target Currency is
+                supported is discovered only when the external Rate Provider is asked, so an
+                unsupported currency is reported asynchronously by Notification rather than rejected
+                here.
+            tags: [Money Movement]
+            x-use-case: UC-AO-011
+            x-component: habobanking.account.transactionintentservice
+            x-action: InitiateExchange
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ExchangeRequest'
+            responses:
+                '202':
+                    description: Instruction accepted for screening and execution.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InstructionAccepted'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/AccountNotFound'
+                '409':
+                    description: The Account is frozen and money must not move through it.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+components:
+    securitySchemes:
+        sessionCookie:
+            type: apiKey
+            in: cookie
+            name: auth_token
+            description: |
+                Session credential issued by `service-auth` after delegated authentication, delivered
+                as a cookie that scripts cannot read.
+
+                The credential carries the Account Owner identity and **no role or permission claims**,
+                because the platform recognises exactly one human role. Authorization is therefore
+                entirely ownership scoping: an operation must act only on Accounts belonging to the
+                asserted identity.
+
+                The credential is short-lived and cannot be refreshed or revoked. See CR-AUTH-1 and
+                CR-AUTH-2 in HaboBanking-Auth-container-architecture.md.
+
+    parameters:
+        AccountGuid:
+            name: accountGuid
+            in: path
+            required: true
+            description: Identity of the Account being acted upon.
+            schema:
+                type: string
+                format: uuid
+            example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+    responses:
+        BadRequest:
+            description: The request was malformed or failed validation.
+            content:
+                application/problem+json:
+                    schema:
+                        $ref: '#/components/schemas/ProblemDetails'
+        Unauthorized:
+            description: No valid session credential was presented.
+            content:
+                application/problem+json:
+                    schema:
+                        $ref: '#/components/schemas/ProblemDetails'
+        Forbidden:
+            description: |
+                The authenticated Account Owner does not own this Account.
+
+                **Not currently returned by the implementation** — ownership is never evaluated. See
+                the conformance gap in this document.
+            content:
+                application/problem+json:
+                    schema:
+                        $ref: '#/components/schemas/ProblemDetails'
+        AccountNotFound:
+            description: |
+                No live Account exists with this Account Guid. A closed Account is reported the same
+                way, and so is an Account belonging to another owner — no distinction is drawn, which
+                is the correct disclosure behaviour.
+            content:
+                application/problem+json:
+                    schema:
+                        $ref: '#/components/schemas/ProblemDetails'
+
+    schemas:
+        AccountType:
+            type: string
+            description: |
+                The classification describing an Account's banking purpose. Exactly three values are
+                permitted.
+            enum: [checking, savings, pension]
+            x-domain-concept: Account Type
+            x-ca-attribute: habobanking.account.accountrepository/AccountDetail.accountType
+
+        TransactionType:
+            type: string
+            description: |
+                The classification of a Transaction, determining how Balances are affected. `TRANSFER`
+                is the only value requiring a receiver Account.
+            enum: [DEPOSIT, WITHDRAW, TRANSFER]
+            x-domain-concept: Transaction Type
+            x-ca-attribute: habobanking.transaction.ledgerrepository/Audit.transactionType
+
+        Amount:
+            type: string
+            pattern: '^\d+(\.\d{1,2})?$'
+            description: |
+                A monetary amount in the Base Currency, expressed as a decimal string to avoid
+                floating-point representation error in transport. Must be greater than zero.
+            example: '1500.00'
+            x-domain-concept: Balance Detail
+            x-ca-attribute: habobanking.transaction.ledgerrepository/BalanceDetail.amount
+
+        OpenAccountRequest:
+            type: object
+            description: Instruction to open a new Account.
+            required: [accountGuid, name, type]
+            properties:
+                accountGuid:
+                    type: string
+                    format: uuid
+                    description: |
+                        Client-generated identity for the new Account. Generating this before submission
+                        is what makes opening idempotent across retries.
+                    x-ca-attribute: habobanking.account.accountrepository/Account.accountGuid
+                name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                    description: The Account Owner's own label for the Account. Participates in the duplicate rule.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.name
+                type:
+                    $ref: '#/components/schemas/AccountType'
+            example:
+                accountGuid: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                name: Everyday spending
+                type: checking
+
+        UpdateAccountRequest:
+            type: object
+            description: Instruction to rename an Account, reclassify it, or both.
+            required: [name, type]
+            properties:
+                name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                    description: The new label for the Account.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.name
+                type:
+                    $ref: '#/components/schemas/AccountType'
+            example:
+                name: Holiday fund
+                type: savings
+
+        SetFrozenStateRequest:
+            type: object
+            description: Instruction to freeze or unfreeze an Account.
+            required: [freeze]
+            properties:
+                freeze:
+                    type: boolean
+                    description: |
+                        True to immobilise the Account, false to restore normal money movement.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.isFrozen
+            example:
+                freeze: true
+
+        TransactionRequest:
+            type: object
+            description: |
+                Instruction to move money. A Transfer must name a receiver Account; a Deposit and a
+                Withdrawal must not.
+            required: [messageId, transactionType, amount]
+            properties:
+                messageId:
+                    type: string
+                    format: uuid
+                    description: |
+                        Client-generated identity for this instruction. Re-submitting the same value causes
+                        the money to move exactly once, which is what makes a retry safe.
+                    x-domain-concept: Message Id
+                    x-ca-attribute: habobanking.transaction.ledgerrepository/Audit.transactionId
+                transactionType:
+                    $ref: '#/components/schemas/TransactionType'
+                amount:
+                    $ref: '#/components/schemas/Amount'
+                receiverAccountGuid:
+                    type: string
+                    format: uuid
+                    description: |
+                        The Account to credit. Required when `transactionType` is `TRANSFER`, and must be
+                        absent otherwise.
+                    x-ca-attribute: habobanking.account.accountrepository/Account.accountGuid
+            example:
+                messageId: 9f1c2d3e-4b5a-6789-abcd-ef0123456789
+                transactionType: TRANSFER
+                amount: '250.00'
+                receiverAccountGuid: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+
+        ExchangeRequest:
+            type: object
+            description: Instruction to convert an amount from the Base Currency into a Target Currency.
+            required: [messageId, amount, currency]
+            properties:
+                messageId:
+                    type: string
+                    format: uuid
+                    description: Client-generated identity for this instruction, making retries safe.
+                    x-domain-concept: Message Id
+                    x-ca-attribute: habobanking.transaction.ledgerrepository/Audit.transactionId
+                amount:
+                    $ref: '#/components/schemas/Amount'
+                currency:
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    description: |
+                        The Target Currency to convert into, as a three-letter code. Not validated against
+                        any list — support is determined by whether the external Rate Provider quotes it.
+                    example: USD
+                    x-domain-concept: Target Currency
+            example:
+                messageId: 1a2b3c4d-5e6f-7890-abcd-ef0123456789
+                amount: '1000.00'
+                currency: USD
+
+        Account:
+            type: object
+            description: |
+                An Account as currently held. The mutable attributes reflect the newest Account Detail;
+                earlier states are retained but are not exposed through this API.
+            required: [accountGuid, name, type, isFrozen, timestamp]
+            properties:
+                accountGuid:
+                    type: string
+                    format: uuid
+                    description: Identity of the Account.
+                    x-ca-attribute: habobanking.account.accountrepository/Account.accountGuid
+                name:
+                    type: string
+                    maxLength: 255
+                    description: The Account Owner's label for the Account.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.name
+                type:
+                    $ref: '#/components/schemas/AccountType'
+                isFrozen:
+                    type: boolean
+                    description: Whether money movement through the Account is intended to be immobilised.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.isFrozen
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: When the current state came into effect.
+                    x-ca-attribute: habobanking.account.accountrepository/AccountDetail.timestamp
+            example:
+                accountGuid: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                name: Everyday spending
+                type: checking
+                isFrozen: false
+                timestamp: '2026-08-26T09:15:00Z'
+
+        InstructionAccepted:
+            type: object
+            description: |
+                Acknowledgement that an instruction was received and will be screened. It carries no
+                outcome, because none exists yet.
+            required: [messageId, status]
+            properties:
+                messageId:
+                    type: string
+                    format: uuid
+                    description: The Message Id supplied by the client, echoed for correlation.
+                status:
+                    type: string
+                    enum: [accepted]
+                    description: Always `accepted`. Present to make the asynchronous semantics explicit to clients.
+            example:
+                messageId: 9f1c2d3e-4b5a-6789-abcd-ef0123456789
+                status: accepted
+
+        ProblemDetails:
+            type: object
+            description: Error representation, following RFC 7807.
+            required: [title, status]
+            properties:
+                type:
+                    type: string
+                    format: uri
+                    description: Identifier for the problem type.
+                    default: about:blank
+                title:
+                    type: string
+                    description: Short human-readable summary of the problem.
+                status:
+                    type: integer
+                    format: int32
+                    description: HTTP status code.
+                detail:
+                    type: string
+                    description: Human-readable explanation specific to this occurrence.
+                instance:
+                    type: string
+                    format: uri
+                    description: Identifier for this specific occurrence.
+            example:
+                type: about:blank
+                title: Account not found
+                status: 404
+                detail: No live Account exists with the supplied Account Guid.

@@ -1,0 +1,271 @@
+openapi: 3.0.3
+
+info:
+    title: HaboBanking Auth API
+    version: 1.0.0
+    description: |
+        Authentication boundary for the HaboBanking retail banking platform.
+
+        This service never sees a password. Authentication is delegated to an external Identity
+        Provider, and this API's only job is to turn a successful external assertion into a
+        session credential the rest of the platform recognises.
+
+        **Browser-mediated, not a machine API.** Sign-in is a redirect flow: the browser is sent
+        to the Identity Provider, authenticates there, and is redirected back to the callback
+        operation. These operations are meant to be navigated to, not called programmatically,
+        and their responses are redirects rather than payloads.
+
+        **Stateless.** There is no user store and no session store. Nothing records that any
+        particular person authenticated. The consequence is that an issued credential cannot be
+        revoked before it expires.
+
+        Terminology follows HaboBanking-domain-terms.md. Behaviour derives from
+        HaboBanking-Auth-container-architecture.md.
+
+    contact:
+        name: HaboBanking
+    license:
+        name: ISC
+
+    x-status: Draft
+    x-system: HaboBanking
+    x-container: service-auth
+    x-domain-path: habobanking.auth
+    x-related-documents:
+        user-requirements: HaboBanking-user-requirements.md
+        solution-architecture: HaboBanking-solution-architecture.md
+        container-architecture: HaboBanking-Auth-container-architecture.md
+        domain-concepts: HaboBanking-domain-concepts.md
+        domain-terms: HaboBanking-domain-terms.md
+
+    x-conformance-gap: |
+        This specification matches the current implementation's behaviour. The gaps below are
+        design limitations rather than deviations, and are recorded so consumers of this contract
+        understand what it does not offer.
+
+          1. No token refresh or renewal operation exists. The credential is short-lived and a
+             customer part-way through work can be interrupted with no warning. See CR-AUTH-2.
+          2. Sign-out clears the browser's copy of the credential only. The credential itself
+             remains valid until it expires, so it cannot be revoked. See CR-AUTH-1.
+          3. The credential names the account and balance surfaces as intended audiences, but
+             `service-account` does not verify it on six operations. The intent expressed by this
+             contract is not honoured downstream. See CR-AUTH-3 and AR-1.
+          4. No authentication event is recorded anywhere — there is no audit trail of access to
+             set against the platform's otherwise thorough audit trail of money movement. See
+             CR-AUTH-6.
+
+servers:
+    - url: http://localhost:8080
+      description: Local development
+    - url: http://service-auth.habo-banking.svc.cluster.local:8080
+      description: In-cluster
+
+tags:
+    - name: Authentication
+      description: Establishing and ending a session
+    - name: Operations
+      description: Container health, for orchestration rather than for business actors
+
+paths:
+    /api/auth/tokens:
+        post:
+            operationId: initiate-sign-in
+            summary: Begin delegated authentication
+            description: |
+                Starts the authentication exchange by redirecting the browser to the external Identity
+                Provider.
+
+                **Navigate, do not call.** The response is a redirect intended for a browser to follow.
+                The client submits a form to this operation rather than issuing a background request,
+                because a background request cannot follow a cross-origin authentication redirect.
+
+                No credentials are accepted here, and none are ever received by this platform.
+            tags: [Authentication]
+            security: []
+            x-use-case: UC-AO-001
+            x-component: habobanking.auth.federatedsigninhandler
+            x-action: InitiateSignIn
+            responses:
+                '302':
+                    description: Redirect to the Identity Provider to authenticate.
+                    headers:
+                        Location:
+                            description: The Identity Provider's authorisation endpoint.
+                            schema:
+                                type: string
+                                format: uri
+
+    /api/auth/google-response:
+        get:
+            operationId: complete-sign-in
+            summary: Receive the identity assertion and establish a session
+            description: |
+                Callback invoked by the Identity Provider once the person has authenticated. The
+                assertion is examined, and if it carries both an identity and an email address a
+                session credential is minted and returned to the browser as a cookie that scripts
+                cannot read.
+
+                **Called by the Identity Provider, not by the client.** It is listed here because it
+                forms part of the contract, not because an application should invoke it.
+
+                The asserted identity becomes the owner identifier on every Account the person holds,
+                and the asserted email address is where their Notifications would be sent — see
+                AR-11 for why, currently, they are not.
+            tags: [Authentication]
+            security: []
+            x-use-case: [UC-AO-001, UC-IDP-001]
+            x-component: habobanking.auth.sessiontokenissuer
+            x-action: CompleteSignIn
+            responses:
+                '302':
+                    description: |
+                        Session established. The browser is redirected to the signed-in view with the
+                        session credential set.
+                    headers:
+                        Location:
+                            description: The signed-in destination in the client application.
+                            schema:
+                                type: string
+                                format: uri
+                        Set-Cookie:
+                            description: |
+                                The session credential, delivered so that scripts cannot read it and it is
+                                only sent over a secure connection. Short-lived, with no renewal.
+                            schema:
+                                type: string
+                '400':
+                    description: |
+                        The assertion was incomplete — it lacked an identity or an email address, both of
+                        which are required.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+                '401':
+                    description: The delegated authentication exchange did not succeed.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/ProblemDetails'
+
+    /api/auth/logout:
+        post:
+            operationId: sign-out
+            summary: End the browser session
+            description: |
+                Clears the session credential from the browser.
+
+                **This does not revoke the credential.** The platform holds no session state, so a
+                credential already issued remains valid until it expires. Anyone holding a copy can
+                continue to use it. The short lifetime bounds that exposure but does not remove it.
+
+                Always succeeds — clearing an absent credential is harmless.
+            tags: [Authentication]
+            security: []
+            x-use-case: UC-AO-001
+            x-component: habobanking.auth.sessioncookiewriter
+            x-action: SignOut
+            responses:
+                '200':
+                    description: The browser's copy of the credential has been cleared.
+                    headers:
+                        Set-Cookie:
+                            description: The session credential, expired.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SignOutResult'
+
+    /health:
+        get:
+            operationId: report-health
+            summary: Report container liveness
+            description: |
+                Reports whether the container is running. Intended for orchestration.
+
+                Maps to no use case: it serves operators, and the platform defines no operator role.
+                This is the same acknowledged exception recorded against the observability container
+                in HaboBanking-solution-architecture.md.
+            tags: [Operations]
+            security: []
+            x-use-case: none
+            x-component: habobanking.auth.healthendpoint
+            x-action: ReportHealth
+            responses:
+                '200':
+                    description: The container is running.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/HealthStatus'
+
+components:
+    securitySchemes:
+        sessionCookie:
+            type: apiKey
+            in: cookie
+            name: auth_token
+            description: |
+                The session credential this service issues. Defined here for reference; no operation
+                in this API requires it, since all four either establish a session, end one, or report
+                health.
+
+                The credential carries the Account Owner identity and email address, names this
+                service as issuer and the account and balance surfaces as intended audiences, and
+                carries no role or permission claims.
+
+    schemas:
+        SignOutResult:
+            type: object
+            description: Confirmation that the browser's session credential was cleared.
+            required: [message]
+            properties:
+                message:
+                    type: string
+                    description: Human-readable confirmation.
+            example:
+                message: Signed out.
+
+        HealthStatus:
+            type: object
+            description: Liveness report for orchestration.
+            required: [status]
+            properties:
+                status:
+                    type: string
+                    enum: [healthy]
+                    description: Always `healthy` when the container is able to respond at all.
+            example:
+                status: healthy
+
+        ProblemDetails:
+            type: object
+            description: Error representation, following RFC 7807.
+            required: [title, status]
+            properties:
+                type:
+                    type: string
+                    format: uri
+                    description: Identifier for the problem type.
+                    default: about:blank
+                title:
+                    type: string
+                    description: Short human-readable summary of the problem.
+                status:
+                    type: integer
+                    format: int32
+                    description: HTTP status code.
+                detail:
+                    type: string
+                    description: Human-readable explanation specific to this occurrence.
+                instance:
+                    type: string
+                    format: uri
+                    description: Identifier for this specific occurrence.
+            example:
+                type: about:blank
+                title: Incomplete identity assertion
+                status: 400
+                detail: The assertion did not carry an email address.
